@@ -1,13 +1,16 @@
-    const express = require('express');
-    const app = express();
-    const port = 3000;
+const express = require("express");
+const userRoutes = require("./routes/userRoutes");
+const { errorHandler } = require("./middleware/errorHandler");
 
-    // Define a route for the root URL
-    app.get('/', (req, res) => {
-      res.send('Hello from your Express App!');
-    });
+const app = express();
 
-    // Start the server and listen on the specified port
-    app.listen(port, () => {
-      console.log(`Express app listening at http://localhost:${port}`);
-    });
+// JSON middleware
+app.use(express.json());
+
+// Mount routes
+app.use("/api/users", userRoutes);
+
+// Error handler
+app.use(errorHandler);
+
+module.exports = app;
