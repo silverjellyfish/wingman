@@ -1,17 +1,16 @@
-// src/app.js
 const express = require("express");
-const routes = require("./routes");
+const userRoutes = require("./routes/userRoutes");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
-// middleware
+// JSON middleware
 app.use(express.json());
 
-// register routes
-app.use("/api", routes);
+// Mount routes
+app.use("/api/users", userRoutes);
 
-// error handler (last)
+// Error handler
 app.use(errorHandler);
 
 module.exports = app;
