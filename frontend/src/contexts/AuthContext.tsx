@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { User, AuthContextType } from '@/types';
 import { auth } from '@/lib/firebase';
 import {
@@ -7,8 +7,9 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
-  User as FirebaseUser,
 } from 'firebase/auth';
+
+import type { User as FirebaseUser } from 'firebase/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

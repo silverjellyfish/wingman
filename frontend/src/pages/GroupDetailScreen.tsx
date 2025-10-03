@@ -6,7 +6,7 @@ interface GroupDetailScreenProps {
   onLeaveGroup: () => void;
 }
 
-export function GroupDetailScreen({ onNavigate, onJoinGroup, onLeaveGroup }: GroupDetailScreenProps) {
+export function GroupDetailScreen({ onNavigate, onLeaveGroup }: GroupDetailScreenProps) {
   const group = {
     id: 1,
     destination: 'Nashville Airport',

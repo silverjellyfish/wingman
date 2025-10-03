@@ -12,4 +12,9 @@ router.get("/", (req, res) => {
 // sub-routes
 router.use("/users", userRoutes);
 
+/*
+router.use("/flights", flightRoutes);
+router.use("/groups", groupRoutes);
+router.use("/auth", authRoutes);
+*/
 module.exports = router;

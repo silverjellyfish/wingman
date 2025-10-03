@@ -11,7 +11,8 @@ export function GroupMatchingScreen({ onNavigate, onJoinGroup }: GroupMatchingSc
     { id: 2, destination: 'Nashville Airport', time: '3:30 PM', members: 2, maxMembers: 4 },
   ];
 
-  const handleJoinGroup = (groupId: number) => {
+  // deleted onjoingroup
+  const handleJoinGroup = () => {
     onJoinGroup();
   };
 
@@ -38,8 +39,9 @@ export function GroupMatchingScreen({ onNavigate, onJoinGroup }: GroupMatchingSc
                 {group.members}/{group.maxMembers}
               </span>
             </div>
+            {/*  */}
             <button
-              onClick={() => handleJoinGroup(group.id)}
+              onClick={() => handleJoinGroup()}
               className="w-full bg-white text-black py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
             >
               Join Group
