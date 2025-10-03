@@ -1,15 +1,14 @@
 const mongoose = require("mongoose");
 
-// TODO: DEFINE BETTER
-
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
-  passwordHash: { type: String, required: true },
   university: { type: String, required: true },
-  // do we want to change this to just m | f | o ?
+  age: { type: Number, required: true },
   gender: { type: String, enum: ["male", "female", "other"] },
   emergencyContact: { type: String },
+  activeFlights: [{ type: mongoose.Schema.Types.ObjectId, ref: "Flight" }],
   createdAt: { type: Date, default: Date.now },
 });
 
