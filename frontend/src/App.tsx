@@ -104,8 +104,8 @@ function AuthenticatedApp() {
    };
 
    return (
-      <div className="min-h-screen w-full bg-[#16161b]">
-         <div className="mx-auto max-w-[393px] h-screen">{renderScreen()}</div>
+      <div className="min-h-screen w-screen bg-[#16161b] flex items-center justify-center">
+         <div className="max-w-[393px] w-screen h-screen">{renderScreen()}</div>
       </div>
    );
 }
