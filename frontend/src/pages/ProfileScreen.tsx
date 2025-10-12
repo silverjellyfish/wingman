@@ -4,6 +4,7 @@ import { Input } from "../components/ui/input.tsx";
 import { Label } from "../components/ui/label.tsx";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { BottomNavigation } from "../components/layout/BottomNavigation";
+import { useAuth } from "../contexts/AuthContext";
 import imgAvatar from "../assets/images/avatar.png";
 
 type Screen =
@@ -24,6 +25,7 @@ interface ProfileScreenProps {
 }
 
 export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
+   const { logout } = useAuth();
    const [isEditing, setIsEditing] = useState(false);
    const [name] = useState("Vince Lin");
    const [username] = useState("@vincelin");
@@ -278,6 +280,18 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                         disabled={!isEditing}
                      />
                   </div>
+
+                  {/* Logout Button */}
+                  <Button
+                     onClick={() => {
+                        logout();
+                        onNavigate("ride");
+                     }}
+                     className="w-full mt-4"
+                     variant="destructive"
+                  >
+                     Logout
+                  </Button>
                </div>
             </div>
          </div>
