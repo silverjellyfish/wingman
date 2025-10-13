@@ -18,6 +18,7 @@ function calculateDistanceInMiles(loc1, loc2) {
 }
 
 // right now only matches based on time buffer and distance
+// TODO: add gender matching
 function findMatchingPods(userSpec, pods) {
     const { earliestArrivalTime, latestArrivalTime, pickupLocation } = userSpec;
     if (!pickupLocation || !latestArrivalTime || !earliestArrivalTime || pickupLocation.coordinates.length !== 2) {
