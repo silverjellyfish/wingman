@@ -152,33 +152,33 @@ export function RegisterPage({ onNavigateToLogin }: RegisterPageProps) {
                         {error}
                      </div>
                   )}
-               </form>
 
-               {/* Submit Button */}
-               <div className="content-stretch flex flex-col gap-[2px] items-start relative w-full">
-                  <Button
-                     type="submit"
-                     className="w-full mt-4"
-                     disabled={isLoading}
-                  >
-                     {isLoading ? "Creating account..." : "Create account"}
-                  </Button>
-
-                  {/* Sign In Link */}
-                  <div className="text-center text-sm w-full">
-                     <span className="text-zinc-400">
-                        Already have an account?{" "}
-                     </span>
-                     <button
-                        type="button"
-                        onClick={onNavigateToLogin}
-                        className="text-white hover:underline"
-                        style={{ fontWeight: 600 }}
+                  {/* Submit Button */}
+                  <div className="content-stretch flex flex-col gap-[2px] items-start relative w-full pt-[80px]">
+                     <Button
+                        type="submit"
+                        className="w-full mt-4"
+                        disabled={isLoading}
                      >
-                        Sign in
-                     </button>
+                        {isLoading ? "Creating account..." : "Create account"}
+                     </Button>
+
+                     {/* Sign In Link */}
+                     <div className="text-center text-sm w-full">
+                        <span className="text-zinc-400">
+                           Already have an account?{" "}
+                        </span>
+                        <button
+                           type="button"
+                           onClick={onNavigateToLogin}
+                           className="text-white hover:underline"
+                           style={{ fontWeight: 600 }}
+                        >
+                           Sign in
+                        </button>
+                     </div>
                   </div>
-               </div>
+               </form>
             </div>
          </div>
       </div>
