@@ -3,14 +3,6 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { RideScreen } from "@/pages/RideScreen";
-import { FlightInputScreen } from "@/pages/FlightInputScreen";
-import { FlightDateScreen } from "@/pages/FlightDateScreen";
-import { LoadingScreen } from "@/pages/LoadingScreen";
-import { GroupMatchingScreen } from "@/pages/GroupMatchingScreen";
-import { FlightResultsScreen } from "@/pages/FlightResultsScreen";
-import { FlightPreferencesScreen } from "@/pages/FlightPreferencesScreen";
-import { GroupDetailScreen } from "@/pages/GroupDetailScreen";
-import { RideScreenWithGroup } from "@/pages/RideScreenWithGroup";
 import { TripScreen } from "@/pages/TripScreen";
 import { ProfileScreen } from "@/pages/ProfileScreen";
 import "./App.css";
@@ -57,38 +49,6 @@ function AuthenticatedApp() {
                   hasJoinedGroup={hasJoinedGroup}
                />
             );
-         case "flightInput":
-            return <FlightInputScreen onNavigate={navigateTo} />;
-         case "flightDate":
-            return <FlightDateScreen onNavigate={navigateTo} />;
-         case "loading":
-            return <LoadingScreen onNavigate={navigateTo} />;
-         case "groupMatching":
-            return (
-               <GroupMatchingScreen
-                  onNavigate={navigateTo}
-                  onJoinGroup={handleJoinGroup}
-               />
-            );
-         case "flightResults":
-            return <FlightResultsScreen onNavigate={navigateTo} />;
-         case "flightPreferences":
-            return <FlightPreferencesScreen onNavigate={navigateTo} />;
-         case "groupDetail":
-            return (
-               <GroupDetailScreen
-                  onNavigate={navigateTo}
-                  onJoinGroup={handleJoinGroup}
-                  onLeaveGroup={handleLeaveGroup}
-               />
-            );
-         case "rideWithGroup":
-            return (
-               <RideScreenWithGroup
-                  onNavigate={navigateTo}
-                  onLeaveGroup={handleLeaveGroup}
-               />
-            );
          case "trip":
             return <TripScreen onNavigate={navigateTo} />;
          case "profile":
@@ -104,8 +64,8 @@ function AuthenticatedApp() {
    };
 
    return (
-      <div className="min-h-screen w-full bg-[#16161b]">
-         <div className="mx-auto max-w-[393px] h-screen">{renderScreen()}</div>
+      <div className="min-h-screen w-screen bg-[#16161b] flex items-center justify-center">
+         <div className="max-w-[393px] w-screen h-screen">{renderScreen()}</div>
       </div>
    );
 }
