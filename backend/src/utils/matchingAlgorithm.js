@@ -4,7 +4,7 @@ function calculateDistanceInMiles(loc1, loc2) {
     const toRad = (value) => (value * Math.PI) / 180;
     const EARTH_RADIUS_MILES = 3958.8;
 
-    // depending on what loc1 and loc2 are, you might need to change
+    // depending on what loc1 and loc2 are, might need to change
     const latDiff = toRad(loc2.latitude - loc1.latitude);
     const lonDiff = toRad(loc2.longitude - loc1.longitude);
 

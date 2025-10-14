@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+// TODO: WHAT IS THIS
 const Notification = require("../models/Notification"); // Optional model
 
 // GET /notifications?unread=true
