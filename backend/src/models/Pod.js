@@ -1,3 +1,5 @@
+// Contributors: Michelle
+
 const mongoose = require("mongoose");
 
 const podSchema = new mongoose.Schema({

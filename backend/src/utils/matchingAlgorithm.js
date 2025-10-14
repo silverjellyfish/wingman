@@ -1,3 +1,5 @@
+// Contributors: Michelle
+
 const MAX_DISTANCE_MILES = 2;
 
 function calculateDistanceInMiles(loc1, loc2) {

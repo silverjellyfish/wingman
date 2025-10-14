@@ -1,3 +1,5 @@
+// Contributors: Michelle
+
 const mongoose = require("mongoose");
 
 // TODO: DEFINE BETTER

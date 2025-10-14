@@ -1,3 +1,5 @@
+// Contributors: Michelle
+
 function errorHandler(err, req, res, next) {
     // Log the error
     console.error(err.stack);
