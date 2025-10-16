@@ -1,0 +1,34 @@
+App Structure & Navigation
+The app uses a state-based navigation system, all contained within a mobile-first 393×852px viewport with a dark theme. The main navigation flow follows this pattern:
+
+Core User Journey:
+RideScreen - Main landing page where users can search for flights or view existing groups
+FlightInputScreen → FlightDateScreen → LoadingScreen → GroupMatchingScreen - Flight search and matching flow
+FlightResultsScreen & FlightPreferencesScreen - Additional search options
+GroupDetailScreen - Detailed view of specific rideshare groups
+RideScreenWithGroup - Modified main screen when user has joined a group
+TripScreen - Trip history with avatar stacking for group members
+ProfileScreen - User profile with full edit functionality
+
+Design System
+Colors: Primary background `#16161b`, secondary surfaces `#28282d`
+Typography: Geist font family with custom weight variables (medium: 500, normal: 400)
+Theme: Comprehensive dark mode design with careful contrast ratios
+Layout: Mobile-first responsive design optimized for iPhone 14 Pro dimensions
+
+Key Features & Interactions
+Flight-based matching: Users input flight details to find other passengers
+Smart group management: Join/leave functionality with toast notifications
+Location coordination: Predefined Vanderbilt University pickup/dropoff points
+State persistence: App remembers if user has joined a group across navigation
+Interactive navigation: Bottom tab bar with indicator dots matching Figma design
+Avatar stacking: Visual representation of group members in trip history
+
+Technical Architecture
+Component structure: Modular React components in `/components` directory
+UI library: ShadCN components with custom styling in `/components/ui`
+Styling: Tailwind v4 with custom CSS variables and design tokens
+State management: React useState for navigation and group membership tracking
+Asset management: SVG imports and image handling through dedicated directories
+
+The app successfully creates a cohesive mobile experience for college students and travelers to coordinate shared airport transportation with a polished, professional dark UI aesthetic.
