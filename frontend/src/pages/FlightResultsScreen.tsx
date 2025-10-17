@@ -1,6 +1,6 @@
 import { BottomNavigation } from "../components/layout/BottomNavigation";
 import { Button } from "../components/ui/button.tsx";
-import { mockFlights, type Flight } from "@/mock/mockFlights.ts";
+import { type Flight } from "@/mock/mockFlights.ts";
 
 type Screen = "ride" | "flightInput" | "flightResults" | "trip" | "profile";
 

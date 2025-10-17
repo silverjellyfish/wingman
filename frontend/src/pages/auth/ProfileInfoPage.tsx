@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { th } from "date-fns/locale";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface ProfileInfoPageProps {
@@ -10,7 +9,6 @@ interface ProfileInfoPageProps {
 
 export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
   const { user, isLoading } = useAuth();
-  // --- Add these checks first ---
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center text-white">
