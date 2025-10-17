@@ -1,20 +1,8 @@
 // Contributors: Samantha
 
-import { BottomNavigation } from "../components/layout/BottomNavigation";
 import { BsSuitcase2, BsSuitcaseLg } from "react-icons/bs";
-
-type Screen =
-  | "ride"
-  | "flightInput"
-  | "flightDate"
-  | "loading"
-  | "groupMatching"
-  | "flightResults"
-  | "flightPreferences"
-  | "groupDetail"
-  | "rideWithGroup"
-  | "trip"
-  | "profile";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import type { Screen } from "@/types/index.ts";
 
 interface TripScreenProps {
   onNavigate: (screen: Screen) => void;

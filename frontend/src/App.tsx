@@ -8,11 +8,11 @@ import { RideScreen } from "@/pages/RideScreen";
 import { TripScreen } from "@/pages/TripScreen";
 import { ProfileScreen } from "@/pages/ProfileScreen";
 import { ProfileInfoPage } from "@/pages/auth/ProfileInfoPage";
-import { FlightInputScreen } from "./pages/SearchFlightScreen";
-import { FlightResultsScreen } from "./pages/FlightResultsScreen";
-import { RidePreferencesScreen } from "./pages/RidePreferencesScreen";
-import { LoadingScreen } from "./pages/FindingPodLoadingScreen";
-import { PodListScreen } from "./pages/PodListScreen";
+import { FlightInputScreen } from "@/pages/SearchFlightScreen";
+import { FlightResultsScreen } from "@/pages/FlightResultsScreen";
+import { RidePreferencesScreen } from "@/pages/RidePreferencesScreen";
+import { LoadingScreen } from "@/pages/FindingPodLoadingScreen";
+import { PodListScreen } from "@/pages/PodListScreen";
 import { mockFlights } from "@/mock/mockFlights";
 import type { Screen } from "@/types/index.ts";
 

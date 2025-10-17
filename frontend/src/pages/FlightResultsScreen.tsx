@@ -4,7 +4,6 @@ import { BottomNavigation } from "../components/layout/BottomNavigation";
 import { Button } from "../components/ui/button.tsx";
 import { type Flight } from "@/mock/mockFlights.ts";
 import type { Screen } from "@/types/index.ts";
-import { BsSuitcase2, BsSuitcaseLg } from "react-icons/bs";
 
 interface FlightResultsScreenProps {
   onNavigate: (
