@@ -32,6 +32,7 @@ export function FlightInputScreen({
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
       <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <Button variant="back" className="mt-[1rem] pl-[2vw] pr-[2vw]" onClick={() => onNavigate("ride")}>Back</Button>
         <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
           <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
             <p className="leading-none" style={{ fontWeight: 600 }}>

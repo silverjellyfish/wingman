@@ -57,7 +57,6 @@ export type Screen =
   | "loading"
   | "groupMatching"
   | "flightResults"
-  | "flightPreferences"
   | "groupDetail"
   | "rideWithGroup"
   | "trip"

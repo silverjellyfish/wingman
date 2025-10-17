@@ -8,11 +8,19 @@ import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
 import type { Screen } from "@/types/index.ts";
 
 interface RidePreferencesScreenProps {
-  onNavigate: (screen: Screen, planeCode?: string, date?: string, payload?: any) => void;
+  onNavigate: (
+    screen: Screen,
+    planeCode?: string,
+    date?: string,
+    payload?: any
+  ) => void;
   flight: MockFlight;
 }
 
-export function RidePreferencesScreen({ onNavigate, flight }: RidePreferencesScreenProps) {
+export function RidePreferencesScreen({
+  onNavigate,
+  flight,
+}: RidePreferencesScreenProps) {
   const [earliestBefore, setEarliestBefore] = useState("30");
   const [latestBefore, setLatestBefore] = useState("60");
   const [numCarryOn, setNumCarryOn] = useState("1");
@@ -34,20 +42,30 @@ export function RidePreferencesScreen({ onNavigate, flight }: RidePreferencesScr
     const boardingTime = parseFlightTime(flight.boarding);
     const mins = parseInt(minutesBefore) || 0;
     boardingTime.setMinutes(boardingTime.getMinutes() - mins);
-    return boardingTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return boardingTime.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
       <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <div className="flex flex-col gap-6 pb-40 pt-6 px-0 w-full">
-          {/* Back button */}
-          <Button onClick={() => onNavigate("flightResults")}>Back</Button>
+        <Button
+          variant="back"
+          className="mt-[1rem] pl-[2vw] pr-[2vw]"
+          onClick={() => onNavigate("flightResults", flight.code, flight.date)}
+        >
+          Back
+        </Button>
 
+        <div className="flex flex-col gap-6 pb-40 pt-6 px-0 w-full">
           {/* Flight info */}
           <div className="bg-zinc-900 p-4 rounded-xl flex flex-col gap-2 border border-zinc-700">
             <p className="font-bold text-lg">{flight.code}</p>
-            <p>{flight.from} → {flight.to}</p>
+            <p>
+              {flight.from} → {flight.to}
+            </p>
             <p>Boarding: {flight.boarding}</p>
             <p>Departure: {flight.launch}</p>
             <p>Landing: {flight.landing}</p>
@@ -59,7 +77,9 @@ export function RidePreferencesScreen({ onNavigate, flight }: RidePreferencesScr
             <Input
               type="text"
               value={earliestBefore}
-              onChange={(e) => setEarliestBefore(e.target.value.replace(/[^0-9]/g, ""))}
+              onChange={(e) =>
+                setEarliestBefore(e.target.value.replace(/[^0-9]/g, ""))
+              }
             />
             <p>Arrival time: {computeTime(earliestBefore)}</p>
 
@@ -67,7 +87,9 @@ export function RidePreferencesScreen({ onNavigate, flight }: RidePreferencesScr
             <Input
               type="text"
               value={latestBefore}
-              onChange={(e) => setLatestBefore(e.target.value.replace(/[^0-9]/g, ""))}
+              onChange={(e) =>
+                setLatestBefore(e.target.value.replace(/[^0-9]/g, ""))
+              }
             />
             <p>Arrival time: {computeTime(latestBefore)}</p>
           </div>
@@ -78,14 +100,18 @@ export function RidePreferencesScreen({ onNavigate, flight }: RidePreferencesScr
             <Input
               type="text"
               value={numCarryOn}
-              onChange={(e) => setNumCarryOn(e.target.value.replace(/[^0-9]/g, ""))}
+              onChange={(e) =>
+                setNumCarryOn(e.target.value.replace(/[^0-9]/g, ""))
+              }
             />
 
             <p className="font-semibold">Checked bags</p>
             <Input
               type="text"
               value={numChecked}
-              onChange={(e) => setNumChecked(e.target.value.replace(/[^0-9]/g, ""))}
+              onChange={(e) =>
+                setNumChecked(e.target.value.replace(/[^0-9]/g, ""))
+              }
             />
           </div>
 
@@ -112,7 +138,10 @@ export function RidePreferencesScreen({ onNavigate, flight }: RidePreferencesScr
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNavigation currentScreen="ride" onNavigate={(s) => onNavigate(s)} />
+      <BottomNavigation
+        currentScreen="ride"
+        onNavigate={(s) => onNavigate(s)}
+      />
     </div>
   );
 }
