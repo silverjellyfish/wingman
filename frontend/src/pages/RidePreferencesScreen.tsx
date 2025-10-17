@@ -21,8 +21,8 @@ export function RidePreferencesScreen({
   onNavigate,
   flight,
 }: RidePreferencesScreenProps) {
-  const [earliestBefore, setEarliestBefore] = useState("30");
-  const [latestBefore, setLatestBefore] = useState("60");
+  const [earliestTime, setEarliestTime] = useState("");
+  const [latestTime, setLatestTime] = useState("");
   const [numCarryOn, setNumCarryOn] = useState("1");
   const [numChecked, setNumChecked] = useState("0");
   const [pickupLocation, setPickupLocation] = useState("");
@@ -38,14 +38,20 @@ export function RidePreferencesScreen({
     return d;
   };
 
-  const computeTime = (minutesBefore: string) => {
-    const boardingTime = parseFlightTime(flight.boarding);
-    const mins = parseInt(minutesBefore) || 0;
-    boardingTime.setMinutes(boardingTime.getMinutes() - mins);
-    return boardingTime.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const boardingTime = parseFlightTime(flight.boarding);
+
+  const formatTime = (d: Date) =>
+    d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const handleLatestTimeChange = (val: string) => {
+    setLatestTime(val);
+    const [h, m] = val.split(":").map(Number);
+    const selected = new Date();
+    selected.setHours(h, m, 0, 0);
+    if (selected > boardingTime) {
+      alert("Latest boarding time cannot be after flight boarding time");
+      setLatestTime(formatTime(boardingTime));
+    }
   };
 
   return (
@@ -58,45 +64,109 @@ export function RidePreferencesScreen({
         >
           Back
         </Button>
-
-        <div className="flex flex-col gap-6 pb-40 pt-6 px-0 w-full">
-          {/* Flight info */}
-          <div className="bg-zinc-900 p-4 rounded-xl flex flex-col gap-2 border border-zinc-700">
-            <p className="font-bold text-lg">{flight.code}</p>
-            <p>
-              {flight.from} → {flight.to}
+        <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
+          <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
+            <p className="leading-none" style={{ fontWeight: 600 }}>
+              Flight Details
             </p>
-            <p>Boarding: {flight.boarding}</p>
-            <p>Departure: {flight.launch}</p>
-            <p>Landing: {flight.landing}</p>
+          </div>
+          {/* Flight info */}
+          <div className="flex flex-col space-between p-[12px] bg-[#566957] rounded-[20px] mt-[1rem]">
+            <div className="flex flex-row justify-between items-center">
+              <p className="text-xl" style={{ fontWeight: 600 }}>
+                {flight.code}
+              </p>
+              <p className="text-gray-400 text-sm" style={{ fontWeight: 600 }}>
+                {flight.date}
+              </p>
+            </div>
+            <div className="flex justify-between text-white/80">
+              <p>
+                <span className="font-semibold">{flight.from}</span> →{" "}
+                <span className="font-semibold">{flight.to}</span>
+              </p>
+            </div>
+            <div className="grid grid-cols-3 text-sm text-gray-400 gap-2">
+              <p style={{ fontWeight: 600 }}>Launch: {flight.launch}</p>
+              <p style={{ fontWeight: 600 }}>Landing: {flight.landing}</p>
+              <p style={{ fontWeight: 600 }}>Boarding: {flight.boarding}</p>
+            </div>
+          </div>
+          <div className="flex flex-row gap-[1rem] w-full items-center">
+            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+              <p style={{ fontWeight: 600 }}>Earliest Arrival</p>
+              <Input
+                type="time"
+                value={earliestTime}
+                onChange={(e) => setEarliestTime(e.target.value)}
+              />
+            </div>
+
+            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+              <p style={{ fontWeight: 600 }}>Latest Arrival</p>
+              <Input
+                type="time"
+                value={latestTime}
+                onChange={(e) => handleLatestTimeChange(e.target.value)}
+              />
+            </div>
+          </div>
+          {/* Earliest and Latest boarding times */}
+          {/* <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+            <p
+              className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+              style={{ fontWeight: 600 }}
+            >
+              Earliest boarding time
+            </p>
+            <Input
+              type="time"
+              value={earliestTime}
+              onChange={(e) => setEarliestTime(e.target.value)}
+            />
+
+            <p
+              className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+              style={{ fontWeight: 600 }}
+            >
+              Latest boarding time
+            </p>
+            <Input
+              type="time"
+              value={latestTime}
+              onChange={(e) => handleLatestTimeChange(e.target.value)}
+            />
+          </div> */}
+          <div className="flex flex-row gap-[1rem] w-full items-center">
+            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+              <p style={{ fontWeight: 600 }}># Carry-on(s)</p>
+              <Input
+                type="text"
+                value={numCarryOn}
+                onChange={(e) =>
+                  setNumCarryOn(e.target.value.replace(/[^0-9]/g, ""))
+                }
+              />
+            </div>
+            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+              <p style={{ fontWeight: 600 }}># Checked-in(s)</p>
+              <Input
+                type="text"
+                value={numChecked}
+                onChange={(e) =>
+                  setNumChecked(e.target.value.replace(/[^0-9]/g, ""))
+                }
+              />
+            </div>
           </div>
 
-          {/* Timing */}
-          <div className="flex flex-col gap-2">
-            <p className="font-semibold">Earliest before boarding (minutes)</p>
-            <Input
-              type="text"
-              value={earliestBefore}
-              onChange={(e) =>
-                setEarliestBefore(e.target.value.replace(/[^0-9]/g, ""))
-              }
-            />
-            <p>Arrival time: {computeTime(earliestBefore)}</p>
-
-            <p className="font-semibold">Latest before boarding (minutes)</p>
-            <Input
-              type="text"
-              value={latestBefore}
-              onChange={(e) =>
-                setLatestBefore(e.target.value.replace(/[^0-9]/g, ""))
-              }
-            />
-            <p>Arrival time: {computeTime(latestBefore)}</p>
-          </div>
-
-          {/* Luggage */}
-          <div className="flex flex-col gap-2">
-            <p className="font-semibold">Carry-on bags</p>
+          {/* <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+            <p
+              className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+              style={{ fontWeight: 600 }}
+            >
+              Carry-on bags
+            </p>
             <Input
               type="text"
               value={numCarryOn}
@@ -105,7 +175,12 @@ export function RidePreferencesScreen({
               }
             />
 
-            <p className="font-semibold">Checked bags</p>
+            <p
+              className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+              style={{ fontWeight: 600 }}
+            >
+              Checked bags
+            </p>
             <Input
               type="text"
               value={numChecked}
@@ -113,11 +188,11 @@ export function RidePreferencesScreen({
                 setNumChecked(e.target.value.replace(/[^0-9]/g, ""))
               }
             />
-          </div>
+          </div> */}
 
           {/* Pickup location */}
-          <div className="flex flex-col gap-2">
-            <p className="font-semibold">Pickup location</p>
+          <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+            <p style={{ fontWeight: 600 }}>Pickup location</p>
             <Input
               type="text"
               placeholder="Enter pickup address"
@@ -128,9 +203,8 @@ export function RidePreferencesScreen({
 
           {/* Search rideshare */}
           <Button
-            className="mt-4"
+            className="pl-[2vw] pr-[2vw]"
             onClick={() => onNavigate("loading", undefined, undefined, flight)}
-            // onClick={() => onNavigate("rideWithGroup", flight.code, flight.date, { flight, earliestBefore, latestBefore, numCarryOn, numChecked, pickupLocation })}
           >
             Search for Rideshare
           </Button>

@@ -1,7 +1,7 @@
 // Contributors: Michelle
 
 import { useState } from "react";
-import { BottomNavigation } from "../components/layout/BottomNavigation";
+import { BottomNavigation } from "../components/layout/BottomNavigation.tsx";
 import { Button } from "../components/ui/button.tsx";
 import { Input } from "../components/ui/input.tsx";
 import type { Screen } from "@/types/index.ts";
@@ -56,13 +56,13 @@ export function FlightInputScreen({
           </div>
 
           {/* Date input */}
-          <div className="flex flex-row gap-4 w-full">
+          <div className="flex flex-row gap-4 w-full items-center">
             <Input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
             />
-            <Button onClick={handleSearch} className="w-1/2">
+            <Button onClick={handleSearch} className="pl-[2vw] pr-[2vw]">
               Search
             </Button>
           </div>

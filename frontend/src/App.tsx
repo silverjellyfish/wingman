@@ -8,7 +8,7 @@ import { RideScreen } from "@/pages/RideScreen";
 import { TripScreen } from "@/pages/TripScreen";
 import { ProfileScreen } from "@/pages/ProfileScreen";
 import { ProfileInfoPage } from "@/pages/auth/ProfileInfoPage";
-import { FlightInputScreen } from "./pages/FlightInputScreen";
+import { FlightInputScreen } from "./pages/SearchFlightScreen";
 import { FlightResultsScreen } from "./pages/FlightResultsScreen";
 import { RidePreferencesScreen } from "./pages/RidePreferencesScreen";
 import { LoadingScreen } from "./pages/FindingPodLoadingScreen";
