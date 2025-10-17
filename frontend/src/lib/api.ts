@@ -1,3 +1,5 @@
+// Contributors: Vince
+
 import type { Trip, Flight } from '@/types';
 import { auth } from '@/lib/firebase';
 

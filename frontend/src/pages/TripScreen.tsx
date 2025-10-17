@@ -1,3 +1,5 @@
+// Contributors: Samantha
+
 import { BottomNavigation } from "../components/layout/BottomNavigation";
 import { BsSuitcase2, BsSuitcaseLg } from "react-icons/bs";
 

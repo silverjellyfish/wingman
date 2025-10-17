@@ -1,3 +1,5 @@
+// Contributors: Vince, Michelle
+
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { User, AuthContextType } from '@/types';
 import { auth } from '@/lib/firebase';

@@ -1,3 +1,5 @@
+// Contributors: Michelle
+
 import { useState } from "react";
 import { BottomNavigation } from "../components/layout/BottomNavigation";
 import { Button } from "../components/ui/button.tsx";

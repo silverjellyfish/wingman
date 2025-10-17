@@ -1,3 +1,5 @@
+// Contributors: Vince, Samantha, Michelle
+
 export interface User {
   id: string;
   email: string;

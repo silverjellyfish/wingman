@@ -1,3 +1,5 @@
+// Contributors: Michelle
+
 import { BottomNavigation } from "../components/layout/BottomNavigation";
 import { Button } from "../components/ui/button.tsx";
 import { type Flight } from "@/mock/mockFlights.ts";

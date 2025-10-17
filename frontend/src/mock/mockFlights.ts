@@ -1,3 +1,5 @@
+// Contributors: Michelle
+
 export interface Flight {
   code: string;
   from: string;

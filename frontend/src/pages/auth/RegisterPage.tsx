@@ -1,3 +1,4 @@
+// Contributors: Vince, Michelle
 // TODO: SEND EMAIL CONFIRMATION
 
 import { useState } from "react";

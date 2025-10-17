@@ -7,10 +7,10 @@ const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
-// Enable CORS for your frontend
+// Enable CORS for frontend
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
-  credentials: true, // optional, only if using cookies/auth headers
+  origin: "http://localhost:5173",
+  credentials: true,
 }));
 
 app.use(express.json());

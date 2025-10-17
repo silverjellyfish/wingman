@@ -1,3 +1,5 @@
+// Contributors: Vince
+
 type Screen = "ride" | "trip" | "profile";
 
 interface BottomNavigationProps {

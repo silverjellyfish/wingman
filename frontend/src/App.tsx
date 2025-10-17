@@ -1,3 +1,5 @@
+// Contributors: Vince, Samantha, Michelle
+
 import { useState } from "react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LoginPage } from "@/pages/auth/LoginPage";
