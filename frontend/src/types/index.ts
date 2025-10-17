@@ -10,6 +10,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
+  deleteAccount: (userId: string) => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
 }

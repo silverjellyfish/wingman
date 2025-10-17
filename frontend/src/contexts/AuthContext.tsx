@@ -7,6 +7,7 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  deleteUser,
 } from 'firebase/auth';
 
 import type { User as FirebaseUser } from 'firebase/auth';
@@ -61,11 +62,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const deleteAccount = async (userId: string) => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_BASE_URL}/users/firebase/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const text = await res.text();
+      console.log("Delete response text:", text);
+      if (!res.ok) throw new Error("Failed to delete user from backend");
+      if (auth.currentUser) {
+        await deleteUser(auth.currentUser);
+      }
+      setUser(null);
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     login,
     register,
     logout,
+    deleteAccount,
     isAuthenticated: !!user,
     isLoading,
   };

@@ -4,26 +4,14 @@ import { Input } from "../components/ui/input.tsx";
 import { BottomNavigation } from "../components/layout/BottomNavigation";
 import { useAuth } from "../contexts/AuthContext";
 import imgAvatar from "../assets/images/avatar.png";
-
-type Screen =
-  | "ride"
-  | "flightInput"
-  | "flightDate"
-  | "loading"
-  | "groupMatching"
-  | "flightResults"
-  | "flightPreferences"
-  | "groupDetail"
-  | "rideWithGroup"
-  | "trip"
-  | "profile";
+import type { Screen } from "../types";
 
 interface ProfileScreenProps {
   onNavigate: (screen: Screen) => void;
 }
 
 export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, deleteAccount } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
 
   // Profile state
@@ -48,6 +36,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
         if (!res.ok) throw new Error("Failed to fetch profile");
 
         const data = await res.json();
+        console.log("Fetched profile data:", data);
 
         setName(data.name || "");
         setUsername(data.username || "");
@@ -114,6 +103,24 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
 
   const getTimeValue = (value: string) => {
     return isEditing ? value.replace(" mins", "").trim() : value;
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+
+    const confirm = window.confirm(
+      "Are you sure you want to delete your account? This action cannot be undone."
+    );
+    if (!confirm) return;
+
+    try {
+      await deleteAccount(user.id);
+      alert("Account deleted successfully.");
+      onNavigate("login");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      alert("Failed to delete account. Please try again later.");
+    }
   };
 
   return (
@@ -304,6 +311,13 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
               variant="destructive"
             >
               Logout
+            </Button>
+            <Button
+              onClick={handleDeleteAccount}
+              className="w-full mt-2"
+              variant="destructive"
+            >
+              Delete Account
             </Button>
           </div>
         </div>

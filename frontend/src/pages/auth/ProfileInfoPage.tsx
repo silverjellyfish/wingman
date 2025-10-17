@@ -66,7 +66,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
       setError("Please enter longest wait after landing.");
       return;
     }
-    console.log(user);
+    console.log(`hello ${user}`);
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL;
       // change later

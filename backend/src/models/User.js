@@ -3,11 +3,12 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  firebaseUid: { type: String, required: true, unique: true }, // <--- new
+  firebaseUid: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   university: { type: String, required: true },
+  phone: { type: String },
   age: { type: Number, required: true },
   gender: { type: String, enum: ["male", "female", "other"] },
   emergencyContact: { type: String },
