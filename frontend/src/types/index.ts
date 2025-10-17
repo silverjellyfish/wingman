@@ -32,3 +32,20 @@ export interface Flight {
   arrivalTime: string;
   price: number;
 }
+
+export type Screen =
+  | "login"
+  | "register"
+  | "profileInfo"
+  | "app"
+  | "ride"
+  | "flightInput"
+  | "flightDate"
+  | "loading"
+  | "groupMatching"
+  | "flightResults"
+  | "flightPreferences"
+  | "groupDetail"
+  | "rideWithGroup"
+  | "trip"
+  | "profile";

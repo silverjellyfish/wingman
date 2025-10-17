@@ -5,110 +5,144 @@ import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { RideScreen } from "@/pages/RideScreen";
 import { TripScreen } from "@/pages/TripScreen";
 import { ProfileScreen } from "@/pages/ProfileScreen";
+import { ProfileInfoPage } from "@/pages/auth/ProfileInfoPage";
+import { FlightInputScreen } from "./pages/FlightInputScreen";
+import { FlightResultsScreen } from "./pages/FlightResultsScreen";
+import { mockFlights } from "@/mock/mockFlights";
+import type { Screen } from "@/types/index.ts";
+
 import "./App.css";
 
-type Screen =
-   | "login"
-   | "register"
-   | "ride"
-   | "flightInput"
-   | "flightDate"
-   | "loading"
-   | "groupMatching"
-   | "flightResults"
-   | "flightPreferences"
-   | "groupDetail"
-   | "rideWithGroup"
-   | "trip"
-   | "profile";
-
 function AuthenticatedApp() {
-   const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
-   const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
+  const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
+  const [planeCode, setPlaneCode] = useState("");
 
-   const navigateTo = (screen: Screen) => {
-      setCurrentScreen(screen);
-   };
+  const [selectedDate, setSelectedDate] = useState("");
 
-   const handleJoinGroup = () => {
-      setHasJoinedGroup(true);
-      setCurrentScreen("rideWithGroup");
-   };
+  const navigateTo = (
+    screen: Screen,
+    planeCodeArg?: string,
+    dateArg?: string
+  ) => {
+    if (planeCodeArg) setPlaneCode(planeCodeArg);
+    if (dateArg) setSelectedDate(dateArg);
+    setCurrentScreen(screen);
+  };
 
-   const handleLeaveGroup = () => {
-      setHasJoinedGroup(false);
-      setCurrentScreen("ride");
-   };
+  //   const handleJoinGroup = () => {
+  //     setHasJoinedGroup(true);
+  //     setCurrentScreen("rideWithGroup");
+  //   };
 
-   const renderScreen = () => {
-      switch (currentScreen) {
-         case "ride":
-            return (
-               <RideScreen
-                  onNavigate={navigateTo}
-                  hasJoinedGroup={hasJoinedGroup}
-               />
-            );
-         case "trip":
-            return <TripScreen onNavigate={navigateTo} />;
-         case "profile":
-            return <ProfileScreen onNavigate={navigateTo} />;
-         default:
-            return (
-               <RideScreen
-                  onNavigate={navigateTo}
-                  hasJoinedGroup={hasJoinedGroup}
-               />
-            );
-      }
-   };
+  //   const handleLeaveGroup = () => {
+  //     setHasJoinedGroup(false);
+  //     setCurrentScreen("ride");
+  //   };
 
-   return (
-      <div className="min-h-screen w-screen bg-[#16161b] flex items-center justify-center">
-         <div className="max-w-[393px] w-screen h-screen">{renderScreen()}</div>
-      </div>
-   );
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case "ride":
+        return (
+          <RideScreen onNavigate={navigateTo} hasJoinedGroup={hasJoinedGroup} />
+        );
+      case "flightInput":
+        return (
+          <FlightInputScreen onNavigate={navigateTo} planeCode={planeCode} />
+        );
+      case "flightResults":
+        return (
+          <FlightResultsScreen
+            onNavigate={navigateTo}
+            flights={mockFlights}
+            planeCode={planeCode}
+            date={selectedDate}
+          />
+        );
+      case "trip":
+        return <TripScreen onNavigate={navigateTo} />;
+      case "profile":
+        return <ProfileScreen onNavigate={navigateTo} />;
+      default:
+        return (
+          <RideScreen onNavigate={navigateTo} hasJoinedGroup={hasJoinedGroup} />
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-screen bg-[#16161b] flex items-center justify-center">
+      <div className="max-w-[393px] w-screen h-screen">{renderScreen()}</div>
+    </div>
+  );
 }
 
 function App() {
-   const [authScreen, setAuthScreen] = useState<"login" | "register" | "app">(
-      "login"
-   );
+  const [authScreen, setAuthScreen] = useState<
+    "login" | "register" | "profileInfo" | "app"
+  >("login");
 
-   return (
-      <AuthProvider>
-         <AuthWrapper authScreen={authScreen} setAuthScreen={setAuthScreen} />
-      </AuthProvider>
-   );
+  return (
+    <AuthProvider>
+      <AuthWrapper authScreen={authScreen} setAuthScreen={setAuthScreen} />
+    </AuthProvider>
+  );
 }
 
 function AuthWrapper({
-   authScreen,
-   setAuthScreen,
+  authScreen,
+  setAuthScreen,
 }: {
-   authScreen: "login" | "register" | "app";
-   setAuthScreen: (screen: "login" | "register" | "app") => void;
+  authScreen: "login" | "register" | "profileInfo" | "app";
+  setAuthScreen: (screen: "login" | "register" | "profileInfo" | "app") => void;
 }) {
-   const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
-   if (isLoading) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#16161b]">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  switch (authScreen) {
+    case "login":
       return (
-         <div className="min-h-screen flex items-center justify-center bg-[#16161b]">
-            <p className="text-muted-foreground">Loading...</p>
-         </div>
+        <LoginPage
+          onNavigateToRegister={() => setAuthScreen("register")}
+          onLoginSuccess={() => setAuthScreen("app")}
+        />
       );
-   }
 
-   if (!isAuthenticated) {
-      if (authScreen === "login") {
-         return (
-            <LoginPage onNavigateToRegister={() => setAuthScreen("register")} />
-         );
-      }
-      return <RegisterPage onNavigateToLogin={() => setAuthScreen("login")} />;
-   }
+    case "register":
+      return (
+        <RegisterPage
+          onNavigateToLogin={() => setAuthScreen("login")}
+          onNavigateToProfileInfo={() => setAuthScreen("profileInfo")}
+        />
+      );
 
-   return <AuthenticatedApp />;
+    case "profileInfo":
+      return <ProfileInfoPage onContinue={() => setAuthScreen("app")} />;
+
+    case "app":
+      if (isAuthenticated) return <AuthenticatedApp />;
+      return (
+        <LoginPage
+          onNavigateToRegister={() => setAuthScreen("register")}
+          onLoginSuccess={() => setAuthScreen("app")}
+        />
+      );
+
+    default:
+      return (
+        <LoginPage
+          onNavigateToRegister={() => setAuthScreen("register")}
+          onLoginSuccess={() => setAuthScreen("app")}
+        />
+      );
+  }
 }
 
 export default App;
