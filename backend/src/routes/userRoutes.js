@@ -52,3 +52,31 @@ router.patch("/:id", async (req, res) => {
 });
 
 module.exports = router;
+
+// POST /api/users/profile
+router.post("/profile", async (req, res) => {
+  const { firebaseUid, ...profileData } = req.body;
+  try {
+    let user = await User.findOne({ firebaseUid });
+    if (!user) {
+      user = new User({ firebaseUid, ...profileData });
+    } else {
+      Object.assign(user, profileData);
+    }
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// GET /api/users/profile/:firebaseUid
+router.get("/profile/:firebaseUid", async (req, res) => {
+  try {
+    const user = await User.findOne({ firebaseUid: req.params.firebaseUid });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});

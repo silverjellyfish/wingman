@@ -10,4 +10,4 @@ const airportSchema = new mongoose.Schema({
     country: { type: String, required: true },
 });
 
-module.exports = mongoose.model("Airport", AirportSchema);
+module.exports = mongoose.model("Airport", airportSchema);

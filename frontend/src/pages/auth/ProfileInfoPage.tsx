@@ -1,12 +1,31 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { th } from "date-fns/locale";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface ProfileInfoPageProps {
   onContinue: () => void;
 }
 
 export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
+  const { user, isLoading } = useAuth();
+  // --- Add these checks first ---
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        You must be logged in to continue
+      </div>
+    );
+  }
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
@@ -15,7 +34,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
   const [longestWait, setLongestWait] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -49,9 +68,39 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
       setError("Please enter longest wait after landing.");
       return;
     }
+    console.log(user);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL;
+      // change later
+      const res = await fetch(`${API_BASE_URL}/users/profile`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firebaseUid: user.id,
+          name: user.name,
+          email: user.email,
+          username: user.name,
+          university: "Vanderbilt University",
+          phone,
+          age: Number(age),
+          gender,
+          earliestBefore: Number(earliestBefore),
+          latestBefore: Number(latestBefore),
+          longestWait: Number(longestWait),
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to save profile info");
+      }
 
-    // All validations passed
-    onContinue();
+      onContinue();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to save profile info"
+      );
+    }
   };
 
   return (
@@ -60,7 +109,9 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
         <div className="flex flex-col gap-[60px] items-center justify-center pb-[40px] pt-[80px] px-[40px] w-full min-h-full">
           {/* Header */}
           <div className="text-[32px] text-white text-center w-full">
-            <p className="leading-none font-semibold">Tell us more about yourself</p>
+            <p className="leading-none font-semibold">
+              Tell us more about yourself
+            </p>
           </div>
 
           {/* Form */}
@@ -70,7 +121,9 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
           >
             {/* Phone */}
             <div className="flex flex-col gap-[4px] w-full">
-              <p className="text-[18px] text-white font-semibold">Phone Number</p>
+              <p className="text-[18px] text-white font-semibold">
+                Phone Number
+              </p>
               <Input
                 type="tel"
                 placeholder="123-456-7890"
@@ -101,7 +154,9 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
 
             {/* Gender */}
             <div className="flex flex-col w-full">
-              <p className="text-[18px] text-white mb-2 font-semibold">Gender</p>
+              <p className="text-[18px] text-white mb-2 font-semibold">
+                Gender
+              </p>
               <div className="flex flex-wrap gap-6">
                 {["male", "female", "other"].map((option) => (
                   <Button
@@ -162,9 +217,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
             </div>
 
             {/* Error message */}
-            {error && (
-              <p className="text-red-400 text-sm mt-2">{error}</p>
-            )}
+            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
 
             {/* Submit */}
             <div className="pt-[40px]">

@@ -7,8 +7,9 @@ const mongoose = require("mongoose");
 const userSpecSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     flightId: { type: mongoose.Schema.Types.ObjectId, ref: "Flight", required: true },
-    earliestArrivalTime: { type: Datetime, required: true },
-    latestArrivalTime: { type: Datetime, required: true },
+    // change date to time later
+    earliestArrivalTime: { type: Date, required: true },
+    latestArrivalTime: { type: Date, required: true },
     pickupLocation: {
         type: { type: String, enum: ["Point"], required: true },
         coordinates: { type: [Number], required: true },

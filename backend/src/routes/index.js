@@ -28,7 +28,7 @@ router.use("/locations", locationRoutes);
 router.use("/matches", matchRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/pods", podRoutes);
-router.use("/userFlightInfos", userFlightInfoRoutes);
+// router.use("/userFlightInfos", userFlightInfoRoutes);
 router.use("/users", userRoutes);
 router.use("/userSpecs", userSpecRoutes);
 
