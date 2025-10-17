@@ -3,11 +3,15 @@
 import { BottomNavigation } from "../components/layout/BottomNavigation";
 import { Button } from "../components/ui/button.tsx";
 import { type Flight } from "@/mock/mockFlights.ts";
-
-type Screen = "ride" | "flightInput" | "flightResults" | "trip" | "profile";
+import type { Screen } from "@/types/index.ts";
 
 interface FlightResultsScreenProps {
-  onNavigate: (screen: Screen) => void;
+  onNavigate: (
+    screen: Screen,
+    planeCode?: string,
+    date?: string,
+    payload?: any
+  ) => void;
   flights: Flight[];
   planeCode: string;
   date: string;
@@ -28,6 +32,7 @@ export function FlightResultsScreen({
       <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[0px] w-full">
           <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
+            <Button onClick={() => onNavigate("flightInput")}>Back</Button>
             <p className="leading-none font-semibold">Search Flights</p>
           </div>
 
@@ -61,7 +66,9 @@ export function FlightResultsScreen({
                 </div>
                 <Button
                   className="mt-3 w-full"
-                  onClick={() => onNavigate("trip")}
+                  onClick={() =>
+                    onNavigate("flightPreferences", planeCode, date, f)
+                  }
                 >
                   Select
                 </Button>

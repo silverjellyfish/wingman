@@ -25,15 +25,25 @@ export interface Trip {
   status: 'upcoming' | 'ongoing' | 'completed';
 }
 
+// export interface Flight {
+//   id: string;
+//   airline: string;
+//   flightNumber: string;
+//   departure: string;
+//   arrival: string;
+//   departureTime: string;
+//   arrivalTime: string;
+//   price: number;
+// }
+
 export interface Flight {
-  id: string;
-  airline: string;
-  flightNumber: string;
-  departure: string;
-  arrival: string;
-  departureTime: string;
-  arrivalTime: string;
-  price: number;
+  code: string;
+  from: string;
+  to: string;
+  launch: string;
+  landing: string;
+  boarding: string;
+  date: string;
 }
 
 export type Screen =
@@ -51,4 +61,5 @@ export type Screen =
   | "groupDetail"
   | "rideWithGroup"
   | "trip"
-  | "profile";
+  | "profile"
+  | "flightPreferences";

@@ -10,6 +10,9 @@ import { ProfileScreen } from "@/pages/ProfileScreen";
 import { ProfileInfoPage } from "@/pages/auth/ProfileInfoPage";
 import { FlightInputScreen } from "./pages/FlightInputScreen";
 import { FlightResultsScreen } from "./pages/FlightResultsScreen";
+import { RidePreferencesScreen } from "./pages/RidePreferencesScreen";
+import { LoadingScreen } from "./pages/FindingPodLoadingScreen";
+import { PodListScreen } from "./pages/PodListScreen";
 import { mockFlights } from "@/mock/mockFlights";
 import type { Screen } from "@/types/index.ts";
 
@@ -19,17 +22,20 @@ function AuthenticatedApp() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
   const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
   const [planeCode, setPlaneCode] = useState("");
+  const [selectedFlight, setSelectedFlight] = useState<any>(null);
 
   const [selectedDate, setSelectedDate] = useState("");
 
   const navigateTo = (
     screen: Screen,
     planeCodeArg?: string,
-    dateArg?: string
+    dateArg?: string,
+    payload?: any
   ) => {
     if (planeCodeArg) setPlaneCode(planeCodeArg);
     if (dateArg) setSelectedDate(dateArg);
     setCurrentScreen(screen);
+    if (payload) setSelectedFlight(payload);
   };
 
   //   const handleJoinGroup = () => {
@@ -61,6 +67,23 @@ function AuthenticatedApp() {
             date={selectedDate}
           />
         );
+      case "flightPreferences":
+        return (
+          <RidePreferencesScreen
+            onNavigate={navigateTo}
+            flight={selectedFlight}
+          />
+        );
+      case "loading":
+        return selectedFlight ? (
+          <LoadingScreen onNavigate={navigateTo} flight={selectedFlight} />
+        ) : null;
+
+      case "rideWithGroup":
+        return selectedFlight ? (
+          <PodListScreen onNavigate={navigateTo} flight={selectedFlight} />
+        ) : null;
+
       case "trip":
         return <TripScreen onNavigate={navigateTo} />;
       case "profile":
