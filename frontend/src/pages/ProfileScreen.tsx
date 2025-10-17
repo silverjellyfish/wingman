@@ -315,7 +315,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
             <Button
               onClick={handleDeleteAccount}
               className="w-full mt-2"
-              variant="destructive"
+              variant="outline"
             >
               Delete Account
             </Button>
