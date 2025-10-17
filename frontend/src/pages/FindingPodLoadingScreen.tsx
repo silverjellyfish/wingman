@@ -2,23 +2,32 @@
 
 import { useEffect } from "react";
 import type { Screen } from "@/types";
+import "@/pages/styles/LoadingScreen.css";
 
 interface LoadingScreenProps {
-  onNavigate: (screen: Screen) => void;
+  onNavigate: (
+    screen: Screen,
+    planeCode?: string,
+    date?: string,
+    payload?: any
+  ) => void;
   flight: any;
 }
 
 export function LoadingScreen({ onNavigate, flight }: LoadingScreenProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onNavigate("rideWithGroup");
-    }, 1500);
+      onNavigate("rideWithGroup", undefined, undefined, flight);
+    }, 3000); // 3 seconds total animation
     return () => clearTimeout(timer);
-  }, [onNavigate]);
+  }, [onNavigate, flight]);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#16161b] text-white">
-      <p className="text-lg">Searching for rides...</p>
+    <div className="loading-container">
+      <p className="loading-text">Searching for rides...</p>
+      <div className="progress-bar">
+        <div className="progress-bar-fill" />
+      </div>
     </div>
   );
 }

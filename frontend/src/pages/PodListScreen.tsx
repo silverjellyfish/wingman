@@ -1,4 +1,5 @@
 // Contributors: Michelle
+
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button.tsx";
 import { BottomNavigation } from "../components/layout/BottomNavigation.tsx";
@@ -16,10 +17,7 @@ export function PodListScreen({ onNavigate, flight }: PodListScreenProps) {
 
   // Simulate network call to fetch available pods
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPods(mockPods); // Here you could filter pods based on flight preferences
-    }, 1500); // simulate delay for loading
-    return () => clearTimeout(timer);
+    setPods(mockPods);
   }, []);
 
   return (
@@ -49,6 +47,7 @@ export function PodListScreen({ onNavigate, flight }: PodListScreenProps) {
           <h2 className="text-xl font-bold mt-4">Groupa</h2>
 
           {/* Pods */}
+          {/* TODO: CHANGE LATER THIS IS UGLY */}
           {pods.length === 0 ? (
             <p className="text-gray-400 text-center mt-6">
               Loading available rides...
