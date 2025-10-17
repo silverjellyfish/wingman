@@ -1,3 +1,5 @@
+/* Contributer: Michelle */
+
 .loading-container {
   min-height: 100vh;
   display: flex;
@@ -17,7 +19,7 @@
 .progress-bar {
   width: 100%;
   max-width: 400px;
-  height: 0.75rem; /* 12px */
+  height: 0.75rem;
   background-color: #27272a;
   border-radius: 9999px;
   overflow: hidden;
@@ -26,7 +28,7 @@
 .progress-bar-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(to right, #3b82f6, #6b7280, #4b5563); /* toned-down gradient */
+  background: linear-gradient(to right, #3b82f6, #6b7280, #4b5563);
   border-radius: 9999px;
   animation: fillAnimation 3s linear forwards;
 }
