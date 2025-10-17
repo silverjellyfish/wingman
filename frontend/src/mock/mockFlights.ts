@@ -1,3 +1,5 @@
+// Contributors: Michelle
+
 export interface Flight {
   code: string;
   from: string;
@@ -16,6 +18,24 @@ export const mockFlights: Flight[] = [
     launch: "10:00 AM",
     landing: "12:00 PM",
     boarding: "09:30 AM",
+    date: "2025-10-20",
+  },
+  {
+    code: "WN1234",
+    from: "ANA",
+    to: "CMH",
+    launch: "10:00 AM",
+    landing: "12:00 PM",
+    boarding: "09:30 AM",
+    date: "2025-10-20",
+  },
+  {
+    code: "WN1234",
+    from: "ANA",
+    to: "CAT",
+    launch: "01:00 pM",
+    landing: "08:00 PM",
+    boarding: "12:30 PM",
     date: "2025-10-20",
   },
   {

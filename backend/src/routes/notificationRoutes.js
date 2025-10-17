@@ -2,8 +2,7 @@
 
 const express = require("express");
 const router = express.Router();
-// TODO: WHAT IS THIS
-const Notification = require("../models/Notification"); // Optional model
+const Notification = require("../models/Notification");
 
 // GET /notifications?unread=true
 router.get("/", async (req, res) => {
