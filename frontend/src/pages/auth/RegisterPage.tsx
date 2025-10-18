@@ -1,5 +1,6 @@
 // Contributors: Vince, Michelle
 // TODO: SEND EMAIL CONFIRMATION
+// What is password and confirm password match validation?
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
