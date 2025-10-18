@@ -5,6 +5,9 @@ import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { RideScreen } from "@/pages/RideScreen";
 import { TripScreen } from "@/pages/TripScreen";
 import { ProfileScreen } from "@/pages/ProfileScreen";
+import { FlightPreferencesScreen } from "@/pages/FlightPreferencesScreen";
+import { ResultsPage } from "@/pages/ResultsPage";
+import LoadingScreen from "@/components/LoadingScreen";
 import "./App.css";
 
 type Screen =
@@ -20,13 +23,29 @@ type Screen =
    | "groupDetail"
    | "rideWithGroup"
    | "trip"
-   | "profile";
+   | "profile"
+   | "results";
+
+interface Flight {
+   id: string;
+   flightCode: string;
+   dateRange: string;
+   route: string;
+   airports: string;
+   boardingTime: string;
+   departureTime: string;
+   arrivalTime: string;
+}
 
 function AuthenticatedApp() {
    const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
    const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
+   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
 
-   const navigateTo = (screen: Screen) => {
+   const navigateTo = (screen: Screen, flight?: Flight) => {
+      if (flight) {
+         setSelectedFlight(flight);
+      }
       setCurrentScreen(screen);
    };
 
@@ -54,7 +73,7 @@ function AuthenticatedApp() {
          case "flightDate":
             return <FlightDateScreen onNavigate={navigateTo} />;
          case "loading":
-            return <LoadingScreen onNavigate={navigateTo} />;
+            return <LoadingScreen onComplete={() => navigateTo("results")} />;
          case "groupMatching":
             return (
                <GroupMatchingScreen
@@ -65,7 +84,23 @@ function AuthenticatedApp() {
          case "flightResults":
             return <FlightResultsScreen onNavigate={navigateTo} />;
          case "flightPreferences":
-            return <FlightPreferencesScreen onNavigate={navigateTo} />;
+            return selectedFlight ? (
+               <FlightPreferencesScreen
+                  onNavigate={navigateTo}
+                  selectedFlight={selectedFlight}
+               />
+            ) : (
+               <RideScreen onNavigate={navigateTo} hasJoinedGroup={hasJoinedGroup} />
+            );
+         case "results":
+            return selectedFlight ? (
+               <ResultsPage
+                  onNavigate={navigateTo}
+                  selectedFlight={selectedFlight}
+               />
+            ) : (
+               <RideScreen onNavigate={navigateTo} hasJoinedGroup={hasJoinedGroup} />
+            );
          case "groupDetail":
             return (
                <GroupDetailScreen
