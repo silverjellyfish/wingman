@@ -2,23 +2,32 @@
 
 const mongoose = require("mongoose");
 
-// TODO: DEFINE BETTER
-
-const userSpecSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    flightId: { type: mongoose.Schema.Types.ObjectId, ref: "Flight", required: true },
-    // change date to time later
+/*
+  Mongoose schema and model for UserSpec.
+*/
+const userSpecSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    flight: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Flight",
+      required: true,
+    },
     earliestArrivalTime: { type: Date, required: true },
     latestArrivalTime: { type: Date, required: true },
     pickupLocation: {
-        type: { type: String, enum: ["Point"], required: true },
-        coordinates: { type: [Number], required: true },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Location",
+      required: true,
     },
     numLargeLuggage: { type: Number, default: 0 },
     numSmallLuggage: { type: Number, default: 0 },
     genderPreference: { type: String, enum: ["male", "female", "other"] },
-    updatedAt: { type: Date, default: Date.now },
-    createdAt: { type: Date, default: Date.now },
-});
+  },
+  { timestamps: true }
+);
+
+userSpecSchema.index({ userId: 1 });
+userSpecSchema.index({ flightId: 1 });
 
 module.exports = mongoose.model("UserSpec", userSpecSchema);
