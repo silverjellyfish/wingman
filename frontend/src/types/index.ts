@@ -61,4 +61,5 @@ export type Screen =
   | "rideWithGroup"
   | "trip"
   | "profile"
-  | "flightPreferences";
+  | "flightPreferences"
+  | "createPod";

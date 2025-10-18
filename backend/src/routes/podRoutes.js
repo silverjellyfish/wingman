@@ -4,6 +4,64 @@
 const express = require("express");
 const router = express.Router();
 const Pod = require("../models/Pod");
+const Location = require("../models/Location");
+
+// GET /pods → 200
+// GET all pods
+router.get("/all", async (req, res) => {
+  console.log("IMEIFJWOEIJFMOIWEJMFOIJMWEF")
+  try {
+    // Fetch all pods from the database
+    const pods = await Pod.find().populate("members").populate("location");
+
+    // If no pods are found, return an empty array
+    if (!pods || pods.length === 0) {
+      return res.status(404).json({ error: "No pods found" });
+    }
+
+    // Return the list of all pods
+    res.status(200).json(pods);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /pods → 201
+// Create a new pod
+// POST /pods → 201
+router.post("/", async (req, res) => {
+  try {
+    const { pickup_time, locationId, userId, num_big_luggage, num_small_luggage } = req.body;
+
+    if (!pickup_time || !locationId || !userId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Make sure location exists
+    const location = await Location.findById(locationId);
+    if (!location) {
+      return res.status(400).json({ error: "Location not found" });
+    }
+
+    const newPod = new Pod({
+      pickup_time,
+      location: location._id,
+      num_members: 1,
+      members: [{ user: userId, status: "accepted" }],
+      num_big_luggage: num_big_luggage || 0,
+      num_small_luggage: num_small_luggage || 0,
+      locked: false,
+    });
+
+    await newPod.save();
+    res.status(201).json(newPod);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // GET /pods/:id → 200
 // GET details about a specific pod

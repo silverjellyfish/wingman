@@ -14,6 +14,7 @@ import { RidePreferencesScreen } from "@/pages/RidePreferencesScreen";
 import { LoadingScreen } from "@/pages/FindingPodLoadingScreen";
 import { PodListScreen } from "@/pages/PodListScreen";
 import { mockFlights } from "@/mock/mockFlights";
+import { CreatePodScreen } from "@/pages/CreatePodScreen";
 import type { Screen } from "@/types/index.ts";
 
 import "./App.css";
@@ -88,6 +89,11 @@ function AuthenticatedApp() {
         return <TripScreen onNavigate={navigateTo} />;
       case "profile":
         return <ProfileScreen onNavigate={navigateTo} />;
+      case "createPod":
+        return selectedFlight ? (
+          <CreatePodScreen onNavigate={navigateTo} flight={selectedFlight} />
+        ) : null;
+
       default:
         return (
           <RideScreen onNavigate={navigateTo} hasJoinedGroup={hasJoinedGroup} />
