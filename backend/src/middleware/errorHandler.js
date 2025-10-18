@@ -1,4 +1,5 @@
 // Contributors: Michelle
+// Time: 0.5 hours
 
 /*
   Centralized error handling middleware for Express.js.

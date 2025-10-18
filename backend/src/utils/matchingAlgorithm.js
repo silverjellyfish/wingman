@@ -1,4 +1,5 @@
 // Contributors: Michelle
+// Time: 1.5 hours
 
 const MAX_DISTANCE_MILES = 2;
 

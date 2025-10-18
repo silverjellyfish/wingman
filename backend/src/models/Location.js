@@ -1,4 +1,5 @@
 // Contributors: Michelle
+// Time: 0.5 hours
 
 const mongoose = require("mongoose");
 
