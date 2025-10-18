@@ -27,7 +27,7 @@ const userSpecSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSpecSchema.index({ userId: 1 });
-userSpecSchema.index({ flightId: 1 });
+userSpecSchema.index({ user: 1 });
+userSpecSchema.index({ flight: 1 });
 
 module.exports = mongoose.model("UserSpec", userSpecSchema);
