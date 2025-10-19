@@ -3,21 +3,55 @@
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
 import { BottomNavigation } from "../components/layout/BottomNavigation";
-import type { Flight, Screen } from "@/types";
-import type { Pod } from "@/mock/mockRides";
 import { useAuth } from "../contexts/AuthContext";
 
 interface PodListScreenProps {
-  onNavigate: (screen: Screen) => void;
-  flight: Flight;
+  onNavigate: (...args: any[]) => void;
+  payload?: any;
 }
 
-export function PodListScreen({ onNavigate, flight }: PodListScreenProps) {
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+}
+
+interface Pod {
+  id: string;
+  num_members: number;
+  members: User[];
+  pickup_time: string;
+  location: {
+    _id: string;
+    name: string;
+    address: string;
+    type: "airport" | "university" | "hotel" | "landmark";
+  };
+  num_big_luggage: number;
+  num_small_luggage: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export function PodListScreen({
+  onNavigate,
+  payload = {},
+}: PodListScreenProps) {
+  const {
+    flight = {},
+    earliestTime = "",
+    latestTime = "",
+    numCarryOn = 0,
+    numChecked = 0,
+    pickupLocation = "",
+  } = payload;
+
   const [pods, setPods] = useState<Pod[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !flight?.date) return;
 
     const fetchPods = async () => {
       try {
@@ -26,11 +60,43 @@ export function PodListScreen({ onNavigate, flight }: PodListScreenProps) {
 
         const data: Pod[] = await res.json();
 
-        // Filter pods to only include those matching the flight date
         const filtered = data.filter((pod) => {
           const podDate = new Date(pod.pickup_time).toISOString().split("T")[0];
           const flightDate = new Date(flight.date).toISOString().split("T")[0];
-          return podDate === flightDate;
+
+          const podTime = new Date(pod.pickup_time);
+
+          // safe parsing of earliest/latest
+          const [earliestHour, earliestMin] = (earliestTime || "00:00")
+            .split(":")
+            .map(Number);
+          const [latestHour, latestMin] = (latestTime || "23:59")
+            .split(":")
+            .map(Number);
+
+          const earliest = new Date(podTime);
+          earliest.setHours(earliestHour, earliestMin, 0, 0);
+          const latest = new Date(podTime);
+          latest.setHours(latestHour, latestMin, 0, 0);
+
+          const withinTime = podTime >= earliest && podTime <= latest;
+
+          const withinLocation =
+            !pickupLocation ||
+            pod.location?.name
+              ?.toLowerCase()
+              .includes(pickupLocation.toLowerCase());
+
+          const withinLuggage =
+            pod.num_small_luggage + pod.num_big_luggage <=
+            Number(numCarryOn) + Number(numChecked);
+
+          return (
+            podDate === flightDate &&
+            withinTime &&
+            withinLocation &&
+            withinLuggage
+          );
         });
 
         setPods(filtered);
@@ -40,11 +106,19 @@ export function PodListScreen({ onNavigate, flight }: PodListScreenProps) {
     };
 
     fetchPods();
-  }, [user, flight.date]);
+  }, [
+    user,
+    flight,
+    earliestTime,
+    latestTime,
+    pickupLocation,
+    numCarryOn,
+    numChecked,
+  ]);
 
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden">
         <Button
           variant="back"
           className="mt-[1rem] pl-[2vw] pr-[2vw]"
@@ -53,55 +127,54 @@ export function PodListScreen({ onNavigate, flight }: PodListScreenProps) {
           Back
         </Button>
 
-        <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
-          <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
-            <p className="leading-none" style={{ fontWeight: 600 }}>
-              Available Pods
-            </p>
-          </div>
+        <div className="flex flex-col items-center gap-[40px] pb-[40px] pt-[80px] px-[40px] w-full">
+          <h1 className="text-[32px] font-semibold text-center">
+            Available Pods
+          </h1>
+
           <Button
-            className="mt-[0.1rem] pl-[2vw] pr-[2vw]"
+            className="mt-[0.1rem] px-[2vw]"
             onClick={() => onNavigate("createPod")}
           >
             Create Pod
           </Button>
-          {/* Flight info */}
-          <div className="flex flex-col space-between p-[12px] bg-[#566957] rounded-[20px] mt-[1rem]">
-            <div className="flex flex-row justify-between items-center">
-              <p className="text-xl" style={{ fontWeight: 600 }}>
-                {flight.code}
-              </p>
-              <p className="text-gray-400 text-sm" style={{ fontWeight: 600 }}>
-                {flight.date}
-              </p>
+
+          {/* ✅ Flight info (with safe checks) */}
+          {flight?.code && (
+            <div className="flex flex-col p-[12px] bg-[#566957] rounded-[20px] mt-[1rem] w-full max-w-md">
+              <div className="flex justify-between items-center">
+                <p className="text-xl font-semibold">{flight.code}</p>
+                <p className="text-gray-400 text-sm font-semibold">
+                  {flight.date}
+                </p>
+              </div>
+              <div className="flex justify-between text-white/80">
+                <p>
+                  <span className="font-semibold">{flight.from}</span> →{" "}
+                  <span className="font-semibold">{flight.to}</span>
+                </p>
+              </div>
+              <div className="grid grid-cols-3 text-sm text-gray-400 gap-2">
+                <p className="font-semibold">Launch: {flight.launch}</p>
+                <p className="font-semibold">Landing: {flight.landing}</p>
+                <p className="font-semibold">Boarding: {flight.boarding}</p>
+              </div>
             </div>
-            <div className="flex justify-between text-white/80">
-              <p>
-                <span className="font-semibold">{flight.from}</span> →{" "}
-                <span className="font-semibold">{flight.to}</span>
-              </p>
-            </div>
-            <div className="grid grid-cols-3 text-sm text-gray-400 gap-2">
-              <p style={{ fontWeight: 600 }}>Launch: {flight.launch}</p>
-              <p style={{ fontWeight: 600 }}>Landing: {flight.landing}</p>
-              <p style={{ fontWeight: 600 }}>Boarding: {flight.boarding}</p>
-            </div>
-          </div>
+          )}
 
           {/* Pods */}
-          {/* TODO: CHANGE LATER THIS IS UGLY */}
           <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
             {pods.length === 0 ? (
               <p className="text-center text-gray-400 mt-6">
-                Loading available rides...
+                No pods available matching your preferences.
               </p>
             ) : (
               pods.map((pod, idx) => (
                 <div
-                  key={pod.id}
-                  className="flex flex-col space-between p-[12px] bg-[#28282d] rounded-[20px] mt-[1rem]"
+                  key={pod.id ?? idx}
+                  className="flex flex-col p-[12px] bg-[#28282d] rounded-[20px] mt-[1rem]"
                 >
-                  <div className="flex flex-row justify-between items-center">
+                  <div className="flex justify-between items-center">
                     <p className="text-xl font-semibold">Option {idx + 1}</p>
                     {idx === 0 && (
                       <p className="text-sm text-accent font-semibold">
@@ -116,15 +189,15 @@ export function PodListScreen({ onNavigate, flight }: PodListScreenProps) {
                       Members:
                     </p>
                     <div className="flex gap-2">
-                      {pod.members.map((m) => (
+                      {pod.members.map((m, midx) => (
                         <div
-                          key={m.id}
+                          key={m.id ?? midx}
                           className="flex flex-col items-center text-xs text-white/80"
                         >
                           <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white font-semibold">
                             {m.name?.[0] || "?"}
                           </div>
-                          <p>{m.name?.split(" ")[0]}</p>
+                          <p>{m.name?.split(" ")[0] ?? "User"}</p>
                         </div>
                       ))}
                     </div>
@@ -162,11 +235,7 @@ export function PodListScreen({ onNavigate, flight }: PodListScreenProps) {
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation
-        currentScreen="ride"
-        onNavigate={(s) => onNavigate(s)}
-      />
+      <BottomNavigation currentScreen="ride" onNavigate={onNavigate} />
     </div>
   );
 }

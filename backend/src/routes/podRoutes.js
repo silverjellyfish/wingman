@@ -9,7 +9,6 @@ const Location = require("../models/Location");
 // GET /pods → 200
 // GET all pods
 router.get("/all", async (req, res) => {
-  console.log("IMEIFJWOEIJFMOIWEJMFOIJMWEF")
   try {
     // Fetch all pods from the database
     const pods = await Pod.find().populate("members").populate("location");

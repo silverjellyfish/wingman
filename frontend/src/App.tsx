@@ -20,6 +20,8 @@ import type { Screen } from "@/types/index.ts";
 import "./App.css";
 
 function AuthenticatedApp() {
+  const [payload, setPayload] = useState<any>(null);
+
   const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
   const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
   const [planeCode, setPlaneCode] = useState("");
@@ -31,12 +33,18 @@ function AuthenticatedApp() {
     screen: Screen,
     planeCodeArg?: string,
     dateArg?: string,
-    payload?: any
+    payloadArg?: any
   ) => {
     if (planeCodeArg) setPlaneCode(planeCodeArg);
     if (dateArg) setSelectedDate(dateArg);
+
+    if (payloadArg?.flight) {
+      setPayload(payloadArg);
+    } else if (payloadArg) {
+      setSelectedFlight(payloadArg);
+    }
+
     setCurrentScreen(screen);
-    if (payload) setSelectedFlight(payload);
   };
 
   //   const handleJoinGroup = () => {
@@ -76,13 +84,13 @@ function AuthenticatedApp() {
           />
         );
       case "loading":
-        return selectedFlight ? (
-          <LoadingScreen onNavigate={navigateTo} flight={selectedFlight} />
+        return payload ? (
+          <LoadingScreen onNavigate={navigateTo} payload={payload} />
         ) : null;
 
       case "rideWithGroup":
-        return selectedFlight ? (
-          <PodListScreen onNavigate={navigateTo} flight={selectedFlight} />
+        return payload ? (
+          <PodListScreen onNavigate={navigateTo} payload={payload} />
         ) : null;
 
       case "trip":

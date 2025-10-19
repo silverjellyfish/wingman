@@ -67,7 +67,7 @@ export function RidePreferencesScreen({
         <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
           <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
             <p className="leading-none" style={{ fontWeight: 600 }}>
-              Flight Details
+              Ride Details
             </p>
           </div>
           {/* Flight info */}
@@ -204,7 +204,16 @@ export function RidePreferencesScreen({
           {/* Search rideshare */}
           <Button
             className="pl-[2vw] pr-[2vw]"
-            onClick={() => onNavigate("loading", undefined, undefined, flight)}
+            onClick={() =>
+              onNavigate("loading", undefined, undefined, {
+                flight,
+                earliestTime,
+                latestTime,
+                numCarryOn,
+                numChecked,
+                pickupLocation,
+              })
+            }
           >
             Search for Rideshare
           </Button>

@@ -1,26 +1,20 @@
 // Contributors: Michelle
 
 import { useEffect } from "react";
-import type { Screen } from "@/types";
 import "@/pages/styles/LoadingScreen.css";
 
 interface LoadingScreenProps {
-  onNavigate: (
-    screen: Screen,
-    planeCode?: string,
-    date?: string,
-    payload?: any
-  ) => void;
-  flight: any;
+  onNavigate: (...args: any[]) => void;
+  payload: any;
 }
 
-export function LoadingScreen({ onNavigate, flight }: LoadingScreenProps) {
+export function LoadingScreen({ onNavigate, payload }: LoadingScreenProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onNavigate("rideWithGroup", undefined, undefined, flight);
-    }, 3000); // 3 seconds total animation
+      onNavigate("rideWithGroup", undefined, undefined, payload);
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [onNavigate, flight]);
+  }, [onNavigate, payload]);
 
   return (
     <div className="loading-container">

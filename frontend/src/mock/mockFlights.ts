@@ -15,9 +15,9 @@ export const mockFlights: Flight[] = [
     code: "WN1234",
     from: "BNA",
     to: "CMH",
-    launch: "10:00 AM",
-    landing: "12:00 PM",
-    boarding: "09:30 AM",
+    launch: "11:00 PM",
+    landing: "12:00 AM",
+    boarding: "10:30 PM",
     date: "2025-10-22",
   },
   {
