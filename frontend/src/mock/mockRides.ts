@@ -1,4 +1,6 @@
 // Contributors: Michelle
+// Time: 0.5 hours
+
 import type { User } from "@/types";
 
 export interface Pod {

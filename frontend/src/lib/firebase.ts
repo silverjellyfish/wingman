@@ -1,4 +1,5 @@
 // Contributors: Vince
+// Time: 0.1 hours
 
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';

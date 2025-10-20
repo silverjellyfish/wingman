@@ -1,9 +1,10 @@
 // Contributors: Michelle
+// Time: 2 hours
 
 import { useState } from "react";
-import { Button } from "../components/ui/button.tsx";
-import { Input } from "../components/ui/input.tsx";
-import { BottomNavigation } from "../components/layout/BottomNavigation";
+import { Button } from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
 import type { Screen } from "@/types/index.ts";
 
@@ -111,6 +112,7 @@ export function RidePreferencesScreen({
               />
             </div>
           </div>
+
           {/* Earliest and Latest boarding times */}
           {/* <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
             <p
@@ -137,6 +139,7 @@ export function RidePreferencesScreen({
               onChange={(e) => handleLatestTimeChange(e.target.value)}
             />
           </div> */}
+
           <div className="flex flex-row gap-[1rem] w-full items-center">
             <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
               <p style={{ fontWeight: 600 }}># Carry-on(s)</p>

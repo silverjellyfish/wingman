@@ -1,4 +1,5 @@
 // Contributors: Vince
+// Time: 1 hour
 
 type Screen = "ride" | "trip" | "profile";
 

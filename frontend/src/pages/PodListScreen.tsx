@@ -1,9 +1,10 @@
 // Contributors: Michelle
+// Time: 2 hours
 
 import { useEffect, useState } from "react";
-import { Button } from "../components/ui/button";
-import { BottomNavigation } from "../components/layout/BottomNavigation";
-import { useAuth } from "../contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PodListScreenProps {
   onNavigate: (...args: any[]) => void;

@@ -1,12 +1,13 @@
-// Contributors: Vince, Michelle
+// Contributors: Michelle, Vince
+// Time: 2 hours
 
 import { useState, useEffect } from "react";
-import { Button } from "../components/ui/button.tsx";
-import { Input } from "../components/ui/input.tsx";
-import { BottomNavigation } from "../components/layout/BottomNavigation";
-import { useAuth } from "../contexts/AuthContext";
-import imgAvatar from "../assets/images/avatar.png";
-import type { Screen } from "../types";
+import { Button } from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { useAuth } from "@/contexts/AuthContext";
+import imgAvatar from "@/assets/images/avatar.png";
+import type { Screen } from "@/types";
 
 interface ProfileScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -149,7 +150,10 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                   </p>
                 </div>
                 <div className="flex flex-col justify-center relative text-[16px] text-zinc-400 tracking-[0.12px] w-full">
-                  <p className="leading-none" style={{ fontWeight: 600, color: "gray" }}>
+                  <p
+                    className="leading-none"
+                    style={{ fontWeight: 600, color: "gray" }}
+                  >
                     @{username}
                   </p>
                 </div>
@@ -228,18 +232,16 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                     onChange={(e) => setGender(e.target.value)}
                     className="bg-primary-foreground text-primary border-accent h-9 w-full rounded-[10px] border-[2px] px-[14px] py-[12px] text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm [&>option]:rounded-lg"
                   >
-                    <option value="Male" className="rounded-lg">
-                      Male
-                    </option>
-                    <option value="Female" className="rounded-lg">
-                      Female
-                    </option>
-                    <option value="Other" className="rounded-lg">
-                      Other
-                    </option>
+                    {[gender, "male", "female", "other"]
+                      .filter((g, i, arr) => g && arr.indexOf(g) === i)
+                      .map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
+                      ))}
                   </select>
                 ) : (
-                  <Input type="text" value={gender} disabled={true} />
+                  <Input type="text" value={gender} disabled />
                 )}
               </div>
             </div>

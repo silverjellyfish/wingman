@@ -1,5 +1,5 @@
 // Contributors: Michelle
-// Time: 0.5 hours
+// Time: 0.1 hours
 
 const express = require("express");
 const cors = require("cors");

@@ -1,7 +1,8 @@
 // Contributors: Michelle
+// Time: 0.5 hours
 
-import { BottomNavigation } from "../components/layout/BottomNavigation";
-import { Button } from "../components/ui/button.tsx";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { Button } from "@/components/ui/button.tsx";
 import { type Flight } from "@/mock/mockFlights.ts";
 import type { Screen } from "@/types/index.ts";
 

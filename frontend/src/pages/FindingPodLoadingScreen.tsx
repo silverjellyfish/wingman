@@ -1,4 +1,5 @@
 // Contributors: Michelle
+// Time: 0.5 hours
 
 import { useEffect } from "react";
 import "@/pages/styles/LoadingScreen.css";

@@ -1,4 +1,5 @@
 // Contributors: Samantha
+// Time: 0.5 hours
 
 import { BsSuitcase2, BsSuitcaseLg } from "react-icons/bs";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";

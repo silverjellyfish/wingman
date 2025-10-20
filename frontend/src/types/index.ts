@@ -1,4 +1,6 @@
 // Contributors: Vince, Samantha, Michelle
+// Time: 0.5 hours
+// TODO: Consolidate this.
 
 export interface User {
   id: string;

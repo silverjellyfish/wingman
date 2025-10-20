@@ -1,4 +1,5 @@
-// Contributors: Vince, Samantha, Michelle
+// Contributors: Michelle, Vince, Samantha
+// Time: 1 hour
 
 import { useState } from "react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";

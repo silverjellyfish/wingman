@@ -1,9 +1,11 @@
 // Contributors: Michelle
+// Time: 0.5 hours
+// TODO: Connect this with backend.
 
 import { useState } from "react";
-import { BottomNavigation } from "../components/layout/BottomNavigation.tsx";
-import { Button } from "../components/ui/button.tsx";
-import { Input } from "../components/ui/input.tsx";
+import { BottomNavigation } from "@/components/layout/BottomNavigation.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input.tsx";
 import type { Screen } from "@/types/index.ts";
 
 interface FlightInputScreenProps {

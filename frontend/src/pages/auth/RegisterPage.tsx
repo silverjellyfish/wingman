@@ -1,4 +1,4 @@
-// Contributors: Vince, Michelle
+// Contributors: Michelle, Vince
 // Time: 3 hours
 
 import { useState } from "react";
@@ -76,7 +76,7 @@ export function RegisterPage({
           {/* Header */}
           <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
             <p className="leading-none" style={{ fontWeight: 600 }}>
-              Create an account
+              Create an Account
             </p>
           </div>
 
