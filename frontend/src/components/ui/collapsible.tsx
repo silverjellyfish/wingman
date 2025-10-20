@@ -1,3 +1,6 @@
+// Contributors: Vince
+// Time: 0.1 hour
+
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"
 
 function Collapsible({

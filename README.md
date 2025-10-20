@@ -1,4 +1,4 @@
-# wingman
+# Wingman
 
 ## Description
 
@@ -15,3 +15,37 @@ Our project coordinates rideshares between a university campus and the airport. 
 -  Authentication: Firebase
 -  API Testing Platform: Postman
 -  API Architecture: REST
+
+## Prerequisites
+
+Make sure you have the following installed:
+
+- Node.js (v16+ recommended)
+- npm (comes with Node.js)
+
+
+## Running the App
+
+Follow these steps to start the backend and frontend servers:
+
+### 1. Start the Backend
+
+Open a terminal and run:
+
+```bash
+cd backend
+npm install
+npm run start
+```
+
+### 2. Start the Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 3. Welcome to Wingman!
+
+Head to ```http://localhost:5173/``` to view our application.

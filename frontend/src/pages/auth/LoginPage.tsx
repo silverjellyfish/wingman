@@ -1,7 +1,10 @@
+// Contributors: Vince, Michelle
+// Time: 2 hours
+
 import { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import { Button } from "../../components/ui/button.tsx";
-import { Input } from "../../components/ui/input.tsx";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input.tsx";
 
 // Interface for props
 interface LoginPageProps {
@@ -9,7 +12,6 @@ interface LoginPageProps {
   onLoginSuccess: () => void;
 }
 
-// LoginPage component
 export function LoginPage({
   onNavigateToRegister,
   onLoginSuccess,

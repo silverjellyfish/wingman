@@ -1,3 +1,6 @@
+// Contributors: Vince
+// Time: 0.1 hours
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 

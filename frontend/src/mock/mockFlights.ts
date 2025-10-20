@@ -1,3 +1,6 @@
+// Contributors: Michelle
+// Time: 0.5 hours
+
 export interface Flight {
   code: string;
   from: string;
@@ -13,9 +16,27 @@ export const mockFlights: Flight[] = [
     code: "WN1234",
     from: "BNA",
     to: "CMH",
+    launch: "11:00 PM",
+    landing: "12:00 AM",
+    boarding: "10:30 PM",
+    date: "2025-10-22",
+  },
+  {
+    code: "WN1234",
+    from: "ANA",
+    to: "CMH",
     launch: "10:00 AM",
     landing: "12:00 PM",
     boarding: "09:30 AM",
+    date: "2025-10-22",
+  },
+  {
+    code: "WN1234",
+    from: "ANA",
+    to: "CAT",
+    launch: "01:00 pM",
+    landing: "08:00 PM",
+    boarding: "12:30 PM",
     date: "2025-10-20",
   },
   {

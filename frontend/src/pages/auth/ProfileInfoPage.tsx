@@ -1,21 +1,44 @@
+// Contributors: Michelle
+// Time: 2 hours
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 
+// Interface for props
 interface ProfileInfoPageProps {
   onContinue: () => void;
 }
 
 export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        You must be logged in to continue
+      </div>
+    );
+  }
+
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
-  const [earliestBefore, setEarliestBefore] = useState("");
-  const [latestBefore, setLatestBefore] = useState("");
-  const [longestWait, setLongestWait] = useState("");
+  // const [earliestBefore, setEarliestBefore] = useState("");
+  // const [latestBefore, setLatestBefore] = useState("");
+  // const [longestWait, setLongestWait] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -35,23 +58,57 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
       return;
     }
 
-    if (!earliestBefore) {
-      setError("Please enter earliest before boarding time.");
+    if (!gender) {
+      setError("Please select your gender.");
       return;
     }
 
-    if (!latestBefore) {
-      setError("Please enter latest before boarding time.");
-      return;
-    }
+    // if (!earliestBefore) {
+    //   setError("Please enter earliest before boarding time.");
+    //   return;
+    // }
 
-    if (!longestWait) {
-      setError("Please enter longest wait after landing.");
-      return;
-    }
+    // if (!latestBefore) {
+    //   setError("Please enter latest before boarding time.");
+    //   return;
+    // }
 
-    // All validations passed
-    onContinue();
+    // if (!longestWait) {
+    //   setError("Please enter longest wait after landing.");
+    //   return;
+    // }
+
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_BASE_URL}/users/profile`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firebaseUid: user.id,
+          name: user.name,
+          username: user.name,
+          email: user.email,
+          university: "Vanderbilt University",
+          phone,
+          age: Number(age),
+          gender,
+          // earliestBefore: Number(earliestBefore),
+          // latestBefore: Number(latestBefore),
+          // longestWait: Number(longestWait),
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to save profile info");
+      }
+
+      onContinue();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to save profile info"
+      );
+    }
   };
 
   return (
@@ -60,17 +117,24 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
         <div className="flex flex-col gap-[60px] items-center justify-center pb-[40px] pt-[80px] px-[40px] w-full min-h-full">
           {/* Header */}
           <div className="text-[32px] text-white text-center w-full">
-            <p className="leading-none font-semibold">Tell us more about yourself</p>
+            <p className="leading-none" style={{ fontWeight: 600 }}>
+              Tell us more about yourself
+            </p>
           </div>
 
           {/* Form */}
           <form
             onSubmit={handleSubmit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.preventDefault();
+            }}
             className="flex flex-col gap-[20px] w-full max-w-md"
           >
             {/* Phone */}
             <div className="flex flex-col gap-[4px] w-full">
-              <p className="text-[18px] text-white font-semibold">Phone Number</p>
+              <p className="text-[18px] text-white font-semibold">
+                Phone Number
+              </p>
               <Input
                 type="tel"
                 placeholder="123-456-7890"
@@ -101,10 +165,13 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
 
             {/* Gender */}
             <div className="flex flex-col w-full">
-              <p className="text-[18px] text-white mb-2 font-semibold">Gender</p>
+              <p className="text-[18px] text-white mb-2 font-semibold">
+                Gender
+              </p>
               <div className="flex flex-wrap gap-6">
                 {["male", "female", "other"].map((option) => (
                   <Button
+                    type="button"
                     key={option}
                     variant={gender === option ? "default" : "outline"}
                     size="default"
@@ -119,8 +186,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               </div>
             </div>
 
-            {/* Earliest before boarding */}
-            <div className="flex flex-col gap-[4px] w-full">
+            {/* <div className="flex flex-col gap-[4px] w-full">
               <p className="text-[18px] text-white font-semibold">
                 Earliest before boarding (min)
               </p>
@@ -133,7 +199,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               />
             </div>
 
-            {/* Latest before boarding */}
             <div className="flex flex-col gap-[4px] w-full">
               <p className="text-[18px] text-white font-semibold">
                 Latest before boarding (min)
@@ -147,7 +212,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               />
             </div>
 
-            {/* Longest willing to wait */}
             <div className="flex flex-col gap-[4px] w-full">
               <p className="text-[18px] text-white font-semibold">
                 Longest willing to wait after landing (min)
@@ -159,12 +223,10 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
                 onChange={(e) => setLongestWait(e.target.value)}
                 required
               />
-            </div>
+            </div> */}
 
             {/* Error message */}
-            {error && (
-              <p className="text-red-400 text-sm mt-2">{error}</p>
-            )}
+            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
 
             {/* Submit */}
             <div className="pt-[40px]">

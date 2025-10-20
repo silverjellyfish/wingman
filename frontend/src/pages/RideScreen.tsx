@@ -1,8 +1,11 @@
+// Contributors: Vince, Michelle
+// Time: 0.5 hours
+
 import { useState } from "react";
-import { BottomNavigation } from "../components/layout/BottomNavigation";
-import { Button } from "../components/ui/button.tsx";
-import { Input } from "../components/ui/input.tsx";
-import { useAuth } from "../contexts/AuthContext";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { Button } from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Screen } from "@/types/index.ts";
 
 interface RideScreenProps {
@@ -16,6 +19,7 @@ export function RideScreen({ onNavigate }: RideScreenProps) {
 
   const [planeCode, setPlaneCode] = useState("");
 
+  // Handle user pressing next to submit plane information
   const handleNext = () => {
     if (!/^([A-Z]{2})(\d{1,4})$/i.test(planeCode)) {
       alert("Enter valid plane code (e.g., WN1234)");
