@@ -29,7 +29,7 @@
 .progress-bar-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(to right, #3b82f6, #6b7280, #4b5563);
+  background: linear-gradient(to right, #4b5563, #6b7280, #3b82f6);
   border-radius: 9999px;
   animation: fillAnimation 2s linear forwards;
 }

@@ -10,6 +10,7 @@ interface TripScreenProps {
 }
 
 export function TripScreen({ onNavigate }: TripScreenProps) {
+  console.log("TRIP ENTERED");
   // TODO: Change this from mocked to backend data
   const trips = [
     {

@@ -52,6 +52,7 @@ export function PodListScreen({
   const [pods, setPods] = useState<Pod[]>([]);
   const { user } = useAuth();
 
+  // TODO: THIS IS LOADING TWICE FOR SOME REASON
   useEffect(() => {
     if (!user || !flight?.date) return;
 
@@ -61,9 +62,10 @@ export function PodListScreen({
         if (!res.ok) throw new Error("Failed to fetch pods");
 
         const data: Pod[] = await res.json();
+        console.log(`hi data ${data[0]}`);
+        console.log(`hi second data ${data[1]}`);
 
         const filtered = data.filter((pod) => {
-
           // Check if pod and flight date match
           const podDate = new Date(pod.pickup_time)
             .toLocaleString()
@@ -92,21 +94,26 @@ export function PodListScreen({
           const latest = new Date(podTime);
           latest.setHours(latestHour, latestMin, 0, 0);
 
-          const withinTime = podTime >= earliest && podTime <= latest;
-
+          // TODO: What if I enter earliest and not latest?
+          const withinTime =
+            (!earliest && !latest) ||
+            (podTime >= earliest && podTime <= latest);
           // Check if user pickup location matches pod location
           const withinLocation =
-            !pickupLocation ||
+            pickupLocation == "" ||
             pod.location?.name
               ?.toLowerCase()
               .includes(pickupLocation.toLowerCase());
 
           // Check if luggage total is within pod limits
           const withinLuggage =
-            pod.num_small_luggage + pod.num_big_luggage <=
-            Number(numCarryOn) + Number(numChecked);
+            Number(numCarryOn) + Number(numChecked) <=
+            pod.num_small_luggage + pod.num_big_luggage;
 
           // Return if all checks are valid
+          console.log(
+            `pleb ${podDate} ${sameDay}, ${withinTime}, ${withinLocation}, ${withinLuggage}`
+          );
           return sameDay && withinTime && withinLocation && withinLuggage;
         });
 
@@ -119,13 +126,13 @@ export function PodListScreen({
 
     fetchPods();
   }, [
-    user,
-    flight,
-    earliestTime,
-    latestTime,
-    pickupLocation,
-    numCarryOn,
-    numChecked,
+    // user,
+    // flight,
+    // earliestTime,
+    // latestTime,
+    // pickupLocation,
+    // numCarryOn,
+    // numChecked,
   ]);
 
   return (

@@ -118,7 +118,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
           {/* Header */}
           <div className="text-[32px] text-white text-center w-full">
             <p className="leading-none" style={{ fontWeight: 600 }}>
-              Tell us more about yourself
+              Tell us More About Yourself!
             </p>
           </div>
 
@@ -156,7 +156,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               <p className="text-[18px] text-white font-semibold">Age</p>
               <Input
                 type="number"
-                min="16"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 required
