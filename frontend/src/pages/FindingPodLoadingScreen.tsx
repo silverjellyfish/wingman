@@ -10,6 +10,7 @@ interface LoadingScreenProps {
 }
 
 export function LoadingScreen({ onNavigate, payload }: LoadingScreenProps) {
+  // Loading effect
   useEffect(() => {
     const timer = setTimeout(() => {
       onNavigate("rideWithGroup", undefined, undefined, payload);

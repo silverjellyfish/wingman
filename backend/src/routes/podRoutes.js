@@ -31,7 +31,13 @@ router.get("/all", async (req, res) => {
 // POST /pods → 201
 router.post("/", async (req, res) => {
   try {
-    const { pickup_time, locationId, userId, num_big_luggage, num_small_luggage } = req.body;
+    const {
+      pickup_time,
+      locationId,
+      userId,
+      num_big_luggage,
+      num_small_luggage,
+    } = req.body;
 
     if (!pickup_time || !locationId || !userId) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -42,7 +48,7 @@ router.post("/", async (req, res) => {
     if (!location) {
       return res.status(400).json({ error: "Location not found" });
     }
-
+    console.log(`BLOOP: ${pickup_time}`);
     const newPod = new Pod({
       pickup_time,
       location: location._id,
@@ -60,7 +66,6 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // GET /pods/:id → 200
 // GET details about a specific pod

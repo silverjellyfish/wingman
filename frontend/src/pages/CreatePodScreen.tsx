@@ -29,7 +29,6 @@ interface CreatePodScreenProps {
 
 export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
   const [pickupTime, setPickupTime] = useState("");
-  const [location, setLocation] = useState("");
   const [numBig, setNumBig] = useState("0");
   const [numSmall, setNumSmall] = useState("0");
   const { user } = useAuth();
@@ -102,7 +101,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
 
       if (res.ok) {
         const pod = await res.json();
-        alert("Pod created successfully!");
+        alert(`Pod created successfully! ${pod}`);
         onNavigate("rideWithGroup", flight);
       } else {
         const error = await res.json();
@@ -117,6 +116,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
       <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {/* Back button */}
         <Button
           variant="back"
           className="mt-[1rem] pl-[2vw] pr-[2vw]"
@@ -124,6 +124,8 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
         >
           Back
         </Button>
+
+        {/* Title */}
         <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
           <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
             <p className="leading-none" style={{ fontWeight: 600 }}>
@@ -141,6 +143,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
             />
           </div>
 
+          {/* Previously populated locations */}
           <Select
             value={selectedLocationId}
             onValueChange={(value) => setSelectedLocationId(value)}
@@ -163,6 +166,8 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
               )}
             </SelectContent>
           </Select>
+          
+          {/* Add a new location */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <form>
               <DialogTrigger asChild>

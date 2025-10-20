@@ -57,9 +57,10 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     fetchProfile();
   }, [user]);
 
-  // Reuse your existing handlers (phone, age, time formatting)
+  // TODO: Determine if delete
+  // Handle saving user's constraints. Currently, inputs are commented out
+  // for sprint 2
   const handleSave = () => {
-    // Add "mins" suffix if not present
     if (earliestBeforeBoarding && !earliestBeforeBoarding.includes("mins")) {
       setEarliestBeforeBoarding(earliestBeforeBoarding + " mins");
     }
@@ -70,10 +71,9 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
       setLongestWillingToWait(longestWillingToWait + " mins");
     }
     setIsEditing(false);
-
-    // Optional: POST updated profile to backend here
   };
 
+  // Handle phone number change
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
     if (value.length > 10) return;
@@ -86,6 +86,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     setPhone(formatted);
   };
 
+  // Handle age change
   const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
     const numValue = parseInt(value);
@@ -94,6 +95,8 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     }
   };
 
+  // TODO: Determine if delete
+  // Currently not used for Sprint 2
   const handleTimeChange = (
     setter: React.Dispatch<React.SetStateAction<string>>
   ) => {
@@ -103,10 +106,13 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     };
   };
 
+  // TODO: Determine if delete
+  // Currently not used for Sprint 2
   const getTimeValue = (value: string) => {
     return isEditing ? value.replace(" mins", "").trim() : value;
   };
 
+  // Handle delete account
   const handleDeleteAccount = async () => {
     if (!user) return;
 
@@ -245,6 +251,8 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 )}
               </div>
             </div>
+
+            {/* TODO: Decide if delete */}
             {/* <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
               <p
                 className="leading-none min-w-full relative text-[18px] text-white tracking-[0.07px] w-[min-content]"

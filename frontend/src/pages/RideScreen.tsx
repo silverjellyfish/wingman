@@ -19,6 +19,7 @@ export function RideScreen({ onNavigate }: RideScreenProps) {
 
   const [planeCode, setPlaneCode] = useState("");
 
+  // Handle user pressing next to submit plane information
   const handleNext = () => {
     if (!/^([A-Z]{2})(\d{1,4})$/i.test(planeCode)) {
       alert("Enter valid plane code (e.g., WN1234)");

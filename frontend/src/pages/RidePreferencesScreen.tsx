@@ -28,6 +28,7 @@ export function RidePreferencesScreen({
   const [numChecked, setNumChecked] = useState("0");
   const [pickupLocation, setPickupLocation] = useState("");
 
+  // Parse flight time
   const parseFlightTime = (timeStr: string) => {
     const [hoursMinutes, ampm] = timeStr.split(" ");
     const [hours, minutes] = hoursMinutes.split(":").map(Number);
@@ -41,9 +42,11 @@ export function RidePreferencesScreen({
 
   const boardingTime = parseFlightTime(flight.boarding);
 
+  // Format the time
   const formatTime = (d: Date) =>
     d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+  // Handle time change
   const handleLatestTimeChange = (val: string) => {
     setLatestTime(val);
     const [h, m] = val.split(":").map(Number);

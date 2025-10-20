@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 
+// TODO: Consolidate these interfaces. Will be deleted later.
 interface PodListScreenProps {
   onNavigate: (...args: any[]) => void;
   payload?: any;
@@ -62,12 +63,22 @@ export function PodListScreen({
         const data: Pod[] = await res.json();
 
         const filtered = data.filter((pod) => {
-          const podDate = new Date(pod.pickup_time).toISOString().split("T")[0];
+
+          // Check if pod and flight date match
+          const podDate = new Date(pod.pickup_time)
+            .toLocaleString()
+            .split(",")[0];
           const flightDate = new Date(flight.date).toISOString().split("T")[0];
+          const flightArray = flightDate.split("-");
+          const podArray = podDate.split("/");
 
+          const sameDay =
+            podArray[0] == flightArray[1] &&
+            podArray[2] == flightArray[0] &&
+            podArray[1] == flightArray[2];
+
+          // Check if pod time is within boundaries set by user
           const podTime = new Date(pod.pickup_time);
-
-          // safe parsing of earliest/latest
           const [earliestHour, earliestMin] = (earliestTime || "00:00")
             .split(":")
             .map(Number);
@@ -77,29 +88,29 @@ export function PodListScreen({
 
           const earliest = new Date(podTime);
           earliest.setHours(earliestHour, earliestMin, 0, 0);
+
           const latest = new Date(podTime);
           latest.setHours(latestHour, latestMin, 0, 0);
 
           const withinTime = podTime >= earliest && podTime <= latest;
 
+          // Check if user pickup location matches pod location
           const withinLocation =
             !pickupLocation ||
             pod.location?.name
               ?.toLowerCase()
               .includes(pickupLocation.toLowerCase());
 
+          // Check if luggage total is within pod limits
           const withinLuggage =
             pod.num_small_luggage + pod.num_big_luggage <=
             Number(numCarryOn) + Number(numChecked);
 
-          return (
-            podDate === flightDate &&
-            withinTime &&
-            withinLocation &&
-            withinLuggage
-          );
+          // Return if all checks are valid
+          return sameDay && withinTime && withinLocation && withinLuggage;
         });
 
+        // List of pods found
         setPods(filtered);
       } catch (err) {
         console.error("Error fetching pods:", err);
@@ -120,6 +131,7 @@ export function PodListScreen({
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
       <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden">
+        {/* Back button */}
         <Button
           variant="back"
           className="mt-[1rem] pl-[2vw] pr-[2vw]"
@@ -140,7 +152,6 @@ export function PodListScreen({
             Create Pod
           </Button>
 
-          {/* ✅ Flight info (with safe checks) */}
           {flight?.code && (
             <div className="flex flex-col p-[12px] bg-[#566957] rounded-[20px] mt-[1rem] w-full max-w-md">
               <div className="flex justify-between items-center">

@@ -31,7 +31,14 @@ export function FlightResultsScreen({
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
       <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <Button variant="back" className="mt-[1rem] pl-[2vw] pr-[2vw]" onClick={() => onNavigate("flightInput")}>Back</Button>
+        {/* Back button */}
+        <Button
+          variant="back"
+          className="mt-[1rem] pl-[2vw] pr-[2vw]"
+          onClick={() => onNavigate("flightInput")}
+        >
+          Back
+        </Button>
         <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
           <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
             <p className="leading-none" style={{ fontWeight: 600 }}>
@@ -53,8 +60,15 @@ export function FlightResultsScreen({
                 className="flex flex-col space-between p-[12px] bg-[#28282d] rounded-[20px] mt-[1rem]"
               >
                 <div className="flex flex-row justify-between items-center">
-                  <p className="text-xl" style={{ fontWeight: 600 }}>{f.code}</p>
-                  <p className="text-gray-400 text-sm" style={{ fontWeight: 600 }}>{date}</p>
+                  <p className="text-xl" style={{ fontWeight: 600 }}>
+                    {f.code}
+                  </p>
+                  <p
+                    className="text-gray-400 text-sm"
+                    style={{ fontWeight: 600 }}
+                  >
+                    {date}
+                  </p>
                 </div>
                 <div className="flex justify-between text-white/80">
                   <p>

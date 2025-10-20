@@ -23,6 +23,7 @@ export function FlightInputScreen({
 
   const [selectedDate, setSelectedDate] = useState("");
 
+  // Handle plane search
   const handleSearch = () => {
     if (!selectedDate) {
       alert("Select a date");
