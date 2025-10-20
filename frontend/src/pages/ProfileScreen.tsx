@@ -38,7 +38,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
         if (!res.ok) throw new Error("Failed to fetch profile");
 
         const data = await res.json();
-        console.log("Fetched profile data:", data);
 
         setName(data.name || "");
         setUsername(data.username || "");
@@ -143,15 +142,15 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
               </div>
 
               {/* Name and Username */}
-              <div className="content-stretch flex flex-col gap-[8px] items-start leading-[0] relative w-[106px]">
-                <div className="flex flex-col justify-center relative text-[24px] text-center text-white tracking-[0.12px] w-full">
+              <div className="content-stretch flex flex-col gap-[0.5rem] items-start leading-[0] relative w-[8rem]">
+                <div className="flex flex-col justify-center relative text-[24px] text-white tracking-[0.12px] w-full">
                   <p className="leading-none" style={{ fontWeight: 600 }}>
                     {name}
                   </p>
                 </div>
                 <div className="flex flex-col justify-center relative text-[16px] text-zinc-400 tracking-[0.12px] w-full">
-                  <p className="leading-none" style={{ fontWeight: 600 }}>
-                    {username}
+                  <p className="leading-none" style={{ fontWeight: 600, color: "gray" }}>
+                    @{username}
                   </p>
                 </div>
               </div>
@@ -244,7 +243,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 )}
               </div>
             </div>
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+            {/* <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
               <p
                 className="leading-none min-w-full relative text-[18px] text-white tracking-[0.07px] w-[min-content]"
                 style={{ fontWeight: 600 }}
@@ -254,7 +253,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
             </div>
 
             <div className="content-stretch flex flex-row gap-[20px] items-center relative w-full">
-              {/* Earliest before boarding */}
               <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
                 <p
                   className="leading-none min-w-full relative text-[14px] text-white tracking-[0.07px] w-[min-content]"
@@ -270,7 +268,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 />
               </div>
 
-              {/* Latest before boarding */}
               <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
                 <p
                   className="leading-none min-w-full relative text-[14px] text-white tracking-[0.07px] w-[min-content]"
@@ -287,7 +284,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
               </div>
             </div>
 
-            {/* Longest willing to wait */}
             <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
               <p
                 className="leading-none min-w-full relative text-[18px] text-white tracking-[0.07px] w-[min-content]"
@@ -301,7 +297,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 onChange={handleTimeChange(setLongestWillingToWait)}
                 disabled={!isEditing}
               />
-            </div>
+            </div> */}
 
             {/* Logout Button */}
             <Button
@@ -309,7 +305,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 logout();
                 onNavigate("ride");
               }}
-              className="w-full mt-4"
+              className="w-full mt-[5rem]"
               variant="destructive"
             >
               Logout

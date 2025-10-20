@@ -12,11 +12,7 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    university: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Location",
-      required: true,
-    },
+    university: { type: String, required: true},
     phone: { type: String },
     age: { type: Number, required: true },
     gender: { type: String, enum: ["male", "female", "other"] },

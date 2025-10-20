@@ -1,7 +1,9 @@
 // Contributors: Michelle
+// Time: 2 hours
+
 import { useState, useEffect } from "react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectTrigger,
@@ -17,9 +19,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { BottomNavigation } from "../components/layout/BottomNavigation";
 import type { Screen, Flight } from "@/types";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CreatePodScreenProps {
   onNavigate: (screen: Screen, payload?: any) => void;
@@ -102,7 +103,6 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
       if (res.ok) {
         const pod = await res.json();
         alert("Pod created successfully!");
-        console.log("Created pod:", pod);
         onNavigate("rideWithGroup", flight);
       } else {
         const error = await res.json();

@@ -1,4 +1,5 @@
 /* Contributer: Michelle */
+/* Time: 1 hour */
 
 .loading-container {
   min-height: 100vh;
@@ -34,6 +35,10 @@
 }
 
 @keyframes fillAnimation {
-  0% { width: 0%; }
-  100% { width: 100%; }
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
 }

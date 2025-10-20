@@ -1,16 +1,19 @@
 // Contributors: Michelle
+// Time: 2 hours
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Interface for props
 interface ProfileInfoPageProps {
   onContinue: () => void;
 }
 
 export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
   const { user, isLoading } = useAuth();
+
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center text-white">
@@ -26,12 +29,13 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
       </div>
     );
   }
+
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
-  const [earliestBefore, setEarliestBefore] = useState("");
-  const [latestBefore, setLatestBefore] = useState("");
-  const [longestWait, setLongestWait] = useState("");
+  // const [earliestBefore, setEarliestBefore] = useState("");
+  // const [latestBefore, setLatestBefore] = useState("");
+  // const [longestWait, setLongestWait] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,24 +58,28 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
       return;
     }
 
-    if (!earliestBefore) {
-      setError("Please enter earliest before boarding time.");
+    if (!gender) {
+      setError("Please select your gender.");
       return;
     }
 
-    if (!latestBefore) {
-      setError("Please enter latest before boarding time.");
-      return;
-    }
+    // if (!earliestBefore) {
+    //   setError("Please enter earliest before boarding time.");
+    //   return;
+    // }
 
-    if (!longestWait) {
-      setError("Please enter longest wait after landing.");
-      return;
-    }
-    console.log(`hello ${user}`);
+    // if (!latestBefore) {
+    //   setError("Please enter latest before boarding time.");
+    //   return;
+    // }
+
+    // if (!longestWait) {
+    //   setError("Please enter longest wait after landing.");
+    //   return;
+    // }
+
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL;
-      // change later
       const res = await fetch(`${API_BASE_URL}/users/profile`, {
         method: "POST",
         headers: {
@@ -80,15 +88,15 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
         body: JSON.stringify({
           firebaseUid: user.id,
           name: user.name,
-          email: user.email,
           username: user.name,
+          email: user.email,
           university: "Vanderbilt University",
           phone,
           age: Number(age),
           gender,
-          earliestBefore: Number(earliestBefore),
-          latestBefore: Number(latestBefore),
-          longestWait: Number(longestWait),
+          // earliestBefore: Number(earliestBefore),
+          // latestBefore: Number(latestBefore),
+          // longestWait: Number(longestWait),
         }),
       });
       if (!res.ok) {
@@ -109,7 +117,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
         <div className="flex flex-col gap-[60px] items-center justify-center pb-[40px] pt-[80px] px-[40px] w-full min-h-full">
           {/* Header */}
           <div className="text-[32px] text-white text-center w-full">
-            <p className="leading-none font-semibold">
+            <p className="leading-none" style={{ fontWeight: 600 }}>
               Tell us more about yourself
             </p>
           </div>
@@ -117,6 +125,9 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
           {/* Form */}
           <form
             onSubmit={handleSubmit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.preventDefault();
+            }}
             className="flex flex-col gap-[20px] w-full max-w-md"
           >
             {/* Phone */}
@@ -160,6 +171,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               <div className="flex flex-wrap gap-6">
                 {["male", "female", "other"].map((option) => (
                   <Button
+                    type="button"
                     key={option}
                     variant={gender === option ? "default" : "outline"}
                     size="default"
@@ -174,8 +186,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               </div>
             </div>
 
-            {/* Earliest before boarding */}
-            <div className="flex flex-col gap-[4px] w-full">
+            {/* <div className="flex flex-col gap-[4px] w-full">
               <p className="text-[18px] text-white font-semibold">
                 Earliest before boarding (min)
               </p>
@@ -188,7 +199,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               />
             </div>
 
-            {/* Latest before boarding */}
             <div className="flex flex-col gap-[4px] w-full">
               <p className="text-[18px] text-white font-semibold">
                 Latest before boarding (min)
@@ -202,7 +212,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               />
             </div>
 
-            {/* Longest willing to wait */}
             <div className="flex flex-col gap-[4px] w-full">
               <p className="text-[18px] text-white font-semibold">
                 Longest willing to wait after landing (min)
@@ -214,7 +223,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
                 onChange={(e) => setLongestWait(e.target.value)}
                 required
               />
-            </div>
+            </div> */}
 
             {/* Error message */}
             {error && <p className="text-red-400 text-sm mt-2">{error}</p>}

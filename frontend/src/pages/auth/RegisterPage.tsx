@@ -1,12 +1,12 @@
 // Contributors: Vince, Michelle
-// TODO: SEND EMAIL CONFIRMATION
-// What is password and confirm password match validation?
+// Time: 3 hours
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+// Interface for props
 interface RegisterPageProps {
   onNavigateToLogin: () => void;
   onNavigateToProfileInfo: () => void;
@@ -58,6 +58,7 @@ export function RegisterPage({
 
     setIsLoading(true);
 
+    // TODO: What if I register and I exit out of profile info page?
     try {
       await register(email, password, name);
       onNavigateToProfileInfo();
@@ -70,7 +71,6 @@ export function RegisterPage({
 
   return (
     <div className="bg-[#16161b] h-screen flex flex-col relative">
-      {/* Main Content - Scrollable */}
       <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="content-stretch flex flex-col gap-[80px] items-center justify-center pb-[40px] pt-[80px] px-[40px] w-full min-h-full">
           {/* Header */}
