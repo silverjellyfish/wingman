@@ -4,6 +4,9 @@
 
 const mongoose = require("mongoose");
 
+/*
+  Mongoose schema and model for Location.
+*/
 const locationSchema = new mongoose.Schema({
     name: { type: String, required: true },
     address: { type: String, required: true },
