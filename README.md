@@ -1,4 +1,4 @@
-# Wingman
+# Wingman Project
 
 ## Description
 
