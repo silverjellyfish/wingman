@@ -30,6 +30,7 @@ function AuthenticatedApp() {
 
   const [selectedDate, setSelectedDate] = useState("");
 
+  // Handles navigating to specific screen
   const navigateTo = (
     screen: Screen,
     planeCodeArg?: string,
@@ -59,6 +60,7 @@ function AuthenticatedApp() {
   //   };
 
   const renderScreen = () => {
+    // Handles logic of which screen to render to
     switch (currentScreen) {
       case "ride":
         return (
@@ -129,6 +131,7 @@ function App() {
   );
 }
 
+// Handles auth screens
 function AuthWrapper({
   authScreen,
   setAuthScreen,
