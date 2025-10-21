@@ -22,6 +22,7 @@ import {
 import type { Screen, Flight } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Props for creating a pod
 interface CreatePodScreenProps {
   onNavigate: (screen: Screen, payload?: any) => void;
   flight: Flight;
@@ -166,7 +167,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
               )}
             </SelectContent>
           </Select>
-          
+
           {/* Add a new location */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <form>

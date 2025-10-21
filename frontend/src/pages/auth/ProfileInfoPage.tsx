@@ -33,9 +33,9 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
-  // const [earliestBefore, setEarliestBefore] = useState("");
-  // const [latestBefore, setLatestBefore] = useState("");
-  // const [longestWait, setLongestWait] = useState("");
+  const [earliestBefore, setEarliestBefore] = useState("");
+  const [latestBefore, setLatestBefore] = useState("");
+  const [longestWait, setLongestWait] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,9 +94,9 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
           phone,
           age: Number(age),
           gender,
-          // earliestBefore: Number(earliestBefore),
-          // latestBefore: Number(latestBefore),
-          // longestWait: Number(longestWait),
+          earliestBefore: Number(earliestBefore),
+          latestBefore: Number(latestBefore),
+          longestWait: Number(longestWait),
         }),
       });
       if (!res.ok) {
