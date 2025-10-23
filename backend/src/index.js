@@ -1,3 +1,6 @@
+// Contributors: Michelle
+// Time: 0.1 hours
+
 require("dotenv").config();
 const app = require("./app");
 const connectDB = require("./config/db");

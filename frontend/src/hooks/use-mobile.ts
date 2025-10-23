@@ -1,3 +1,6 @@
+// Contributors: Vince
+// Time: 0.1 hours
+
 import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768

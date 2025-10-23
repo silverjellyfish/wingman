@@ -1,3 +1,6 @@
+// Contributors: Vince
+// Time: 0.5 hours
+
 import type { Trip, Flight } from '@/types';
 import { auth } from '@/lib/firebase';
 

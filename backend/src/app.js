@@ -1,16 +1,21 @@
+// Contributors: Michelle
+// Time: 0.1 hours
+
 const express = require("express");
-const userRoutes = require("./routes/userRoutes");
+const cors = require("cors");
+const routes = require("./routes");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
-// JSON middleware
+// Enable CORS for frontend
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+}));
+
 app.use(express.json());
-
-// Mount routes
-app.use("/api/users", userRoutes);
-
-// Error handler
+app.use("/api", routes);
 app.use(errorHandler);
 
 module.exports = app;

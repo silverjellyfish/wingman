@@ -1,15 +1,30 @@
+// Contributors: Michelle
+// Time: 0.5 hours
+
 const express = require("express");
 const router = express.Router();
 
-// sub-routes
+// Sub-routes
+const airportRoutes = require("./airportRoutes");
+const flightRoutes = require("./flightRoutes");
+const locationRoutes = require("./locationRoutes");
+const notificationRoutes = require("./notificationRoutes");
+const podRoutes = require("./podRoutes");
 const userRoutes = require("./userRoutes");
+const userSpecRoutes = require("./userSpecRoutes");
 
-// API route
+// Root API endpoint
 router.get("/", (req, res) => {
   res.send("Welcome to the API root");
 });
 
-// sub-routes
+// Mount sub-routes
+router.use("/airports", airportRoutes);
+router.use("/flights", flightRoutes);
+router.use("/locations", locationRoutes);
+router.use("/notifications", notificationRoutes);
+router.use("/pods", podRoutes);
 router.use("/users", userRoutes);
+router.use("/userSpecs", userSpecRoutes);
 
 module.exports = router;
