@@ -4,303 +4,396 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 import type { Screen, Flight } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface CreatePodScreenProps {
-  onNavigate: (screen: Screen, payload?: any) => void;
-  flight: Flight;
+   onNavigate: (screen: Screen, payload?: any) => void;
+   flight: Flight;
 }
 
 export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
-  const [pickupTime, setPickupTime] = useState("");
-  const [numBig, setNumBig] = useState("0");
-  const [numSmall, setNumSmall] = useState("0");
-  const { user } = useAuth();
+   const [pickupDate, setPickupDate] = useState<Date>();
+   const [pickupTime, setPickupTime] = useState("");
+   const [numBig, setNumBig] = useState("0");
+   const [numSmall, setNumSmall] = useState("0");
+   const { user } = useAuth();
 
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [locations, setLocations] = useState<{ _id: string; name: string }[]>(
-    []
-  );
-  const [selectedLocationId, setSelectedLocationId] = useState("");
-  const [newLocationName, setNewLocationName] = useState("");
-  const [newLocationAddress, setNewLocationAddress] = useState("");
-  const [newLocationType, setNewLocationType] = useState("airport");
+   const [userProfile, setUserProfile] = useState<any>(null);
+   const [pickupLocation, setPickupLocation] = useState("");
+   const [searchQuery, setSearchQuery] = useState("");
+   const [showDropdown, setShowDropdown] = useState(false);
+   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+   // Hardcoded Vanderbilt locations
+   const locations = [
+      "Buttrick Hall",
+      "Kirkland Hall",
+      "Wilson Hall",
+      "Garland Hall",
+      "Stevenson Center",
+      "Featheringill Hall",
+      "Blair School of Music",
+      "Owen Graduate School of Management",
+      "Law School",
+      "Medical Center",
+      "Commons Center",
+      "Branscomb Quadrangle",
+      "Carmichael Towers",
+      "Highland Quadrangle",
+      "Warren College",
+      "Moore College",
+      "Zeppos College",
+      "Student Life Center",
+      "Recreation and Wellness Center",
+      "Rand Dining Center",
+      "Sarratt Student Center",
+      "Student Union",
+      "Central Library",
+      "Biomedical Library",
+      "Divinity Library",
+      "Music Library",
+      "Vanderbilt Stadium",
+      "Memorial Gymnasium",
+   ];
 
-  // Fetch available locations for the dropdown
-  useEffect(() => {
-    const fetchLocations = async () => {
+   // Filter locations based on search query
+   const filteredLocations = locations.filter((location) =>
+      location
+         .toLowerCase()
+         .includes((searchQuery || pickupLocation).toLowerCase())
+   );
+
+   // Fetch user profile
+   useEffect(() => {
+      if (!user) return;
+
+      const fetchProfile = async () => {
+         try {
+            const res = await fetch(
+               `${import.meta.env.VITE_API_URL}/users/profile/${user.id}`
+            );
+            if (!res.ok) throw new Error("Failed to fetch profile");
+
+            const data = await res.json();
+            setUserProfile(data);
+         } catch (err) {
+            console.error(err);
+         }
+      };
+
+      fetchProfile();
+   }, [user]);
+
+   const handleCreatePod = async () => {
+      if (!userProfile || !pickupLocation || !pickupDate || !pickupTime) {
+         alert("Please fill in all fields");
+         return;
+      }
+
+      // Validate the location is in the list
+      if (!locations.includes(pickupLocation)) {
+         alert("Please select a valid location");
+         return;
+      }
+
+      // Combine date and time into ISO string
+      const [hours, minutes] = pickupTime.split(":");
+      const combinedDateTime = new Date(pickupDate);
+      combinedDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/locations`);
-        const data = await res.json();
-        setLocations(data);
-        if (data.length > 0) setSelectedLocationId(data[0]._id);
+         // First, find or create the location in the database
+         let locationId = "";
+
+         // Try to find existing location
+         const locationsRes = await fetch(
+            `${import.meta.env.VITE_API_URL}/locations`
+         );
+         if (locationsRes.ok) {
+            const existingLocations = await locationsRes.json();
+            const existing = existingLocations.find(
+               (loc: any) => loc.name === pickupLocation
+            );
+
+            if (existing) {
+               locationId = existing._id;
+            } else {
+               // Create new location
+               const createRes = await fetch(
+                  `${import.meta.env.VITE_API_URL}/locations`,
+                  {
+                     method: "POST",
+                     headers: { "Content-Type": "application/json" },
+                     body: JSON.stringify({
+                        name: pickupLocation,
+                        address: pickupLocation,
+                        type: "university",
+                     }),
+                  }
+               );
+
+               if (createRes.ok) {
+                  const newLoc = await createRes.json();
+                  locationId = newLoc._id;
+               }
+            }
+         }
+
+         if (!locationId) {
+            alert("Failed to process location");
+            return;
+         }
+
+         const res = await fetch(`${import.meta.env.VITE_API_URL}/pods`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+               pickup_time: combinedDateTime.toISOString(),
+               locationId: locationId,
+               userId: userProfile._id,
+               num_big_luggage: parseInt(numBig),
+               num_small_luggage: parseInt(numSmall),
+            }),
+         });
+
+         if (res.ok) {
+            const pod = await res.json();
+            alert(`Pod created successfully! ${pod}`);
+            onNavigate("rideWithGroup", flight);
+         } else {
+            const error = await res.json();
+            alert(`Failed to create pod: ${error.error || "Unknown error"}`);
+         }
       } catch (err) {
-        console.error("Failed to fetch locations:", err);
+         console.error(err);
+         alert("Failed to create pod due to network or server error");
       }
-    };
-    fetchLocations();
-  }, []);
+   };
 
-  // Fetch user profile
-  useEffect(() => {
-    if (!user) return;
+   return (
+      <div className="bg-[#16161b] relative rounded-[40px] size-full">
+         <div className="flex flex-col items-center size-full">
+            <div className="box-border content-stretch flex flex-col items-center justify-between overflow-clip p-[12px] relative size-full">
+               {/* Main Content */}
+               <div className="basis-0 grow min-h-px min-w-px relative shrink-0 w-full">
+                  <div className="flex flex-col items-center size-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                     <div className="box-border content-stretch flex flex-col gap-[40px] items-center px-[12px] py-[40px] relative size-full">
+                        {/* Back Button */}
+                        <div className="content-stretch flex items-start relative shrink-0 w-full">
+                           <Button
+                              onClick={() =>
+                                 onNavigate("rideWithGroup", flight)
+                              }
+                              variant="outline"
+                              className="gap-[8px] w-auto border-2 px-[12px] py-[8px]"
+                           >
+                              <span className="material-symbols-outlined text-[20px]">
+                                 arrow_back
+                              </span>
+                              Back
+                           </Button>
+                        </div>
 
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/users/profile/${user.id}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch profile");
+                        {/* Title */}
+                        <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                           <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[24px] text-white tracking-[0.09px] w-full">
+                              Create New Pod
+                           </p>
+                        </div>
 
-        const data = await res.json();
-        setUserProfile(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+                        {/* Form Fields */}
+                        <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                           {/* Pickup Date & Time Section */}
+                           <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                              <p
+                                 className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                                 style={{ fontWeight: 600 }}
+                              >
+                                 Pickup Date & Time
+                              </p>
 
-    fetchProfile();
-  }, [user]);
+                              <div className="flex gap-[16px] w-full">
+                                 {/* Date Input */}
+                                 <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                                    <PopoverTrigger asChild>
+                                       <Input
+                                          type="text"
+                                          placeholder="YYYY-MM-DD"
+                                          value={pickupDate ? format(pickupDate, "yyyy-MM-dd") : ""}
+                                          onClick={() => setIsDatePickerOpen(true)}
+                                          readOnly
+                                          className="focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 cursor-pointer"
+                                       />
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                       <Calendar
+                                          selected={pickupDate}
+                                          onSelect={(date) => {
+                                             setPickupDate(date);
+                                             setIsDatePickerOpen(false);
+                                          }}
+                                       />
+                                    </PopoverContent>
+                                 </Popover>
 
-  const handleCreatePod = async () => {
-    if (!userProfile || !selectedLocationId) {
-      alert("User or location not loaded");
-      return;
-    }
+                                 {/* Time Input */}
+                                 <Input
+                                    type="time"
+                                    placeholder="HH:MM"
+                                    value={pickupTime}
+                                    onChange={(e) => setPickupTime(e.target.value)}
+                                    className="flex-1"
+                                 />
+                              </div>
+                           </div>
 
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/pods`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pickup_time: pickupTime,
-          locationId: selectedLocationId,
-          userId: userProfile._id,
-          num_big_luggage: parseInt(numBig),
-          num_small_luggage: parseInt(numSmall),
-        }),
-      });
+                           {/* Divider */}
+                           <div className="h-[2px] w-full bg-zinc-800 rounded-full" />
 
-      if (res.ok) {
-        const pod = await res.json();
-        alert(`Pod created successfully! ${pod}`);
-        onNavigate("rideWithGroup", flight);
-      } else {
-        const error = await res.json();
-        alert(`Failed to create pod: ${error.error || "Unknown error"}`);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to create pod due to network or server error");
-    }
-  };
+                           {/* Location Section */}
+                           <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                              <p
+                                 className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                                 style={{ fontWeight: 600 }}
+                              >
+                                 Pickup Location
+                              </p>
 
-  return (
-    <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {/* Back button */}
-        <Button
-          variant="back"
-          className="mt-[1rem] pl-[2vw] pr-[2vw]"
-          onClick={() => onNavigate("rideWithGroup", flight)}
-        >
-          Back
-        </Button>
+                              <div className="relative w-full">
+                                 <Input
+                                    type="text"
+                                    value={searchQuery || pickupLocation}
+                                    onChange={(e) => {
+                                       setSearchQuery(e.target.value);
+                                       setShowDropdown(true);
+                                    }}
+                                    onFocus={() => setShowDropdown(true)}
+                                    onBlur={() => {
+                                       // Delay to allow click on dropdown item
+                                       setTimeout(
+                                          () => setShowDropdown(false),
+                                          200
+                                       );
+                                    }}
+                                    placeholder="Search location"
+                                 />
+                                 {showDropdown &&
+                                    filteredLocations.length > 0 && (
+                                       <div className="absolute top-full left-0 right-0 mt-1 bg-primary-foreground border-accent border-[2px] rounded-[10px] shadow-lg max-h-[200px] overflow-y-auto z-50">
+                                          {filteredLocations.map(
+                                             (location, idx) => (
+                                                <button
+                                                   key={idx}
+                                                   onMouseDown={(e) => {
+                                                      e.preventDefault(); // Prevent blur
+                                                      setPickupLocation(
+                                                         location
+                                                      );
+                                                      setSearchQuery("");
+                                                      setShowDropdown(false);
+                                                   }}
+                                                   className="w-full text-left px-[14px] py-[12px] hover:bg-accent text-primary transition-colors"
+                                                >
+                                                   {location}
+                                                </button>
+                                             )
+                                          )}
+                                       </div>
+                                    )}
+                              </div>
+                           </div>
 
-        {/* Title */}
-        <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
-          <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
-            <p className="leading-none" style={{ fontWeight: 600 }}>
-              Create New Pod
-            </p>
-          </div>
-          <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-            <p style={{ fontWeight: 600 }}>Pickup Time</p>
-            <Input
-              type="datetime-local"
-              placeholder="Pickup Date & Time"
-              value={pickupTime}
-              onChange={(e) => setPickupTime(e.target.value)}
-              className="bg-zinc-800 text-white"
-            />
-          </div>
+                           {/* Divider */}
+                           <div className="h-[2px] w-full bg-zinc-800 rounded-full" />
 
-          {/* Previously populated locations */}
-          <Select
-            value={selectedLocationId}
-            onValueChange={(value) => setSelectedLocationId(value)}
-          >
-            <SelectTrigger className="w-full bg-zinc-800 text-white">
-              <SelectValue placeholder="Select a location" />
-            </SelectTrigger>
+                           {/* Luggage Section */}
+                           <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                              <p
+                                 className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                                 style={{ fontWeight: 600 }}
+                              >
+                                 Luggage
+                              </p>
 
-            <SelectContent>
-              {locations.length === 0 ? (
-                <SelectItem value="no-locations" disabled>
-                  No locations available
-                </SelectItem>
-              ) : (
-                locations.map((loc) => (
-                  <SelectItem key={loc._id} value={loc._id}>
-                    {loc.name}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-          
-          {/* Add a new location */}
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <form>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full mt-2">
-                  + Add New Location
-                </Button>
-              </DialogTrigger>
+                              <div className="content-stretch flex gap-[26px] items-center relative shrink-0 w-full">
+                                 {/* Checked Bags */}
+                                 <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                                    <p
+                                       className="leading-none relative text-[14px] text-white tracking-[0.07px] w-full"
+                                       style={{ fontWeight: 600 }}
+                                    >
+                                       Checked Bags
+                                    </p>
+                                    <div className="flex items-center gap-[8px] w-full">
+                                       <Input
+                                          type="text"
+                                          inputMode="numeric"
+                                          value={numBig}
+                                          onChange={(e) =>
+                                             setNumBig(
+                                                e.target.value.replace(
+                                                   /[^0-9]/g,
+                                                   ""
+                                                )
+                                             )
+                                          }
+                                          className="w-[60px]"
+                                          style={{ maxWidth: "60px" }}
+                                          placeholder="0"
+                                       />
+                                       <span className="text-[14px] text-zinc-400">
+                                          bags
+                                       </span>
+                                    </div>
+                                 </div>
 
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Location</DialogTitle>
-                </DialogHeader>
+                                 {/* Carry-On Bags */}
+                                 <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                                    <p
+                                       className="leading-none relative text-[14px] text-white tracking-[0.07px] w-full"
+                                       style={{ fontWeight: 600 }}
+                                    >
+                                       Carry-On Bags
+                                    </p>
+                                    <div className="flex items-center gap-[8px] w-full">
+                                       <Input
+                                          type="text"
+                                          inputMode="numeric"
+                                          value={numSmall}
+                                          onChange={(e) =>
+                                             setNumSmall(
+                                                e.target.value.replace(
+                                                   /[^0-9]/g,
+                                                   ""
+                                                )
+                                             )
+                                          }
+                                          className="w-[60px]"
+                                          style={{ maxWidth: "60px" }}
+                                          placeholder="0"
+                                       />
+                                       <span className="text-[14px] text-zinc-400">
+                                          bags
+                                       </span>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
 
-                <div className="flex flex-col gap-4">
-                  <Input
-                    placeholder="Location Name"
-                    value={newLocationName}
-                    onChange={(e) => setNewLocationName(e.target.value)}
-                    className="bg-zinc-800 text-white"
-                  />
-
-                  <Input
-                    placeholder="Address"
-                    value={newLocationAddress}
-                    onChange={(e) => setNewLocationAddress(e.target.value)}
-                    className="bg-zinc-800 text-white"
-                  />
-
-                  <Select
-                    value={newLocationType}
-                    onValueChange={(value) => setNewLocationType(value)}
-                  >
-                    <SelectTrigger className="w-full bg-zinc-800 text-white">
-                      <SelectValue placeholder="Select location type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["airport", "university", "hotel", "landmark"].map(
-                        (type) => (
-                          <SelectItem key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <DialogFooter className="mt-6">
-                  <Button
-                    className="w-full"
-                    onClick={async () => {
-                      if (
-                        !newLocationName ||
-                        !newLocationAddress ||
-                        !newLocationType
-                      ) {
-                        alert("Please fill out all fields.");
-                        return;
-                      }
-
-                      try {
-                        const res = await fetch(
-                          `${import.meta.env.VITE_API_URL}/locations`,
-                          {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              name: newLocationName,
-                              address: newLocationAddress,
-                              type: newLocationType,
-                            }),
-                          }
-                        );
-
-                        if (!res.ok) {
-                          const error = await res.json();
-                          alert(
-                            `Failed to add location: ${
-                              error.error || "Unknown error"
-                            }`
-                          );
-                          return;
-                        }
-
-                        const newLoc = await res.json();
-                        setLocations((prev) => [...prev, newLoc]);
-                        setSelectedLocationId(newLoc._id);
-                        setNewLocationName("");
-                        setNewLocationAddress("");
-                        setNewLocationType("airport");
-                        setIsDialogOpen(false);
-                      } catch (err) {
-                        console.error(err);
-                        alert("Network or server error while adding location.");
-                      }
-                    }}
-                  >
-                    Add Location
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </form>
-          </Dialog>
-
-          <div className="flex flex-row gap-[1rem] w-full items-center">
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p style={{ fontWeight: 600 }}># Carry-on(s)</p>
-              <Input
-                type="text"
-                value={numSmall}
-                className="bg-zinc-800 text-white"
-                onChange={(e) =>
-                  setNumSmall(e.target.value.replace(/[^0-9]/g, ""))
-                }
-              />
+                        {/* Create Pod Button */}
+                        <Button className="w-full" onClick={handleCreatePod}>
+                           Create Pod
+                        </Button>
+                     </div>
+                  </div>
+               </div>
             </div>
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p style={{ fontWeight: 600 }}># Checked-in(s)</p>
-              <Input
-                type="text"
-                value={numBig}
-                className="bg-zinc-800 text-white"
-                onChange={(e) =>
-                  setNumBig(e.target.value.replace(/[^0-9]/g, ""))
-                }
-              />
-            </div>
-          </div>
-          <Button className="pl-[2vw] pr-[2vw]" onClick={handleCreatePod}>
-            Create Pod
-          </Button>
-        </div>
+         </div>
       </div>
-    </div>
-  );
+   );
 }

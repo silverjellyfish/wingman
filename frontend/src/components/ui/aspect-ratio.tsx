@@ -1,6 +1,3 @@
-// Contributors: Vince
-// Time: 0.1 hour
-
 "use client"
 
 import * as AspectRatioPrimitive from "@radix-ui/react-aspect-ratio"

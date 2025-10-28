@@ -5,7 +5,6 @@ import { useState } from "react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
-import { RideScreen } from "@/pages/RideScreen";
 import { TripScreen } from "@/pages/TripScreen";
 import { ProfileScreen } from "@/pages/ProfileScreen";
 import { ProfileInfoPage } from "@/pages/auth/ProfileInfoPage";
@@ -62,7 +61,7 @@ function AuthenticatedApp() {
     switch (currentScreen) {
       case "ride":
         return (
-          <RideScreen onNavigate={navigateTo} hasJoinedGroup={hasJoinedGroup} />
+          <FlightInputScreen onNavigate={navigateTo} planeCode={planeCode} />
         );
       case "flightInput":
         return (
@@ -105,7 +104,7 @@ function AuthenticatedApp() {
 
       default:
         return (
-          <RideScreen onNavigate={navigateTo} hasJoinedGroup={hasJoinedGroup} />
+          <FlightInputScreen onNavigate={navigateTo} planeCode={planeCode} />
         );
     }
   };
