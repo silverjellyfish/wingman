@@ -23,7 +23,7 @@ import "./App.css";
 // TODO: PROBLEM BECAUSE MULTIPLE RENDERS HERE
 
 function AuthenticatedApp() {
-  console.log("4")
+  // console.log("4")
   const [payload, setPayload] = useState<any>(null);
 
   const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
@@ -63,7 +63,7 @@ function AuthenticatedApp() {
   //   };
 
   const renderScreen = () => {
-    console.log("2");
+    // console.log("2");
     // Handles logic of which screen to render to
     switch (currentScreen) {
       case "ride":
@@ -124,7 +124,7 @@ function AuthenticatedApp() {
 }
 
 function App() {
-  console.log("5")
+  // console.log("5")
   const [authScreen, setAuthScreen] = useState<
     "login" | "register" | "profileInfo" | "app"
   >("login");
@@ -153,7 +153,7 @@ function AuthWrapper({
       </div>
     );
   }
-  console.log("3");
+  // console.log("3");
 
   switch (authScreen) {
     case "login":

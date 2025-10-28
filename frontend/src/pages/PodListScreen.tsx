@@ -62,8 +62,8 @@ export function PodListScreen({
         if (!res.ok) throw new Error("Failed to fetch pods");
 
         const data: Pod[] = await res.json();
-        console.log(`hi data ${data[0]}`);
-        console.log(`hi second data ${data[1]}`);
+        // console.log(`hi data ${data[0]}`);
+        // console.log(`hi second data ${data[1]}`);
 
         const filtered = data.filter((pod) => {
           // Check if pod and flight date match
@@ -112,7 +112,7 @@ export function PodListScreen({
 
           // Return if all checks are valid
           console.log(
-            `pleb ${podDate} ${sameDay}, ${withinTime}, ${withinLocation}, ${withinLuggage}`
+            `Booleans ${podDate} ${sameDay}, ${withinTime}, ${withinLocation}, ${withinLuggage}`
           );
           return sameDay && withinTime && withinLocation && withinLuggage;
         });

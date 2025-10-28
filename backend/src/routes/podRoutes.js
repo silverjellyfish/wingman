@@ -10,7 +10,7 @@ const Location = require("../models/Location");
 // GET all pods
 router.get("/all", async (req, res) => {
   try {
-    console.log("1");
+    // console.log("1");
     // Fetch all pods from the database
     const pods = await Pod.find().populate("members").populate("location");
 
@@ -49,7 +49,7 @@ router.post("/", async (req, res) => {
     if (!location) {
       return res.status(400).json({ error: "Location not found" });
     }
-    console.log(`BLOOP: ${pickup_time}`);
+    // console.log(`BLOOP: ${pickup_time}`);
     const newPod = new Pod({
       pickup_time,
       location: location._id,

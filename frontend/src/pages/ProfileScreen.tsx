@@ -15,7 +15,7 @@ interface ProfileScreenProps {
 }
 
 export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
-  console.log("blep");
+  // console.log("blep");
   const { user, logout, deleteAccount } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -37,7 +37,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     const fetchProfile = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL;
-        console.log("IM HERE");
+        // console.log("IM HERE");
         const res = await fetch(`${API_BASE_URL}/users/profile/${user.id}`);
         if (!res.ok) throw new Error("Failed to fetch profile");
 

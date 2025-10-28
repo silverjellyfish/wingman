@@ -24,7 +24,7 @@ import type { User as FirebaseUser } from "firebase/auth";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  console.log("6")
+  // console.log("6")
   
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
