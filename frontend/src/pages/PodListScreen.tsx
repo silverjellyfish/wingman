@@ -38,6 +38,18 @@ interface Pod {
   updated_at: string;
 }
 
+function convertToMilitaryTime(timeStr: string): string {
+  // Create a Date object. The specific date doesn't matter,
+  // we just need it to parse the time string.
+  const d = new Date(`2025/10/28 ${timeStr}`);
+  
+  // Extract the hours and minutes in 24-hour format
+  const hours = d.getHours().toString().padStart(2, '0');
+  const minutes = d.getMinutes().toString().padStart(2, '0');
+  
+  return `${hours}:${minutes}`;
+}
+
 export function PodListScreen({
   onNavigate,
   payload = {},
@@ -53,6 +65,8 @@ export function PodListScreen({
 
   const [pods, setPods] = useState<Pod[]>([]);
   const { user } = useAuth();
+  const charToSplit = [":", " "];
+  const regex = new RegExp(`[${charToSplit.join('')}]`, 'g'); 
 
   useEffect(() => {
     if (!user || !flight?.date) return;
@@ -65,7 +79,7 @@ export function PodListScreen({
         const data: Pod[] = await res.json();
 
         const filtered = data.filter((pod) => {
-
+          console.log("Evaluating pod:", pod);
           // Check if pod and flight date match
           const podDate = new Date(pod.pickup_time)
             .toLocaleString()
@@ -73,7 +87,8 @@ export function PodListScreen({
           const flightDate = new Date(flight.date).toISOString().split("T")[0];
           const flightArray = flightDate.split("-");
           const podArray = podDate.split("/");
-
+          console.log("Pod date:", podDate, "Flight date:", flightDate);
+          console.log("Earlitest time:", earliestTime, "Latest time:", latestTime);
           const sameDay =
             podArray[0] == flightArray[1] &&
             podArray[2] == flightArray[0] &&
@@ -81,12 +96,20 @@ export function PodListScreen({
 
           // Check if pod time is within boundaries set by user
           const podTime = new Date(pod.pickup_time);
-          const [earliestHour, earliestMin] = (earliestTime || "00:00")
-            .split(":")
-            .map(Number);
-          const [latestHour, latestMin] = (latestTime || "23:59")
-            .split(":")
-            .map(Number);
+          const splitTimeEarliest = convertToMilitaryTime(earliestTime).split(regex);
+          const splitTimeLatest = convertToMilitaryTime(latestTime).split(regex);
+
+          const [earliestHour, earliestMin] = [Number(splitTimeEarliest[0]), Number(splitTimeEarliest[1])];
+          const [latestHour, latestMin] = [Number(splitTimeLatest[0]), Number(splitTimeLatest[1])];
+          // const [earliestHour, earliestMin] = (earliestTime || "00:00")
+          //   .split(":")
+          //   .map(Number);
+          
+          // const 
+          // console.log("Earliest hour and min:", earliestHour, earliestMin);
+          // const [latestHour, latestMin] = (latestTime || "23:59")
+          //   .split(":")
+          //   .map(Number);
 
           const earliest = new Date(podTime);
           earliest.setHours(earliestHour, earliestMin, 0, 0);
@@ -94,6 +117,12 @@ export function PodListScreen({
           const latest = new Date(podTime);
           latest.setHours(latestHour, latestMin, 0, 0);
 
+          
+
+          console.log("Pod time:", podTime);
+          console.log("Earliest time:", earliest);
+          console.log("Latest time:", latest);
+          console.log("Is within time:", podTime >= earliest, podTime <= latest);
           const withinTime = podTime >= earliest && podTime <= latest;
 
           // Check if user pickup location matches pod location
@@ -104,10 +133,15 @@ export function PodListScreen({
               .includes(pickupLocation.toLowerCase());
 
           // Check if luggage total is within pod limits
+          // TODO: ERROR BECAUSE WE NEED TO TRACK SPACE LEFT
+          // THIS IS INCORRECT RN!!!!
           const withinLuggage =
-            pod.num_small_luggage + pod.num_big_luggage <=
-            Number(numCarryOn) + Number(numChecked);
-
+          Number(numCarryOn) + Number(numChecked) <=
+            pod.num_small_luggage + pod.num_big_luggage;
+          console.log("Luggage check:", withinLuggage);
+          console.log("Day check:", sameDay);
+          console.log("Time check:", withinTime);
+          console.log("Location check:", withinLocation);
           // Return if all checks are valid
           return sameDay && withinTime && withinLocation && withinLuggage;
         });

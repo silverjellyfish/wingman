@@ -200,7 +200,7 @@ export function FlightInputScreen({
                         value={flightDate}
                         onChange={handleDateChange}
                         onClick={handleDateInputClick}
-                        readOnly
+                        // readOnly
                         className="focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 cursor-pointer"
                      />
                      <Button

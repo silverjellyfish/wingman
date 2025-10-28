@@ -29,3 +29,4 @@ replay_pid*
 .env.*.local
 
 node_modules/
+to-do.txt
