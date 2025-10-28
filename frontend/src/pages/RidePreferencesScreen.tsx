@@ -64,7 +64,9 @@ export function RidePreferencesScreen({
 
    // Filter locations based on search query
    const filteredLocations = locations.filter((location) =>
-      location.toLowerCase().includes((searchQuery || pickupLocation).toLowerCase())
+      location
+         .toLowerCase()
+         .includes((searchQuery || pickupLocation).toLowerCase())
    );
 
    // Parse flight time
@@ -132,7 +134,7 @@ export function RidePreferencesScreen({
    };
 
    return (
-      <div className="bg-[#16161b] flex flex-col justify-between h-full text-white pt-[40px]">
+      <div className="bg-[#16161b] flex flex-col justify-between h-full text-white p-[12px] pt-[20px]">
          {/* Main Content - Scrollable */}
          <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="box-border content-stretch flex flex-col gap-[32px] items-start relative w-full">
@@ -399,12 +401,6 @@ export function RidePreferencesScreen({
                </div>
             </div>
          </div>
-
-         {/* Bottom Navigation */}
-         <BottomNavigation
-            currentScreen="ride"
-            onNavigate={(s) => onNavigate(s)}
-         />
       </div>
    );
 }

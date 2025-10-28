@@ -5,7 +5,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+   Popover,
+   PopoverContent,
+   PopoverTrigger,
+} from "@/components/ui/popover";
 import { format } from "date-fns";
 import type { Screen, Flight } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -175,13 +179,13 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
    };
 
    return (
-      <div className="bg-[#16161b] relative rounded-[40px] size-full">
+      <div className="bg-[#16161b] relative size-full px-[12px] pt-[20px]">
          <div className="flex flex-col items-center size-full">
-            <div className="box-border content-stretch flex flex-col items-center justify-between overflow-clip p-[12px] relative size-full">
+            <div className="box-border content-stretch flex flex-c  ol items-start justify-between overflow-clip relative size-full">
                {/* Main Content */}
                <div className="basis-0 grow min-h-px min-w-px relative shrink-0 w-full">
                   <div className="flex flex-col items-center size-full overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                     <div className="box-border content-stretch flex flex-col gap-[40px] items-center px-[12px] py-[40px] relative size-full">
+                     <div className="box-border content-stretch flex flex-col gap-[40px] items-center relative size-full">
                         {/* Back Button */}
                         <div className="content-stretch flex items-start relative shrink-0 w-full">
                            <Button
@@ -218,18 +222,33 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
 
                               <div className="flex gap-[16px] w-full">
                                  {/* Date Input */}
-                                 <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                                 <Popover
+                                    open={isDatePickerOpen}
+                                    onOpenChange={setIsDatePickerOpen}
+                                 >
                                     <PopoverTrigger asChild>
                                        <Input
                                           type="text"
                                           placeholder="YYYY-MM-DD"
-                                          value={pickupDate ? format(pickupDate, "yyyy-MM-dd") : ""}
-                                          onClick={() => setIsDatePickerOpen(true)}
+                                          value={
+                                             pickupDate
+                                                ? format(
+                                                     pickupDate,
+                                                     "yyyy-MM-dd"
+                                                  )
+                                                : ""
+                                          }
+                                          onClick={() =>
+                                             setIsDatePickerOpen(true)
+                                          }
                                           readOnly
                                           className="focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 cursor-pointer"
                                        />
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <PopoverContent
+                                       className="w-auto p-0"
+                                       align="start"
+                                    >
                                        <Calendar
                                           selected={pickupDate}
                                           onSelect={(date) => {
@@ -245,7 +264,9 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
                                     type="time"
                                     placeholder="HH:MM"
                                     value={pickupTime}
-                                    onChange={(e) => setPickupTime(e.target.value)}
+                                    onChange={(e) =>
+                                       setPickupTime(e.target.value)
+                                    }
                                     className="flex-1"
                                  />
                               </div>

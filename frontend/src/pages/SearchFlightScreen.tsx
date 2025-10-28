@@ -2,7 +2,6 @@
 // Time: 0.5 hours
 
 import { useState } from "react";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.tsx";
@@ -72,10 +71,9 @@ export function FlightInputScreen({
       setSelectedDate(date);
       if (date) {
          // Format as YYYY-MM-DD to match mockFlights.ts format
-         const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-            2,
-            "0"
-         )}-${String(date.getDate()).padStart(2, "0")}`;
+         const formattedDate = `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+         ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
          setFlightDate(formattedDate);
       }
       setShowCalendar(false);
@@ -123,7 +121,7 @@ export function FlightInputScreen({
    };
 
    return (
-      <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
+      <div className="flex flex-col h-full bg-[#16161b] text-white p-6">
          {/* Main Content - Scrollable */}
          <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[10px] w-full">
@@ -215,8 +213,6 @@ export function FlightInputScreen({
                )}
             </div>
          </div>
-
-         <BottomNavigation currentScreen="ride" onNavigate={onNavigate} />
 
          <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
             <DialogContent className="w-2/3 max-w-[300px] border-2 border-accent rounded-[12px]">
