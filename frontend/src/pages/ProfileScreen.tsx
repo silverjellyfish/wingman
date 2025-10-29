@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
+// import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 import imgAvatar from "@/assets/images/avatar.png";
 import type { Screen } from "@/types";
@@ -97,20 +97,20 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
 
   // TODO: Determine if delete
   // Currently not used for Sprint 2
-  const handleTimeChange = (
-    setter: React.Dispatch<React.SetStateAction<string>>
-  ) => {
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.replace(/[^0-9]/g, "");
-      setter(value);
-    };
-  };
+  // const handleTimeChange = (
+  //   setter: React.Dispatch<React.SetStateAction<string>>
+  // ) => {
+  //   return (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     const value = e.target.value.replace(/[^0-9]/g, "");
+  //     setter(value);
+  //   };
+  // };
 
   // TODO: Determine if delete
   // Currently not used for Sprint 2
-  const getTimeValue = (value: string) => {
-    return isEditing ? value.replace(" mins", "").trim() : value;
-  };
+  // const getTimeValue = (value: string) => {
+  //   return isEditing ? value.replace(" mins", "").trim() : value;
+  // };
 
   // Handle delete account
   const handleDeleteAccount = async () => {

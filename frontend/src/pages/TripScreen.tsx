@@ -2,7 +2,7 @@
 // Time: 0.5 hours
 
 import { BsSuitcase2, BsSuitcaseLg } from "react-icons/bs";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
+// import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import type { Screen } from "@/types/index.ts";
 
 interface TripScreenProps {
