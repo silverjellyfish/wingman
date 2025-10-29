@@ -87,11 +87,6 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation - Sticky */}
-      <div className="sticky bottom-0 w-full z-50">
-        <BottomNavigation currentScreen="trip" onNavigate={onNavigate} />
-      </div>
     </div>
   );
 }

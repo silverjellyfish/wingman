@@ -330,11 +330,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
           </div>
         </div>
       </div>
-
-      {/* Bottom Navigation - Sticky */}
-      <div className="sticky bottom-0 w-full z-50">
-        <BottomNavigation currentScreen="profile" onNavigate={onNavigate} />
-      </div>
     </div>
   );
 }
