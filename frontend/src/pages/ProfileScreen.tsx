@@ -132,7 +132,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   };
 
   return (
-    <div className="bg-[#16161b] h-screen flex flex-col relative">
+    <div className="bg-[#16161b] h-full flex flex-col justify-between relative p-6">
       {/* Main Content - Scrollable */}
       <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="content-stretch flex flex-col gap-[69px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
@@ -329,11 +329,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Bottom Navigation - Sticky */}
-      <div className="sticky bottom-0 w-full z-50">
-        <BottomNavigation currentScreen="profile" onNavigate={onNavigate} />
       </div>
     </div>
   );

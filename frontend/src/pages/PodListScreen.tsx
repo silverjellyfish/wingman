@@ -5,249 +5,289 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { FlightResultCard } from "@/components/FlightResultCard";
+import { GroupOptionCard } from "@/components/GroupOptionCard";
 
 // TODO: Consolidate these interfaces. Will be deleted later.
 interface PodListScreenProps {
-  onNavigate: (...args: any[]) => void;
-  payload?: any;
+   onNavigate: (...args: any[]) => void;
+   payload?: any;
 }
 
 interface User {
-  id: string;
-  email: string;
-  name: string;
-  createdAt: string;
+   id: string;
+   email: string;
+   name: string;
+   createdAt: string;
 }
 
 interface Pod {
-  id: string;
-  num_members: number;
-  members: User[];
-  pickup_time: string;
-  location: {
-    _id: string;
-    name: string;
-    address: string;
-    type: "airport" | "university" | "hotel" | "landmark";
-  };
-  num_big_luggage: number;
-  num_small_luggage: number;
-  created_at: string;
-  updated_at: string;
+   id: string;
+   num_members: number;
+   members: User[];
+   pickup_time: string;
+   location: {
+      _id: string;
+      name: string;
+      address: string;
+      type: "airport" | "university" | "hotel" | "landmark";
+   };
+   num_big_luggage: number;
+   num_small_luggage: number;
+   created_at: string;
+   updated_at: string;
+}
+
+function convertToMilitaryTime(timeStr: string): string {
+   // Create a Date object. The specific date doesn't matter,
+   // we just need it to parse the time string.
+   const d = new Date(`2025/10/28 ${timeStr}`);
+
+   // Extract the hours and minutes in 24-hour format
+   const hours = d.getHours().toString().padStart(2, "0");
+   const minutes = d.getMinutes().toString().padStart(2, "0");
+
+   return `${hours}:${minutes}`;
 }
 
 export function PodListScreen({
-  onNavigate,
-  payload = {},
+   onNavigate,
+   payload = {},
 }: PodListScreenProps) {
-  const {
-    flight = {},
-    earliestTime = "",
-    latestTime = "",
-    numCarryOn = 0,
-    numChecked = 0,
-    pickupLocation = "",
-  } = payload;
+   const {
+      flight = {},
+      earliestTime = "",
+      latestTime = "",
+      numCarryOn = 0,
+      numChecked = 0,
+      pickupLocation = "",
+   } = payload;
 
-  const [pods, setPods] = useState<Pod[]>([]);
-  const { user } = useAuth();
+   const [pods, setPods] = useState<Pod[]>([]);
+   const { user } = useAuth();
+   const charToSplit = [":", " "];
+   const regex = new RegExp(`[${charToSplit.join("")}]`, "g");
 
-  useEffect(() => {
-    if (!user || !flight?.date) return;
+   useEffect(() => {
+      if (!user || !flight?.date) return;
 
-    const fetchPods = async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/pods/all`);
-        if (!res.ok) throw new Error("Failed to fetch pods");
+      const fetchPods = async () => {
+         try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/pods/all`);
+            if (!res.ok) throw new Error("Failed to fetch pods");
 
-        const data: Pod[] = await res.json();
+            const data: Pod[] = await res.json();
 
-        const filtered = data.filter((pod) => {
+            const filtered = data.filter((pod) => {
+               console.log("Evaluating pod:", pod);
+               // Check if pod and flight date match
+               const podDate = new Date(pod.pickup_time)
+                  .toLocaleString()
+                  .split(",")[0];
+               const flightDate = new Date(flight.date)
+                  .toISOString()
+                  .split("T")[0];
+               const flightArray = flightDate.split("-");
+               const podArray = podDate.split("/");
+               console.log("Pod date:", podDate, "Flight date:", flightDate);
+               console.log(
+                  "Earlitest time:",
+                  earliestTime,
+                  "Latest time:",
+                  latestTime
+               );
+               const sameDay =
+                  podArray[0] == flightArray[1] &&
+                  podArray[2] == flightArray[0] &&
+                  podArray[1] == flightArray[2];
 
-          // Check if pod and flight date match
-          const podDate = new Date(pod.pickup_time)
-            .toLocaleString()
-            .split(",")[0];
-          const flightDate = new Date(flight.date).toISOString().split("T")[0];
-          const flightArray = flightDate.split("-");
-          const podArray = podDate.split("/");
+               // Check if pod time is within boundaries set by user
+               const podTime = new Date(pod.pickup_time);
+               const splitTimeEarliest =
+                  convertToMilitaryTime(earliestTime).split(regex);
+               const splitTimeLatest =
+                  convertToMilitaryTime(latestTime).split(regex);
 
-          const sameDay =
-            podArray[0] == flightArray[1] &&
-            podArray[2] == flightArray[0] &&
-            podArray[1] == flightArray[2];
+               const [earliestHour, earliestMin] = [
+                  Number(splitTimeEarliest[0]),
+                  Number(splitTimeEarliest[1]),
+               ];
+               const [latestHour, latestMin] = [
+                  Number(splitTimeLatest[0]),
+                  Number(splitTimeLatest[1]),
+               ];
+               // const [earliestHour, earliestMin] = (earliestTime || "00:00")
+               //   .split(":")
+               //   .map(Number);
 
-          // Check if pod time is within boundaries set by user
-          const podTime = new Date(pod.pickup_time);
-          const [earliestHour, earliestMin] = (earliestTime || "00:00")
-            .split(":")
-            .map(Number);
-          const [latestHour, latestMin] = (latestTime || "23:59")
-            .split(":")
-            .map(Number);
+               // const
+               // console.log("Earliest hour and min:", earliestHour, earliestMin);
+               // const [latestHour, latestMin] = (latestTime || "23:59")
+               //   .split(":")
+               //   .map(Number);
 
-          const earliest = new Date(podTime);
-          earliest.setHours(earliestHour, earliestMin, 0, 0);
+               const earliest = new Date(podTime);
+               earliest.setHours(earliestHour, earliestMin, 0, 0);
 
-          const latest = new Date(podTime);
-          latest.setHours(latestHour, latestMin, 0, 0);
+               const latest = new Date(podTime);
+               latest.setHours(latestHour, latestMin, 0, 0);
 
-          const withinTime = podTime >= earliest && podTime <= latest;
+               console.log("Pod time:", podTime);
+               console.log("Earliest time:", earliest);
+               console.log("Latest time:", latest);
+               console.log(
+                  "Is within time:",
+                  podTime >= earliest,
+                  podTime <= latest
+               );
+               const withinTime = podTime >= earliest && podTime <= latest;
 
-          // Check if user pickup location matches pod location
-          const withinLocation =
-            !pickupLocation ||
-            pod.location?.name
-              ?.toLowerCase()
-              .includes(pickupLocation.toLowerCase());
+               // Check if user pickup location matches pod location
+               const withinLocation =
+                  !pickupLocation ||
+                  pod.location?.name
+                     ?.toLowerCase()
+                     .includes(pickupLocation.toLowerCase());
 
-          // Check if luggage total is within pod limits
-          const withinLuggage =
-            pod.num_small_luggage + pod.num_big_luggage <=
-            Number(numCarryOn) + Number(numChecked);
+               // Check if luggage total is within pod limits
+               // TODO: ERROR BECAUSE WE NEED TO TRACK SPACE LEFT
+               // THIS IS INCORRECT RN!!!!
+               const withinLuggage =
+                  Number(numCarryOn) + Number(numChecked) <=
+                  pod.num_small_luggage + pod.num_big_luggage;
+               console.log("Luggage check:", withinLuggage);
+               console.log("Day check:", sameDay);
+               console.log("Time check:", withinTime);
+               console.log("Location check:", withinLocation);
+               // Return if all checks are valid
+               return sameDay && withinTime && withinLocation && withinLuggage;
+            });
 
-          // Return if all checks are valid
-          return sameDay && withinTime && withinLocation && withinLuggage;
-        });
+            // List of pods found
+            setPods(filtered);
+         } catch (err) {
+            console.error("Error fetching pods:", err);
+         }
+      };
 
-        // List of pods found
-        setPods(filtered);
-      } catch (err) {
-        console.error("Error fetching pods:", err);
-      }
-    };
+      fetchPods();
+   }, [
+      user,
+      flight,
+      earliestTime,
+      latestTime,
+      pickupLocation,
+      numCarryOn,
+      numChecked,
+   ]);
 
-    fetchPods();
-  }, [
-    user,
-    flight,
-    earliestTime,
-    latestTime,
-    pickupLocation,
-    numCarryOn,
-    numChecked,
-  ]);
+   // Transform flight data for FlightResultCard component
+   const selectedFlight = flight?.code
+      ? {
+           id: "selected-flight",
+           flightCode: flight.code,
+           dateRange: flight.date || "",
+           route: `${flight.from || ""} → ${flight.to || ""}`,
+           airports: `${flight.from || ""} - ${flight.to || ""}`,
+           boardingTime: flight.boarding || "",
+           departureTime: flight.launch || "",
+           arrivalTime: flight.landing || "",
+        }
+      : null;
 
-  return (
-    <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden">
-        {/* Back button */}
-        <Button
-          variant="back"
-          className="mt-[1rem] pl-[2vw] pr-[2vw]"
-          onClick={() => onNavigate("flightPreferences")}
-        >
-          Back
-        </Button>
+   // Transform pods data for GroupOptionCard components
+   const options = pods.map((pod, idx) => ({
+      id: idx + 1,
+      isRecommended: idx === 0,
+      members: pod.members.map((m) => ({
+         name: m.name?.split(" ")[0] || "User",
+         initial: m.name?.[0] || "?",
+         isEmpty: false,
+      })),
+      location: pod.location?.name || "Unknown location",
+      luggageCount: pod.num_big_luggage + pod.num_small_luggage,
+      time: new Date(pod.pickup_time).toLocaleTimeString([], {
+         hour: "2-digit",
+         minute: "2-digit",
+      }),
+   }));
 
-        <div className="flex flex-col items-center gap-[40px] pb-[40px] pt-[80px] px-[40px] w-full">
-          <h1 className="text-[32px] font-semibold text-center">
-            Available Pods
-          </h1>
+   const handleAccept = (optionId: number) => {
+      alert("Accepted!");
+   };
 
-          <Button
-            className="mt-[0.1rem] px-[2vw]"
-            onClick={() => onNavigate("createPod")}
-          >
-            Create Pod
-          </Button>
+   return (
+      <div className="flex flex-col justify-between h-full bg-[#16161b] text-white px-[12px] pt-[20px]">
+         {/* Main Content - Scrollable */}
+         <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] w-full">
+               {/* Back Button */}
+               <div className="content-stretch flex items-start relative shrink-0 w-full">
+                  <Button
+                     onClick={() => onNavigate("flightPreferences")}
+                     variant="outline"
+                     className="gap-[8px] w-auto border-2 px-[12px] py-[8px]"
+                  >
+                     <span className="material-symbols-outlined text-[20px]">
+                        arrow_back
+                     </span>
+                     Back
+                  </Button>
+               </div>
 
-          {flight?.code && (
-            <div className="flex flex-col p-[12px] bg-[#566957] rounded-[20px] mt-[1rem] w-full max-w-md">
-              <div className="flex justify-between items-center">
-                <p className="text-xl font-semibold">{flight.code}</p>
-                <p className="text-gray-400 text-sm font-semibold">
-                  {flight.date}
-                </p>
-              </div>
-              <div className="flex justify-between text-white/80">
-                <p>
-                  <span className="font-semibold">{flight.from}</span> →{" "}
-                  <span className="font-semibold">{flight.to}</span>
-                </p>
-              </div>
-              <div className="grid grid-cols-3 text-sm text-gray-400 gap-2">
-                <p className="font-semibold">Launch: {flight.launch}</p>
-                <p className="font-semibold">Landing: {flight.landing}</p>
-                <p className="font-semibold">Boarding: {flight.boarding}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Pods */}
-          <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
-            {pods.length === 0 ? (
-              <p className="text-center text-gray-400 mt-6">
-                No pods available matching your preferences.
-              </p>
-            ) : (
-              pods.map((pod, idx) => (
-                <div
-                  key={pod.id ?? idx}
-                  className="flex flex-col p-[12px] bg-[#28282d] rounded-[20px] mt-[1rem]"
-                >
-                  <div className="flex justify-between items-center">
-                    <p className="text-xl font-semibold">Option {idx + 1}</p>
-                    {idx === 0 && (
-                      <p className="text-sm text-accent font-semibold">
-                        Recommended
-                      </p>
-                    )}
+               {/* Flight Info Header */}
+               {selectedFlight && (
+                  <div className="content-stretch flex items-start relative shrink-0 w-full pointer-events-none">
+                     <FlightResultCard
+                        flight={selectedFlight}
+                        isExpanded={false}
+                        onExpand={() => {}}
+                        onSelect={() => {}}
+                     />
                   </div>
+               )}
 
-                  {/* Members */}
-                  <div className="flex flex-col gap-1 mt-2">
-                    <p className="text-gray-400 text-sm font-semibold">
-                      Members:
-                    </p>
-                    <div className="flex gap-2">
-                      {pod.members.map((m, midx) => (
-                        <div
-                          key={m.id ?? midx}
-                          className="flex flex-col items-center text-xs text-white/80"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white font-semibold">
-                            {m.name?.[0] || "?"}
-                          </div>
-                          <p>{m.name?.split(" ")[0] ?? "User"}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+               {/* Create Pod Button */}
+               <div className="content-stretch flex items-start relative shrink-0 w-full">
+                  <Button
+                     onClick={() => onNavigate("createPod")}
+                     variant="default"
+                     className="w-full px-[16px] py-[12px]"
+                  >
+                     Create Pod
+                  </Button>
+               </div>
 
-                  {/* Location and Time */}
-                  <div className="grid grid-cols-2 text-sm text-gray-400 gap-2 mt-3">
-                    <p className="font-semibold">
-                      Pickup: {pod.location?.name || "Unknown location"}
-                    </p>
-                    <p className="font-semibold">
-                      Time:{" "}
-                      {new Date(pod.pickup_time).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-
-                  {/* Luggage */}
-                  <p className="text-sm text-gray-400 font-semibold mt-1">
-                    Total luggage: {pod.num_big_luggage + pod.num_small_luggage}
+               {/* Groups Section */}
+               <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                  <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[18px] text-white tracking-[0.07px] w-full">
+                     Groups
                   </p>
 
-                  <Button
-                    className="mt-[1rem] w-full"
-                    onClick={() => alert("Accepted!")}
-                  >
-                    Accept
-                  </Button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+                  {/* Option Cards */}
+                  <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                     {options.length === 0 ? (
+                        <p className="text-center text-gray-400 mt-6 w-full">
+                           No pods available matching your preferences.
+                        </p>
+                     ) : (
+                        options.map((option) => (
+                           <GroupOptionCard
+                              key={option.id}
+                              optionNumber={option.id}
+                              isRecommended={option.isRecommended}
+                              members={option.members}
+                              location={option.location}
+                              luggageCount={option.luggageCount}
+                              time={option.time}
+                              onAccept={() => handleAccept(option.id)}
+                           />
+                        ))
+                     )}
+                  </div>
+               </div>
+            </div>
+         </div>
       </div>
-
-      <BottomNavigation currentScreen="ride" onNavigate={onNavigate} />
-    </div>
-  );
+   );
 }

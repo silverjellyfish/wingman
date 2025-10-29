@@ -87,8 +87,6 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           </div>
         </div>
       </div>
-
-      <BottomNavigation currentScreen="trip" onNavigate={onNavigate} />
     </div>
   );
 }
