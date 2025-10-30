@@ -2,14 +2,13 @@
 // Time: 0.5 hours
 
 import { BsSuitcase2, BsSuitcaseLg } from "react-icons/bs";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import type { Screen } from "@/types/index.ts";
 
 interface TripScreenProps {
   onNavigate: (screen: Screen) => void;
 }
 
-export function TripScreen({ onNavigate }: TripScreenProps) {
+export function TripScreen() {
   // TODO: Change this from mocked to backend data
   const trips = [
     {
