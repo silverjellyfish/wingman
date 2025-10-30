@@ -48,16 +48,6 @@ function AuthenticatedApp() {
       setCurrentScreen(screen);
    };
 
-   //   const handleJoinGroup = () => {
-   //     setHasJoinedGroup(true);
-   //     setCurrentScreen("rideWithGroup");
-   //   };
-
-   //   const handleLeaveGroup = () => {
-   //     setHasJoinedGroup(false);
-   //     setCurrentScreen("ride");
-   //   };
-
    const renderScreen = () => {
       switch (currentScreen) {
          case "ride":
@@ -101,7 +91,7 @@ function AuthenticatedApp() {
             ) : null;
 
          case "trip":
-            return <TripScreen onNavigate={navigateTo} />;
+            return <TripScreen/>;
          case "profile":
             return <ProfileScreen onNavigate={navigateTo} />;
          case "createPod":

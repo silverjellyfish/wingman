@@ -26,17 +26,17 @@ function Frame70({ progress }: { progress: number }) {
   );
 }
 
-function Frame37({ progress }: { progress: number }) {
-  return (
-    <div className="basis-0 grow min-h-px min-w-px relative shrink-0 w-full">
-      <div className="flex flex-col items-center justify-center relative size-full">
-        <div className="box-border content-stretch flex flex-col gap-[32px] items-center justify-center px-[10px] py-[40px] relative size-full">
-          <Frame70 progress={progress} />
-        </div>
-      </div>
-    </div>
-  );
-}
+// function Frame37({ progress }: { progress: number }) {
+//   return (
+//     <div className="basis-0 grow min-h-px min-w-px relative shrink-0 w-full">
+//       <div className="flex flex-col items-center justify-center relative size-full">
+//         <div className="box-border content-stretch flex flex-col gap-[32px] items-center justify-center px-[10px] py-[40px] relative size-full">
+//           <Frame70 progress={progress} />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
