@@ -24,14 +24,12 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
-  const [earliestBeforeBoarding, setEarliestBeforeBoarding] = useState("");
-  const [latestBeforeBoarding, setLatestBeforeBoarding] = useState("");
-  const [longestWillingToWait, setLongestWillingToWait] = useState("");
 
   // Fetch user profile from backend
   useEffect(() => {
     if (!user) return;
 
+    // Fetch profile data
     const fetchProfile = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -46,9 +44,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
         setPhone(data.phone || "");
         setAge(data.age ? data.age.toString() : "");
         setGender(data.gender || "");
-        setEarliestBeforeBoarding(data.earliestBefore?.toString() || "");
-        setLatestBeforeBoarding(data.latestBefore?.toString() || "");
-        setLongestWillingToWait(data.longestWait?.toString() || "");
       } catch (err) {
         console.error(err);
       }
@@ -57,19 +52,32 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     fetchProfile();
   }, [user]);
 
+  // Handle profile info change
+  const handleChangeProfileInfo = async () => {
+    if (!user) return;
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_BASE_URL}/users/profile/${user.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone,
+          age: Number(age),
+          gender,
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // TODO: Determine if delete
   // Handle saving user's constraints. Currently, inputs are commented out
   // for sprint 2
   const handleSave = () => {
-    if (earliestBeforeBoarding && !earliestBeforeBoarding.includes("mins")) {
-      setEarliestBeforeBoarding(earliestBeforeBoarding + " mins");
-    }
-    if (latestBeforeBoarding && !latestBeforeBoarding.includes("mins")) {
-      setLatestBeforeBoarding(latestBeforeBoarding + " mins");
-    }
-    if (longestWillingToWait && !longestWillingToWait.includes("mins")) {
-      setLongestWillingToWait(longestWillingToWait + " mins");
-    }
+    handleChangeProfileInfo();
     setIsEditing(false);
   };
 
