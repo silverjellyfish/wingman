@@ -33,9 +33,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
-  // const [earliestBefore, setEarliestBefore] = useState("");
-  // const [latestBefore, setLatestBefore] = useState("");
-  // const [longestWait, setLongestWait] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,21 +60,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
       return;
     }
 
-    // if (!earliestBefore) {
-    //   setError("Please enter earliest before boarding time.");
-    //   return;
-    // }
-
-    // if (!latestBefore) {
-    //   setError("Please enter latest before boarding time.");
-    //   return;
-    // }
-
-    // if (!longestWait) {
-    //   setError("Please enter longest wait after landing.");
-    //   return;
-    // }
-
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL;
       const res = await fetch(`${API_BASE_URL}/users/profile`, {
@@ -94,9 +76,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
           phone,
           age: Number(age),
           gender,
-          // earliestBefore: Number(earliestBefore),
-          // latestBefore: Number(latestBefore),
-          // longestWait: Number(longestWait),
         }),
       });
       if (!res.ok) {
@@ -185,45 +164,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
                 ))}
               </div>
             </div>
-
-            {/* <div className="flex flex-col gap-[4px] w-full">
-              <p className="text-[18px] text-white font-semibold">
-                Earliest before boarding (min)
-              </p>
-              <Input
-                type="number"
-                min="0"
-                value={earliestBefore}
-                onChange={(e) => setEarliestBefore(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-[4px] w-full">
-              <p className="text-[18px] text-white font-semibold">
-                Latest before boarding (min)
-              </p>
-              <Input
-                type="number"
-                min="0"
-                value={latestBefore}
-                onChange={(e) => setLatestBefore(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-[4px] w-full">
-              <p className="text-[18px] text-white font-semibold">
-                Longest willing to wait after landing (min)
-              </p>
-              <Input
-                type="number"
-                min="0"
-                value={longestWait}
-                onChange={(e) => setLongestWait(e.target.value)}
-                required
-              />
-            </div> */}
 
             {/* Error message */}
             {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
