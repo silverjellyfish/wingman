@@ -4,7 +4,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
 import type { Screen } from "@/types/index.ts";

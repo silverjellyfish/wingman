@@ -1,10 +1,10 @@
 // Contributors: Michelle, Vince
 // Time: 2 hours
+// TODO: MAKE PATCH REQUEST TO THE BACKEND
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 import imgAvatar from "@/assets/images/avatar.png";
 import type { Screen } from "@/types";
@@ -93,23 +93,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     if (value === "" || (numValue >= 0 && numValue <= 99)) {
       setAge(value);
     }
-  };
-
-  // TODO: Determine if delete
-  // Currently not used for Sprint 2
-  const handleTimeChange = (
-    setter: React.Dispatch<React.SetStateAction<string>>
-  ) => {
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.replace(/[^0-9]/g, "");
-      setter(value);
-    };
-  };
-
-  // TODO: Determine if delete
-  // Currently not used for Sprint 2
-  const getTimeValue = (value: string) => {
-    return isEditing ? value.replace(" mins", "").trim() : value;
   };
 
   // Handle delete account
@@ -251,63 +234,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 )}
               </div>
             </div>
-
-            {/* TODO: Decide if delete */}
-            {/* <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p
-                className="leading-none min-w-full relative text-[18px] text-white tracking-[0.07px] w-[min-content]"
-                style={{ fontWeight: 600 }}
-              >
-                Minutes before boarding
-              </p>
-            </div>
-
-            <div className="content-stretch flex flex-row gap-[20px] items-center relative w-full">
-              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                <p
-                  className="leading-none min-w-full relative text-[14px] text-white tracking-[0.07px] w-[min-content]"
-                  style={{ fontWeight: 600 }}
-                >
-                  Earliest
-                </p>
-                <Input
-                  type="text"
-                  value={getTimeValue(earliestBeforeBoarding)}
-                  onChange={handleTimeChange(setEarliestBeforeBoarding)}
-                  disabled={!isEditing}
-                />
-              </div>
-
-              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                <p
-                  className="leading-none min-w-full relative text-[14px] text-white tracking-[0.07px] w-[min-content]"
-                  style={{ fontWeight: 600 }}
-                >
-                  Latest
-                </p>
-                <Input
-                  type="text"
-                  value={getTimeValue(latestBeforeBoarding)}
-                  onChange={handleTimeChange(setLatestBeforeBoarding)}
-                  disabled={!isEditing}
-                />
-              </div>
-            </div>
-
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p
-                className="leading-none min-w-full relative text-[18px] text-white tracking-[0.07px] w-[min-content]"
-                style={{ fontWeight: 600 }}
-              >
-                Max wait after landing
-              </p>
-              <Input
-                type="text"
-                value={getTimeValue(longestWillingToWait)}
-                onChange={handleTimeChange(setLongestWillingToWait)}
-                disabled={!isEditing}
-              />
-            </div> */}
 
             {/* Logout Button */}
             <Button

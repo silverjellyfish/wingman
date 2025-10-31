@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import { GroupOptionCard } from "@/components/GroupOptionCard";
@@ -213,7 +212,7 @@ export function PodListScreen({
    }));
 
    const handleAccept = (optionId: number) => {
-      alert("Accepted!");
+      alert(`Accepted! Option ${optionId} selected.`);
    };
 
    return (

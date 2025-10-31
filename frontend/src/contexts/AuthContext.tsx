@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "Content-Type": "application/json",
         },
       });
-      const text = await res.text();
+      // const text = await res.text();
       if (!res.ok) throw new Error("Failed to delete user from backend");
       if (auth.currentUser) {
         await deleteUser(auth.currentUser);
