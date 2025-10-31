@@ -144,7 +144,7 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
     },
   ];
   return (
-    <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
+    <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6 overflow-y-scroll no-scrollbar">
       <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
           <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
@@ -188,7 +188,9 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
               ))
             ) : view === "past" ? (
               pastTrips.map((trip) => (
-                <PriorTripCard flight={trip.flight} pod={trip.pod} />
+                <div className="mb-[10px]">
+                  <PriorTripCard flight={trip.flight} pod={trip.pod} />
+                </div>
               ))
             ) : (
               <h3> neither upcoming or past trips! how can this be!</h3>
