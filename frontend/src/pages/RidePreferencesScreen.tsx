@@ -30,6 +30,7 @@ export function RidePreferencesScreen({
    const [searchQuery, setSearchQuery] = useState("");
    const [showDropdown, setShowDropdown] = useState(false);
 
+   // TODO: Move this and put in the database
    const locations = [
       "Buttrick Hall",
       "Kirkland Hall",
