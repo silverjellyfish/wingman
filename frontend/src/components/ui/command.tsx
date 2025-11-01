@@ -1,6 +1,3 @@
-// Contributors: Vince
-// Time: 0.1 hour
-
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
 import { SearchIcon } from "lucide-react"

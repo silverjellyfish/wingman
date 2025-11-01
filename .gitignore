@@ -30,7 +30,8 @@ replay_pid*
 
 /node_modules
 node_modules/
-
-.DS_Store
-./DS_Store
 to-do.txt
+DS_Store/
+./DS_Store
+/DS_Store
+*.DS_Store
