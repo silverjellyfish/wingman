@@ -1,5 +1,6 @@
 // Contributors: Michelle
 // Time: 0.5 hours
+// DEPRACATED - see PodListScreen.tsx for updated loading screen
 
 import { useEffect } from "react";
 import "@/pages/styles/LoadingScreen.css";
