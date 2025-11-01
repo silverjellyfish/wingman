@@ -2,13 +2,13 @@
 // Time: 0.5 hours
 
 export interface Flight {
-  code: string;
-  from: string;
-  to: string;
-  launch: string;
-  landing: string;
-  boarding: string;
-  date: string;
+  code: string;         // Flight number, e.g., "AA 100"
+  from: string;         // Departure airport code, e.g., "JFK"
+  to: string;           // Arrival airport code, e.g., "LAX"
+  boarding: string;     // Boarding time, e.g., "2025-11-16 10:30"
+  launch: string;       // Departure time
+  landing: string;      // Arrival time
+  date: string;         // Flight date, e.g., "2025-11-16"
 }
 
 export const mockFlights: Flight[] = [

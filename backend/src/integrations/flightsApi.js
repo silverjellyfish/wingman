@@ -1,4 +1,3 @@
-// integrations/flightsApi.js
 const axios = require("axios");
 
 const SERP_API_KEY = process.env.SERP_API_KEY || "YOUR_SERPAPI_KEY_HERE";

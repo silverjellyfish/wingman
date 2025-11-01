@@ -1,18 +1,28 @@
-// controllers/flightsController.js
-const { searchFlights } = require('../integrations/flightsApi');
+const { searchFlights } = require("../integrations/flightsApi");
 
-exports.getFlights = async (req, res) => {
+exports.getSearchFlights = async (req, res) => {
   try {
-    const { departure, arrival, date } = req.query;
+    const { planeCode, date } = req.query;
 
-    if (!departure || !arrival || !date) {
-      return res.status(400).json({ error: 'Missing required parameters: departure, arrival, date' });
+    if (!planeCode || !date) {
+      return res
+        .status(400)
+        .json({ error: "Missing required parameters: planeCode, date" });
     }
 
+    // Split plane code: AA100 → AA + 100
+    const match = planeCode.match(/^([A-Z]{2})(\d{1,4})$/i);
+    if (!match) {
+      return res.status(400).json({ error: "Invalid plane code format" });
+    }
+
+    const departure = match[1].toUpperCase();
+    const arrival = match[2];
+
     const flights = await searchFlights({ departure, arrival, date });
-    res.json(flights);
+    res.json({ flights });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to fetch flight data' });
+    res.status(500).json({ error: "Failed to fetch flight data" });
   }
 };
