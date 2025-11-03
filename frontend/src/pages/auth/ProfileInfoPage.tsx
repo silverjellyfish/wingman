@@ -2,9 +2,9 @@
 // Time: 2 hours
 
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
 
 // Interface for props
 interface ProfileInfoPageProps {
@@ -12,7 +12,7 @@ interface ProfileInfoPageProps {
 }
 
 export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, register } = useAuth();
 
   if (isLoading) {
     return (
@@ -61,6 +61,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
     }
 
     try {
+      // await register()
       const API_BASE_URL = import.meta.env.VITE_API_URL;
       const res = await fetch(`${API_BASE_URL}/users/profile`, {
         method: "POST",
