@@ -1,4 +1,6 @@
-import { api } from "@/lib/api";
+// Contributors: Michelle
+// Time: 2 hours
+
 import { useState, useEffect } from "react";
 
 export interface Flight {
@@ -37,7 +39,7 @@ export function useFlights(
 
       // TODO: error handling
       const departure_id = departureId || "JFK";
-      const arrival_id =  arrivalId || "LAX";
+      const arrival_id = arrivalId || "LAX";
 
       // Add space between letters and numbers if needed
       const formattedFlightCode = planeCode.replace(/([A-Z]+)(\d+)/, "$1 $2");
