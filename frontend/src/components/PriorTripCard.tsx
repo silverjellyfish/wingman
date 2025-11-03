@@ -34,10 +34,7 @@ export function PriorTripCard({ flight, pod }: PriorTripCardProps) {
       className="flex flex-col space-between p-[12px] bg-[#28282d] rounded-[20px] space-y-[10px]"
     >
       <div className="flex flex-row justify-between items-center">
-        <p
-          className="text-sm text-gray-400 mb-3 text-[18px]"
-          style={{ fontWeight: 600 }}
-        >
+        <p className="text-sm mb-3 text-[18px]" style={{ fontWeight: 600 }}>
           {flight.dateRange} • {flight.boardingTime}
         </p>
         <div className="flex -space-x-[8px]">
