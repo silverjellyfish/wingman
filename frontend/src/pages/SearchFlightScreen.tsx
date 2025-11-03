@@ -4,7 +4,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
-import { Dialog, DialogContent } from "@/components/ui/dialog.tsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog.tsx";
 import { Calendar } from "@/components/ui/calendar.tsx";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Screen } from "@/types/index.ts";
@@ -206,13 +212,13 @@ export function FlightInputScreen({
               <div className="flex gap-[8px] items-center">
                 <Input
                   type="text"
-                  placeholder="Departure ID (e.g. JFK or /m/0vzm)"
+                  placeholder="Departure (e.g. JFK)"
                   value={departureId}
                   onChange={(e) => setDepartureId(e.target.value.toUpperCase())}
                 />
                 <Input
                   type="text"
-                  placeholder="Arrival ID (e.g. LAX or /m/04jpl)"
+                  placeholder="Arrival (e.g. LAX)"
                   value={arrivalId}
                   onChange={(e) => setArrivalId(e.target.value.toUpperCase())}
                 />
@@ -237,7 +243,14 @@ export function FlightInputScreen({
       {/* Calendar Dialog */}
       <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
         <DialogContent className="w-2/3 max-w-[300px] border-2 border-accent rounded-[12px]">
-          <div className="flex justify-center pt-[40px] rounded-[12px]">
+          <DialogHeader>
+            <DialogTitle />
+            <DialogDescription className="mt-[1rem] mb-[1rem]">
+              Select Flight Date
+            </DialogDescription>
+            <DialogDescription />
+          </DialogHeader>
+          <div className="flex justify-center rounded-[12px]">
             <Calendar
               className="rounded-[12px]"
               selected={selectedDate}
