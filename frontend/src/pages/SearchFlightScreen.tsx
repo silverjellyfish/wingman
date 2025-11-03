@@ -10,221 +10,242 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Screen } from "@/types/index.ts";
 
 interface FlightInputScreenProps {
-   onNavigate: (screen: Screen, planeCode?: string, date?: string) => void;
-   planeCode: string;
+  onNavigate: (
+    screen: Screen,
+    planeCode?: string,
+    date?: string,
+    payload?: any
+  ) => void;
+  planeCode: string;
 }
 
 export function FlightInputScreen({
-   onNavigate,
-   planeCode,
+  onNavigate,
+  planeCode,
 }: FlightInputScreenProps) {
-   const { user } = useAuth();
-   const firstName = user?.name?.split(" ")[0] || "there";
+  const { user } = useAuth();
+  const firstName = user?.name?.split(" ")[0] || "there";
 
-   const [isInputFocused, setIsInputFocused] = useState(false);
-   const [showSplitInputs, setShowSplitInputs] = useState(false);
-   const [localPlaneCode, setLocalPlaneCode] = useState(planeCode || "");
-   const [airlineCode, setAirlineCode] = useState("");
-   const [flightNumber, setFlightNumber] = useState("");
-   const [flightDate, setFlightDate] = useState("");
-   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-      undefined
-   );
-   const [showCalendar, setShowCalendar] = useState(false);
-   const [isSearching, setIsSearching] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [showSplitInputs, setShowSplitInputs] = useState(false);
+  const [localPlaneCode, setLocalPlaneCode] = useState(planeCode || "");
+  const [airlineCode, setAirlineCode] = useState("");
+  const [flightNumber, setFlightNumber] = useState("");
+  const [flightDate, setFlightDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-   // Handle plane code change
-   const handlePlaneCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setLocalPlaneCode(e.target.value.toUpperCase());
-   };
+  // 🛫 New states for departure/arrival IDs
+  const [departureId, setDepartureId] = useState("");
+  const [arrivalId, setArrivalId] = useState("");
 
-   // Handle airline code change
-   const handleAirlineCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.toUpperCase();
-      if (value.length <= 2) {
-         setAirlineCode(value);
-      }
-   };
+  // ---------- Validation Helpers ----------
+  const isValidAirportOrKgmid = (value: string): boolean => {
+    if (!value) return false;
+    return value
+      .split(",")
+      .every(
+        (v) =>
+          /^[A-Z]{3}$/.test(v.trim()) || /^\/m\/[a-zA-Z0-9_]+$/.test(v.trim())
+      );
+  };
 
-   // Handle flight number change
-   const handleFlightNumberChange = (
-      e: React.ChangeEvent<HTMLInputElement>
-   ) => {
-      const value = e.target.value;
-      if (/^\d{0,4}$/.test(value)) {
-         setFlightNumber(value);
-      }
-   };
+  // ---------- Handlers ----------
+  const handlePlaneCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalPlaneCode(e.target.value.toUpperCase());
+  };
 
-   // Handle date change
-   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFlightDate(e.target.value);
-   };
+  const handleAirlineCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    if (value.length <= 2) setAirlineCode(value);
+  };
 
-   // Handle date input click
-   const handleDateInputClick = () => {
-      setShowCalendar(true);
-   };
+  const handleFlightNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d{0,4}$/.test(value)) setFlightNumber(value);
+  };
 
-   // Handle date selection from calendar
-   const handleDateSelect = (date: Date | undefined) => {
-      setSelectedDate(date);
-      if (date) {
-         // Format as YYYY-MM-DD to match mockFlights.ts format
-         const formattedDate = `${date.getFullYear()}-${String(
-            date.getMonth() + 1
-         ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-         setFlightDate(formattedDate);
-      }
-      setShowCalendar(false);
-   };
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFlightDate(e.target.value);
+  };
 
-   // Handle next click
-   const handleNextClick = () => {
-      if (!/^([A-Z]{2})(\d{1,4})$/i.test(localPlaneCode)) {
-         alert("Enter valid plane code (e.g., WN123)");
-         return;
-      }
-      const match = localPlaneCode.match(/^([A-Z]{2})(\d{1,4})$/i);
-      if (match) {
-         setAirlineCode(match[1]);
-         setFlightNumber(match[2]);
-         setShowSplitInputs(true);
-      }
-   };
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      const formatted = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      setFlightDate(formatted);
+    }
+    setShowCalendar(false);
+  };
 
-   // Handle search
-   const handleSearch = () => {
-      if (!airlineCode || !flightNumber) {
-         alert("Enter airline code and flight number");
-         return;
-      }
-      if (!flightDate) {
-         alert("Select a date");
-         return;
-      }
-      const fullPlaneCode = `${airlineCode}${flightNumber}`;
-      setIsSearching(true);
-      onNavigate("flightResults", fullPlaneCode, flightDate);
-   };
+  const handleNextClick = () => {
+    if (!/^([A-Z]{2})(\d{1,4})$/i.test(localPlaneCode)) {
+      alert("Enter valid plane code (e.g., WN123)");
+      return;
+    }
+    const match = localPlaneCode.match(/^([A-Z]{2})(\d{1,4})$/i);
+    if (match) {
+      setAirlineCode(match[1]);
+      setFlightNumber(match[2]);
+      setShowSplitInputs(true);
+    }
+  };
 
-   // Handle clear
-   const handleClear = () => {
-      setIsInputFocused(false);
-      setShowSplitInputs(false);
-      setLocalPlaneCode("");
-      setAirlineCode("");
-      setFlightNumber("");
-      setFlightDate("");
-      setSelectedDate(undefined);
-      setIsSearching(false);
-   };
+  const handleSearch = () => {
+    if (!airlineCode || !flightNumber) {
+      alert("Enter airline code and flight number");
+      return;
+    }
+    if (!flightDate) {
+      alert("Select a date");
+      return;
+    }
+    if (!isValidAirportOrKgmid(departureId)) {
+      alert(
+        "Invalid departure_id. Use 3-letter airport code or /m/... format."
+      );
+      return;
+    }
+    if (!isValidAirportOrKgmid(arrivalId)) {
+      alert("Invalid arrival_id. Use 3-letter airport code or /m/... format.");
+      return;
+    }
 
-   return (
-      <div className="flex flex-col h-full bg-[#16161b] text-white p-6">
-         {/* Main Content - Scrollable */}
-         <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[10px] w-full">
-               {/* Header */}
-               <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
-                  <p className="leading-none" style={{ fontWeight: 600 }}>
-                     Hello {firstName}
-                  </p>
-               </div>
+    const fullPlaneCode = `${airlineCode}${flightNumber}`;
+    setIsSearching(true);
+    console.log("IDs:", { departureId, arrivalId });
+    onNavigate("flightResults", fullPlaneCode, flightDate, {
+      departureId,
+      arrivalId,
+    });
+  };
 
-               {/* Form Fields */}
-               {!isInputFocused ? (
-                  <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                     <Input
-                        type="search"
-                        placeholder="Search for flight"
-                        icon={
-                           <span className="material-symbols-outlined text-[24px]">
-                              search
-                           </span>
-                        }
-                        onFocus={() => setIsInputFocused(true)}
-                     />
-                  </div>
-               ) : !showSplitInputs ? (
-                  <div className="content-stretch flex flex-row gap-[16px] items-start relative w-full">
-                     <Input
-                        type="text"
-                        placeholder="Plane code (e.g. WN123)"
-                        value={localPlaneCode}
-                        onChange={handlePlaneCodeChange}
-                        autoFocus
-                        className="focus-visible:ring-0 focus-visible:ring-offset-0"
-                     />
-                     <Button
-                        className="w-1/4 mt-4"
-                        onClick={handleNextClick}
-                        type="button"
-                     >
-                        Next
-                     </Button>
-                  </div>
-               ) : (
-                  <div className="content-stretch flex flex-row gap-[8px] items-center relative w-full">
-                     <Input
-                        type="text"
-                        placeholder="WN"
-                        value={airlineCode}
-                        onChange={handleAirlineCodeChange}
-                        className="focus-visible:ring-0 focus-visible:ring-offset-0 w-auto flex-shrink-0"
-                        style={{
-                           width: `${Math.max(
-                              airlineCode.length * 12 + 24,
-                              60
-                           )}px`,
-                        }}
-                     />
-                     <Input
-                        type="text"
-                        placeholder="123"
-                        value={flightNumber}
-                        onChange={handleFlightNumberChange}
-                        className="focus-visible:ring-0 focus-visible:ring-offset-0 w-auto flex-shrink-0"
-                        style={{
-                           width: `${Math.max(
-                              flightNumber.length * 12 + 24,
-                              60
-                           )}px`,
-                        }}
-                     />
-                     <Input
-                        type="text"
-                        placeholder="YYYY-MM-DD"
-                        value={flightDate}
-                        onChange={handleDateChange}
-                        onClick={handleDateInputClick}
-                        // readOnly
-                        className="focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 cursor-pointer"
-                     />
-                     <Button
-                        size={null}
-                        variant={isSearching ? "ghost" : "default"}
-                        className="mt-4 w-auto flex-shrink-0 px-[12px] py-[10px]"
-                        onClick={isSearching ? handleClear : handleSearch}
-                     >
-                        {isSearching ? "Clear" : "Search"}
-                     </Button>
-                  </div>
-               )}
+  const handleClear = () => {
+    setIsInputFocused(false);
+    setShowSplitInputs(false);
+    setLocalPlaneCode("");
+    setAirlineCode("");
+    setFlightNumber("");
+    setFlightDate("");
+    setSelectedDate(undefined);
+    setIsSearching(false);
+    setDepartureId("");
+    setArrivalId("");
+  };
+
+  // ---------- UI ----------
+  return (
+    <div className="flex flex-col h-full bg-[#16161b] text-white p-6">
+      <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[10px] w-full">
+          <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
+            <p className="leading-none font-semibold">Hello {firstName}</p>
+          </div>
+
+          {/* Search Field */}
+          {!isInputFocused ? (
+            <Input
+              type="search"
+              placeholder="Search for flight"
+              icon={
+                <span className="material-symbols-outlined text-[24px]">
+                  search
+                </span>
+              }
+              onFocus={() => setIsInputFocused(true)}
+            />
+          ) : !showSplitInputs ? (
+            <div className="flex gap-[16px] w-full">
+              <Input
+                type="text"
+                placeholder="Plane code (e.g. WN123)"
+                value={localPlaneCode}
+                onChange={handlePlaneCodeChange}
+                autoFocus
+              />
+              <Button
+                className="w-1/4 mt-4"
+                onClick={handleNextClick}
+                type="button"
+              >
+                Next
+              </Button>
             </div>
-         </div>
+          ) : (
+            <div className="flex flex-col gap-[12px] w-full">
+              {/* Airline + Flight + Date */}
+              <div className="flex gap-[8px] items-center">
+                <Input
+                  type="text"
+                  placeholder="WN"
+                  value={airlineCode}
+                  onChange={handleAirlineCodeChange}
+                  className="w-[70px]"
+                />
+                <Input
+                  type="text"
+                  placeholder="123"
+                  value={flightNumber}
+                  onChange={handleFlightNumberChange}
+                  className="w-[80px]"
+                />
+                <Input
+                  type="text"
+                  placeholder="YYYY-MM-DD"
+                  value={flightDate}
+                  onChange={handleDateChange}
+                  onClick={() => setShowCalendar(true)}
+                  className="flex-1 cursor-pointer"
+                />
+              </div>
 
-         <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
-            <DialogContent className="w-2/3 max-w-[300px] border-2 border-accent rounded-[12px]">
-               <div className="flex justify-center pt-[40px] rounded-[12px]">
-                  <Calendar
-                     className="rounded-[12px]"
-                     selected={selectedDate}
-                     onSelect={handleDateSelect}
-                  />
-               </div>
-            </DialogContent>
-         </Dialog>
+              {/* 🛫 New Departure & Arrival Inputs */}
+              <div className="flex gap-[8px] items-center">
+                <Input
+                  type="text"
+                  placeholder="Departure ID (e.g. JFK or /m/0vzm)"
+                  value={departureId}
+                  onChange={(e) => setDepartureId(e.target.value.toUpperCase())}
+                />
+                <Input
+                  type="text"
+                  placeholder="Arrival ID (e.g. LAX or /m/04jpl)"
+                  value={arrivalId}
+                  onChange={(e) => setArrivalId(e.target.value.toUpperCase())}
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-[8px]">
+                <Button
+                  size={null}
+                  variant={isSearching ? "ghost" : "default"}
+                  className="px-[12px] py-[10px]"
+                  onClick={isSearching ? handleClear : handleSearch}
+                >
+                  {isSearching ? "Clear" : "Search"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-   );
+
+      {/* Calendar Dialog */}
+      <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
+        <DialogContent className="w-2/3 max-w-[300px] border-2 border-accent rounded-[12px]">
+          <div className="flex justify-center pt-[40px] rounded-[12px]">
+            <Calendar
+              className="rounded-[12px]"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }

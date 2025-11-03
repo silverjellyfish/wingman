@@ -62,6 +62,8 @@ export function RidePreferencesScreen({
     "Memorial Gymnasium",
   ];
 
+  const getTimeOnly = (dateTime: string) => dateTime.split(" ")[1] || dateTime;
+
   // Filter locations based on search query
   const filteredLocations = locations.filter((location) =>
     location
@@ -125,9 +127,9 @@ export function RidePreferencesScreen({
     dateRange: flight.date,
     route: `${flight.from} → ${flight.to}`,
     airports: `${flight.from} - ${flight.to}`,
-    boardingTime: flight.boarding,
-    departureTime: flight.launch,
-    arrivalTime: flight.landing,
+    boardingTime: getTimeOnly(flight.boarding),
+    departureTime: getTimeOnly(flight.launch),
+    arrivalTime: getTimeOnly(flight.landing),
   };
 
   return (

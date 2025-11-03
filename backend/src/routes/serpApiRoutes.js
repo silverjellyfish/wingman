@@ -4,12 +4,11 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   const date = req.query.outbound_date;
-  const flightNumberRaw = req.query.flight_number; // e.g., "AA100"
+  const flightNumberRaw = req.query.flight_number;
   const formattedFlightCode = flightNumberRaw.replace(
     /([A-Z]+)(\d+)/i,
     "$1 $2"
-  ); // e.g., "AA 100"
-  console.log("Formatted flight code:", formattedFlightCode);
+  );
 
   const departure_id = req.query.departure_id || "JFK";
   const arrival_id = req.query.arrival_id || "LAX";
@@ -26,7 +25,7 @@ router.get("/", async (req, res) => {
         arrival_id,
         outbound_date: date,
         type: 2,
-        include_airlines: flightNumberRaw.match(/[A-Z]+/i)[0].toUpperCase(), // automatically extract airline code
+        include_airlines: flightNumberRaw.match(/[A-Z]+/i)[0].toUpperCase(),
         currency: "USD",
         hl: "en",
         gl: "us",
@@ -37,23 +36,10 @@ router.get("/", async (req, res) => {
     const bestFlights = response.data.best_flights || [];
     const otherFlights = response.data.other_flights || [];
     const allFlights = [...bestFlights, ...otherFlights];
-    console.log(`Total best flights returned: ${bestFlights.length}`);
-
-    // Debug: show all flights
-    allFlights.forEach((option, i) => {
-      console.log(`\nFlight option #${i + 1}:`);
-      option.flights.forEach((leg, j) => {
-        console.log(
-          `  Leg #${j + 1}: ${leg.flight_number} ` +
-            `(${leg.departure_airport.id} → ${leg.arrival_airport.id}) ` +
-            `Airline: ${leg.airline}, Departure: ${leg.departure_airport.time}, Arrival: ${leg.arrival_airport.time}, Price: ${option.price}`
-        );
-      });
-    });
 
     // Matching logic: normalize flight numbers (uppercase, remove spaces)
     const targetCode = flightNumberRaw.replace(/\s+/g, "").toUpperCase();
-    console.log("TARGET CODE:", targetCode);
+    console.log("Target Code:", targetCode);
     const matchingFlights = allFlights.filter((f) =>
       f.flights.some((leg) => {
         const flightNum = leg.flight_number.replace(/\s+/g, "").toUpperCase();
@@ -62,16 +48,11 @@ router.get("/", async (req, res) => {
       })
     );
 
-    console.log(
-      `Matching flights for ${formattedFlightCode}:`,
-      matchingFlights
-    );
-
-    if (matchingFlights.length === 0) {
-      return res.status(404).json({
-        error: `No flights found for ${formattedFlightCode} on ${date}`,
-      });
-    }
+    // if (matchingFlights.length === 0) {
+    //   return res.status(404).json({
+    //     error: `No flights found for ${formattedFlightCode} on ${date}`,
+    //   });
+    // }
 
     res.json({ best_flights: bestFlights, matching_flights: matchingFlights });
   } catch (err) {

@@ -1,3 +1,4 @@
+import { api } from "@/lib/api";
 import { useState, useEffect } from "react";
 
 export interface Flight {
@@ -16,7 +17,13 @@ export interface Flight {
   bookingToken?: string;
 }
 
-export function useFlights(planeCode: string, date: string, enabled: boolean) {
+export function useFlights(
+  planeCode: string,
+  date: string,
+  departureId?: string,
+  arrivalId?: string,
+  enabled: boolean = true
+) {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,8 +35,9 @@ export function useFlights(planeCode: string, date: string, enabled: boolean) {
       setLoading(true);
       setError(null);
 
-      const departure_id = "JFK";
-      const arrival_id = "LAX";
+      // TODO: error handling
+      const departure_id = departureId || "JFK";
+      const arrival_id =  arrivalId || "LAX";
 
       // Add space between letters and numbers if needed
       const formattedFlightCode = planeCode.replace(/([A-Z]+)(\d+)/, "$1 $2");
@@ -45,17 +53,12 @@ export function useFlights(planeCode: string, date: string, enabled: boolean) {
         gl: "us",
       });
 
-    //   console.log(
-    //     "Fetching flights with params:",
-    //     Object.fromEntries(queryParams)
-    //   );
-
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL;
+        console.log("Fetching flights with params:", queryParams.toString());
         const res = await fetch(
           `${API_BASE_URL}/serpFlights?${queryParams.toString()}`
         );
-        // console.log("API url: ", `${API_BASE_URL}/serpFlights?${queryParams.toString()}`);
 
         if (!res.ok) {
           const text = await res.text();
@@ -63,10 +66,10 @@ export function useFlights(planeCode: string, date: string, enabled: boolean) {
         }
 
         const data = await res.json();
-        // console.log("Flights data:", data);
+        // const matchingFlights = data.matching_flights || [];
 
         const apiFlights: Flight[] =
-          data?.best_flights?.map((f: any) => {
+          data?.matching_flights?.map((f: any) => {
             const flightLeg = f.flights[0]; // assuming first leg
             return {
               flightNumber: flightLeg.flight_number,
@@ -85,7 +88,6 @@ export function useFlights(planeCode: string, date: string, enabled: boolean) {
             };
           }) || [];
 
-        // console.log("Mapped flights:", apiFlights);
         setFlights(apiFlights);
       } catch (err: any) {
         console.error("Error fetching flights:", err);
