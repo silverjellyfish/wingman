@@ -5,11 +5,13 @@ import { useFlights } from "@/hooks/useFlights.ts";
 import type { Flight } from "@/hooks/useFlights.ts";
 import { Button } from "@/components/ui/button.tsx";
 
+// Interface for airport codes
 interface FlightSearchPayload {
   departureId: string;
   arrivalId: string;
 }
 
+// Interface for flight results screen props
 interface FlightResultsScreenProps {
   onNavigate: (
     screen: Screen,
@@ -29,7 +31,7 @@ export function FlightResultsScreen({
   date,
   payload,
 }: FlightResultsScreenProps) {
-  console.log("FlightResultsScreen payload:", payload);
+  // Fetch flights using the custom hook
   const { flights, loading, error } = useFlights(
     planeCode,
     date,
@@ -38,8 +40,6 @@ export function FlightResultsScreen({
     true
   );
   const [expandedFlightId, setExpandedFlightId] = useState<string | null>(null);
-
-  // 👇 Local state for enforcing minimum 1-second loading
   const [minLoading, setMinLoading] = useState(true);
 
   useEffect(() => {
@@ -65,7 +65,21 @@ export function FlightResultsScreen({
     onNavigate("flightPreferences", planeCode, date, mappedFlight);
   };
 
-  const getTimeOnly = (dateTime: string) => dateTime.split(" ")[1] || dateTime;
+  const getBoardingTime = (dateTime: string) => {
+    const departureDateTime = new Date(dateTime);
+    const boardingDateTime = departureDateTime;
+    boardingDateTime.setMinutes(departureDateTime.getMinutes() - 30);
+
+    return boardingDateTime
+      .toLocaleTimeString("it-IT")
+      .split(":")
+      .slice(0, 2)
+      .join(":");
+  };
+
+  const getTimeOnly = (dateTime: string) => {
+    return dateTime.split(" ")[1] || dateTime;
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#16161b] text-white p-[12px] pt-[20px]">
@@ -115,7 +129,7 @@ export function FlightResultsScreen({
                         dateRange: date,
                         route: `${f.from} → ${f.to}`,
                         airports: `${f.from} - ${f.to}`,
-                        boardingTime: getTimeOnly(f.departureTime),
+                        boardingTime: getBoardingTime(f.departureTime),
                         departureTime: getTimeOnly(f.departureTime),
                         arrivalTime: getTimeOnly(f.arrivalTime),
                       }}
