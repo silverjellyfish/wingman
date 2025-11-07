@@ -32,17 +32,26 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   useEffect(() => {
     if (!user) return;
 
+    // Set Firebase auth data as fallback immediately
+    setName(user.name || "");
+    setEmail(user.email || "");
+
     const fetchProfile = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL;
         const res = await fetch(`${API_BASE_URL}/users/profile/${user.id}`);
-        if (!res.ok) throw new Error("Failed to fetch profile");
+        if (!res.ok) {
+          console.error(`Backend fetch failed with status: ${res.status}`);
+          throw new Error("Failed to fetch profile");
+        }
 
         const data = await res.json();
+        console.log("Backend profile data:", data);
 
-        setName(data.name || "");
+        // Update with backend data if available
+        setName(data.name || user.name || "");
         setUsername(data.username || "");
-        setEmail(data.email || "");
+        setEmail(data.email || user.email || "");
         setPhone(data.phone || "");
         setAge(data.age ? data.age.toString() : "");
         setGender(data.gender || "");
@@ -50,7 +59,8 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
         setLatestBeforeBoarding(data.latestBefore?.toString() || "");
         setLongestWillingToWait(data.longestWait?.toString() || "");
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching profile from backend:", err);
+        // Keep the Firebase auth fallback data
       }
     };
 
