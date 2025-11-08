@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "seed:locations": "node seedLocations.js"
   },
   "keywords": [],
   "author": "",

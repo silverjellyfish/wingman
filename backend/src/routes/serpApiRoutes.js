@@ -28,8 +28,6 @@ Leg flight number: UA 396
 UA396
 Leg flight number: UA 1364
 UA1364
-
-
  */
 const express = require("express");
 const axios = require("axios");
@@ -69,6 +67,7 @@ router.get("/", async (req, res) => {
         api_key: process.env.FLIGHT_API_KEY,
       },
     });
+
 
     const bestFlights = response.data.best_flights || [];
     const otherFlights = response.data.other_flights || [];

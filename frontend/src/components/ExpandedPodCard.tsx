@@ -43,7 +43,6 @@ export function ExpandedPodCard({ flight, pod }: ExpandedPodCardProps) {
          setIsConfirming(true);
       } else {
          // TODO: Add actual leave group logic here
-         console.log("User confirmed leaving the group");
          // Reset confirmation state after leaving
          setIsConfirming(false);
       }

@@ -57,11 +57,9 @@ export function useFlights(
 
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL;
-        // console.log("Fetching flights with params:", queryParams.toString());
         const res = await fetch(
           `${API_BASE_URL}/serpFlights?${queryParams.toString()}`
         );
-
 
         if (!res.ok) {
           const text = await res.text();
@@ -69,7 +67,6 @@ export function useFlights(
         }
 
         const data = await res.json();
-        console.log(data);
         // const matchingFlights = data.matching_flights || [];
 
         const apiFlights: Flight[] =
@@ -104,5 +101,9 @@ export function useFlights(
     fetchFlights();
   }, [planeCode, date, enabled]);
 
-  return { flights, loading, error };
+  return {
+    flights,
+    loading: enabled ? loading : false,
+    error: enabled ? error : null,
+  };
 }

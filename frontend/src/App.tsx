@@ -11,7 +11,7 @@ import { ProfileInfoPage } from "@/pages/auth/ProfileInfoPage";
 import { FlightInputScreen } from "@/pages/SearchFlightScreen";
 import { FlightResultsScreen } from "@/pages/FlightResultsScreen";
 import { RidePreferencesScreen } from "@/pages/RidePreferencesScreen";
-import { LoadingScreen } from "@/pages/FindingPodLoadingScreen";
+import { LoadingScreen } from "@/pages/LoadingScreen";
 import { PodListScreen } from "@/pages/PodListScreen";
 // import { mockFlights } from "@/mock/mockFlights";
 import { CreatePodScreen } from "@/pages/CreatePodScreen";
@@ -20,20 +20,30 @@ import type { Screen } from "@/types/index.ts";
 
 import "./App.css";
 
+interface MappedFlight {
+  id: string;
+  flightCode: string;
+  dateRange: string;
+  route: string;
+  airports: string;
+  boardingTime: string;
+  departureTime: string;
+  arrivalTime: string;
+}
+
+interface FlightPayload {
+  flight: any;
+  flights?: MappedFlight[];
+}
+
 function AuthenticatedApp() {
   const [payload, setPayload] = useState<any>(null);
-  const [payload, setPayload] = useState<any>(null);
 
   const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
   const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
   const [planeCode, setPlaneCode] = useState("");
   const [selectedFlight, setSelectedFlight] = useState<any>(null);
-  const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
-  const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
-  const [planeCode, setPlaneCode] = useState("");
-  const [selectedFlight, setSelectedFlight] = useState<any>(null);
 
-  const [selectedDate, setSelectedDate] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
   const navigateTo = (
@@ -42,25 +52,22 @@ function AuthenticatedApp() {
     dateArg?: string,
     payloadArg?: any
   ) => {
-    if (planeCodeArg) setPlaneCode(planeCodeArg);
-    if (dateArg) setSelectedDate(dateArg);
-  const navigateTo = (
-    screen: Screen,
-    planeCodeArg?: string,
-    dateArg?: string,
-    payloadArg?: any
-  ) => {
-    if (planeCodeArg) setPlaneCode(planeCodeArg);
-    if (dateArg) setSelectedDate(dateArg);
+    if (planeCodeArg) {
+      setPlaneCode(planeCodeArg);
+    }
+    if (dateArg) {
+      setSelectedDate(dateArg);
+    }
 
-    // Save payload for all screens
-    if (payloadArg) setPayload(payloadArg);
+    // CONSOLIDATED LOGIC: Set payload only once if provided
+    if (payloadArg) {
+      setPayload(payloadArg);
+      // Save selected flight only when it’s a flight object
+      if (payloadArg?.flight) {
+        setSelectedFlight(payloadArg.flight);
+      }
+    }
 
-    // Save selected flight only when it’s a flight object (used by flightPreferences/createPod)
-    if (payloadArg?.flight) setSelectedFlight(payloadArg.flight);
-
-    setCurrentScreen(screen);
-  };
     setCurrentScreen(screen);
   };
 
@@ -85,21 +92,25 @@ function AuthenticatedApp() {
         );
 
       case "flightPreferences":
+        const flightsFromPayload = payload?.flights || [];
         return (
           <RidePreferencesScreen
             onNavigate={navigateTo}
             flight={selectedFlight}
+            flights={flightsFromPayload}
           />
         );
       case "loading":
         return payload ? (
-          <LoadingScreen onNavigate={navigateTo} payload={payload} />
+          <LoadingScreen
+            text="Searching for rides..."
+            duration={3000}
+            onComplete={() =>
+              navigateTo("rideWithGroup", undefined, undefined, payload)
+            }
+          />
         ) : null;
 
-      case "rideWithGroup":
-        return payload ? (
-          <PodListScreen onNavigate={navigateTo} payload={payload} />
-        ) : null;
       case "rideWithGroup":
         return payload ? (
           <PodListScreen onNavigate={navigateTo} payload={payload} />
@@ -120,15 +131,7 @@ function AuthenticatedApp() {
         );
     }
   };
-      default:
-        return (
-          <FlightInputScreen onNavigate={navigateTo} planeCode={planeCode} />
-        );
-    }
-  };
 
-  // Determine if current screen should show the bottom navigation
-  const shouldShowNavbar = !["loading", "createPod"].includes(currentScreen);
   // Determine if current screen should show the bottom navigation
   const shouldShowNavbar = !["loading", "createPod"].includes(currentScreen);
 
@@ -138,28 +141,7 @@ function AuthenticatedApp() {
     if (currentScreen === "profile") return "profile";
     return "ride"; // Default for all ride-related screens
   };
-  // Map currentScreen to BottomNavigation screen type
-  const getNavbarScreen = (): "ride" | "trip" | "profile" => {
-    if (currentScreen === "trip") return "trip";
-    if (currentScreen === "profile") return "profile";
-    return "ride"; // Default for all ride-related screens
-  };
 
-  return (
-    <div className="min-h-screen w-screen bg-[#16161b] flex items-center justify-center">
-      <div className="max-w-[393px] w-screen h-screen flex flex-col">
-        <div className="flex-1 overflow-hidden">{renderScreen()}</div>
-        {shouldShowNavbar && (
-          <div className="sticky bottom-0 w-full z-50">
-            <BottomNavigation
-              currentScreen={getNavbarScreen()}
-              onNavigate={navigateTo}
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  );
   return (
     <div className="min-h-screen w-screen bg-[#16161b] flex items-center justify-center">
       <div className="max-w-[393px] w-screen h-screen flex flex-col">
@@ -182,11 +164,6 @@ function App() {
     "login" | "register" | "profileInfo" | "app"
   >("login");
 
-  return (
-    <AuthProvider>
-      <AuthWrapper authScreen={authScreen} setAuthScreen={setAuthScreen} />
-    </AuthProvider>
-  );
   return (
     <AuthProvider>
       <AuthWrapper authScreen={authScreen} setAuthScreen={setAuthScreen} />

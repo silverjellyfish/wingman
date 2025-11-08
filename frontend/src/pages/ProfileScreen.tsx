@@ -1,6 +1,5 @@
 // Contributors: Michelle, Vince
 // Time: 2 hours
-// TODO: MAKE PATCH REQUEST TO THE BACKEND
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button.tsx";
@@ -33,10 +32,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     setName(user.name || "");
     setEmail(user.email || "");
 
-    // Set Firebase auth data as fallback immediately
-    setName(user.name || "");
-    setEmail(user.email || "");
-
     // Fetch profile data
     const fetchProfile = async () => {
       try {
@@ -48,7 +43,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
         }
 
         const data = await res.json();
-        console.log("Backend profile data:", data);
 
         // Update with backend data if available
         setName(data.name || user.name || "");
@@ -59,7 +53,6 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
         setGender(data.gender || "");
       } catch (err) {
         console.error("Error fetching profile from backend:", err);
-        // Keep the Firebase auth fallback data
       }
     };
 

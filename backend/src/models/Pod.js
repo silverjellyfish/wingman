@@ -9,16 +9,25 @@ const mongoose = require("mongoose");
 const podSchema = new mongoose.Schema(
   {
     pickup_time: { type: Date, required: true },
-    pickup_location: {
+
+    location: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Location",
       required: true,
     },
-    dropoff_location: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Airport",
-      required: true,
-    },
+
+    // TODO: ADD THESE TO SCHEMA LATER
+    // pickup_location: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Location",
+    //   required: true,
+    // },
+    // dropoff_location: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Airport",
+    //   required: true,
+    // },
+
     num_members: { type: Number, default: 0 },
     members: [
       {

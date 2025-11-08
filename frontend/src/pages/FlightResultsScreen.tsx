@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { FlightResultCard } from "@/components/FlightResultCard";
-import type { Screen } from "@/types/index.ts";
+import type { Screen, MappedFlight } from "@/types/index.ts";
 import { useFlights } from "@/hooks/useFlights.ts";
 import type { Flight } from "@/hooks/useFlights.ts";
 import { Button } from "@/components/ui/button.tsx";
+import { LoadingScreen } from "@/pages/LoadingScreen";
 
-// Interface for airport codes
-interface FlightSearchPayload {
-  departureId: string;
-  arrivalId: string;
+// Interface for the complete payload this screen can receive
+interface FlightResultsPayload {
+  departureId?: string;
+  arrivalId?: string;
+  flights?: MappedFlight[];
 }
 
 // Interface for flight results screen props
@@ -19,10 +21,9 @@ interface FlightResultsScreenProps {
     date?: string,
     payload?: any
   ) => void;
-  flights?: Flight[];
   planeCode: string;
   date: string;
-  payload?: FlightSearchPayload;
+  payload?: FlightResultsPayload;
 }
 
 export function FlightResultsScreen({
@@ -31,21 +32,73 @@ export function FlightResultsScreen({
   date,
   payload,
 }: FlightResultsScreenProps) {
-  // Fetch flights using the custom hook
-  const { flights, loading, error } = useFlights(
-    planeCode,
+  const initialFlights = payload?.flights || [];
+  const shouldFetchFlights =
+    !!payload && !!planeCode && !!date && initialFlights.length === 0;
+  const {
+    flights: apiFlights,
+    loading,
+    error,
+  } = useFlights(
+    planeCode?.replace(/\s+/g, ""),
     date,
     payload?.departureId,
     payload?.arrivalId,
-    true
+    shouldFetchFlights
   );
+  const flights = initialFlights.length > 0 ? initialFlights : apiFlights;
   const [expandedFlightId, setExpandedFlightId] = useState<string | null>(null);
   const [minLoading, setMinLoading] = useState(true);
+  const [mappedFlights, setMappedFlights] = useState<MappedFlight[]>([]);
 
+  // Determine minimum loading time
   useEffect(() => {
+    if (!shouldFetchFlights) {
+      setMinLoading(false);
+      return;
+    }
     const timer = setTimeout(() => setMinLoading(false), 1000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [shouldFetchFlights]);
+
+  // Map flights to MappedFlight format
+  useEffect(() => {
+    if (flights && flights.length > 0) {
+      const isApiFlight = (f: any): f is Flight =>
+        f &&
+        typeof f.flightNumber === "string" &&
+        typeof f.departureTime === "string";
+
+      const isMappedFlight = (f: any): f is MappedFlight =>
+        f &&
+        typeof f.flightCode === "string" &&
+        typeof f.dateRange === "string";
+
+      let transformed: MappedFlight[];
+
+      if (isMappedFlight(flights[0])) {
+        // If we received mapped flights from the payload (navigating back)
+        transformed = flights as MappedFlight[];
+      } else if (isApiFlight(flights[0])) {
+        // If we received fresh API data (navigating from input)
+        transformed = (flights as Flight[]).map((f, idx) => ({
+          id: `${f.flightNumber}-${idx}`,
+          flightCode: f.flightNumber.replace(/\s+/g, ""),
+          dateRange: date,
+          route: `${f.from} → ${f.to}`,
+          airports: `${f.from} - ${f.to}`,
+          boardingTime: getBoardingTime(f.departureTime),
+          departureTime: getTimeOnly(f.departureTime),
+          arrivalTime: getTimeOnly(f.arrivalTime),
+          airlineLogo: f.airlineLogo,
+        }));
+      } else {
+        transformed = [];
+      }
+
+      setMappedFlights(transformed);
+    }
+  }, [flights, date]);
 
   const isStillLoading = loading || minLoading;
 
@@ -53,41 +106,48 @@ export function FlightResultsScreen({
     setExpandedFlightId(expandedFlightId === flightId ? null : flightId);
   };
 
-  const handleSelect = (flight: Flight) => {
+  const handleSelect = (f: MappedFlight) => {
     const mappedFlight = {
-      code: flight.flightNumber,
-      from: flight.from,
-      to: flight.to,
-      boarding: flight.departureTime,
-      launch: flight.departureTime,
-      landing: flight.arrivalTime,
+      code: f.flightCode,
+      from: f.route.split(" → ")[0],
+      to: f.route.split(" → ")[1],
+      boarding: f.boardingTime,
+      launch: f.departureTime,
+      landing: f.arrivalTime,
+      date: f.dateRange,
     };
-    onNavigate("flightPreferences", planeCode, date, mappedFlight);
+
+    onNavigate("flightPreferences", planeCode, date, {
+      flight: { ...mappedFlight, airlineLogo: f.airlineLogo },
+      flights: mappedFlights,
+    });
   };
 
   const getBoardingTime = (dateTime: string) => {
     const departureDateTime = new Date(dateTime);
-    const boardingDateTime = departureDateTime;
+    const boardingDateTime = new Date(departureDateTime);
     boardingDateTime.setMinutes(departureDateTime.getMinutes() - 30);
 
-    return boardingDateTime
-      .toLocaleTimeString("it-IT")
-      .split(":")
-      .slice(0, 2)
-      .join(":");
+    return boardingDateTime.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   const getTimeOnly = (dateTime: string) => {
-    return dateTime.split(" ")[1] || dateTime;
+    const d = new Date(dateTime);
+    return d.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   return (
     <div className="flex flex-col h-full bg-[#16161b] text-white p-[12px] pt-[20px]">
       {isStillLoading ? (
-        <div className="flex flex-col items-center justify-center h-full text-white">
-          <p className="text-lg font-medium mb-4">Searching for flights...</p>
-          <div className="spinner" />
-        </div>
+        <LoadingScreen text="Searching for flights..." duration={1000} />
       ) : error ? (
         <p className="text-red-500 text-center">{error}</p>
       ) : (
@@ -115,27 +175,16 @@ export function FlightResultsScreen({
 
               {/* Flight Cards */}
               <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
-                {flights.length === 0 ? (
+                {mappedFlights.length === 0 ? (
                   <p className="text-center text-gray-400 w-full">
                     No flights found for {planeCode} on {date}.
                   </p>
                 ) : (
-                  flights.map((f, idx) => (
+                  mappedFlights.map((f, idx) => (
                     <FlightResultCard
-                      key={idx}
-                      flight={{
-                        id: `${f.flightNumber}-${idx}`,
-                        flightCode: f.flightNumber,
-                        dateRange: date,
-                        route: `${f.from} → ${f.to}`,
-                        airports: `${f.from} - ${f.to}`,
-                        boardingTime: getBoardingTime(f.departureTime),
-                        departureTime: getTimeOnly(f.departureTime),
-                        arrivalTime: getTimeOnly(f.arrivalTime),
-                      }}
-                      isExpanded={
-                        expandedFlightId === `${f.flightNumber}-${idx}`
-                      }
+                      key={f.id}
+                      flight={f}
+                      isExpanded={expandedFlightId === f.id}
                       onExpand={handleExpand}
                       onSelect={() => handleSelect(f)}
                     />

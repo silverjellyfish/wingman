@@ -48,7 +48,9 @@ export function FlightInputScreen({
 
   // ---------- Validation Helpers ----------
   const isValidAirportOrKgmid = (value: string): boolean => {
-    if (!value) return false;
+    if (!value) {
+      return false;
+    }
     return value
       .split(",")
       .every(
@@ -64,12 +66,16 @@ export function FlightInputScreen({
 
   const handleAirlineCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase();
-    if (value.length <= 2) setAirlineCode(value);
+    if (value.length <= 2) {
+      setAirlineCode(value);
+    }
   };
 
   const handleFlightNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (/^\d{0,4}$/.test(value)) setFlightNumber(value);
+    if (/^\d{0,4}$/.test(value)) {
+      setFlightNumber(value);
+    }
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +128,6 @@ export function FlightInputScreen({
 
     const fullPlaneCode = `${airlineCode}${flightNumber}`;
     setIsSearching(true);
-    console.log("IDs:", { departureId, arrivalId });
     onNavigate("flightResults", fullPlaneCode, flightDate, {
       departureId,
       arrivalId,

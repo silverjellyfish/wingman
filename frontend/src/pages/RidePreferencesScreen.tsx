@@ -6,13 +6,25 @@ import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import {
-   Tooltip,
-   TooltipTrigger,
-   TooltipContent,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
 } from "@/components/ui/tooltip.tsx";
-import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
-import type { Screen } from "@/types/index.ts";
+// import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
+import type { Screen, MappedFlight } from "@/types/index.ts";
+import { LOCATIONS } from "@/constants/locations";
 
+interface Flight {
+  code: string;
+  date: string;
+  from: string;
+  to: string;
+  boarding: string;
+  launch: string;
+  landing: string;
+  airlineLogo?: string;
+}
+// Update the props interface to include the flights list
 interface RidePreferencesScreenProps {
   onNavigate: (
     screen: Screen,
@@ -20,12 +32,14 @@ interface RidePreferencesScreenProps {
     date?: string,
     payload?: any
   ) => void;
-  flight: MockFlight;
+  flight: Flight;
+  flights: MappedFlight[];
 }
 
 export function RidePreferencesScreen({
   onNavigate,
   flight,
+  flights,
 }: RidePreferencesScreenProps) {
   const [earliestBeforeBoarding, setEarliestBeforeBoarding] = useState("");
   const [latestBeforeBoarding, setLatestBeforeBoarding] = useState("");
@@ -36,38 +50,7 @@ export function RidePreferencesScreen({
   const [showDropdown, setShowDropdown] = useState(false);
 
   // TODO: Move this and put in the database
-  const locations = [
-    "Buttrick Hall",
-    "Kirkland Hall",
-    "Wilson Hall",
-    "Garland Hall",
-    "Stevenson Center",
-    "Featheringill Hall",
-    "Blair School of Music",
-    "Owen Graduate School of Management",
-    "Law School",
-    "Medical Center",
-    "Commons Center",
-    "Branscomb Quadrangle",
-    "Carmichael Towers",
-    "Highland Quadrangle",
-    "Warren College",
-    "Moore College",
-    "Zeppos College",
-    "Student Life Center",
-    "Recreation and Wellness Center",
-    "Rand Dining Center",
-    "Sarratt Student Center",
-    "Student Union",
-    "Central Library",
-    "Biomedical Library",
-    "Divinity Library",
-    "Music Library",
-    "Vanderbilt Stadium",
-    "Memorial Gymnasium",
-  ];
-
-  const getTimeOnly = (dateTime: string) => dateTime.split(" ")[1] || dateTime;
+  const locations = LOCATIONS;
 
   // Filter locations based on search query
   const filteredLocations = locations.filter((location) =>
@@ -81,8 +64,12 @@ export function RidePreferencesScreen({
     const [hoursMinutes, ampm] = timeStr.split(" ");
     const [hours, minutes] = hoursMinutes.split(":").map(Number);
     let hrs = hours;
-    if (ampm.toLowerCase() === "pm" && hours < 12) hrs += 12;
-    if (ampm.toLowerCase() === "am" && hours === 12) hrs = 0;
+    if (ampm.toLowerCase() === "pm" && hours < 12) {
+      hrs += 12;
+    }
+    if (ampm.toLowerCase() === "am" && hours === 12) {
+      hrs = 0;
+    }
     const d = new Date();
     d.setHours(hrs, minutes, 0, 0);
     return d;
@@ -96,9 +83,13 @@ export function RidePreferencesScreen({
 
   // Calculate arrival times based on minutes before boarding
   const calculateArrivalTime = (minutesBefore: string) => {
-    if (!minutesBefore || minutesBefore === "") return "--:--";
+    if (!minutesBefore || minutesBefore === "") {
+      return "--:--";
+    }
     const mins = parseInt(minutesBefore);
-    if (isNaN(mins)) return "--:--";
+    if (isNaN(mins)) {
+      return "--:--";
+    }
     const arrivalTime = new Date(boardingTime);
     arrivalTime.setMinutes(arrivalTime.getMinutes() - mins);
     return formatTime(arrivalTime);
@@ -128,13 +119,14 @@ export function RidePreferencesScreen({
   // Transform MockFlight to FlightResultCard format
   const transformedFlight = {
     id: flight.code,
-    flightCode: flight.code,
+    flightCode: flight.code.replace(/\s+/g, ""),
     dateRange: flight.date,
     route: `${flight.from} → ${flight.to}`,
     airports: `${flight.from} - ${flight.to}`,
-    boardingTime: getTimeOnly(flight.boarding),
-    departureTime: getTimeOnly(flight.launch),
-    arrivalTime: getTimeOnly(flight.landing),
+    boardingTime: flight.boarding,
+    departureTime: flight.launch,
+    arrivalTime: flight.landing,
+    airlineLogo: flight.airlineLogo,
   };
 
   return (
@@ -144,8 +136,16 @@ export function RidePreferencesScreen({
         <div className="box-border content-stretch flex flex-col gap-[32px] items-start relative w-full">
           {/* Back Button */}
           <Button
+            // TODO: TEMP FIX, SHOULD ALWAYS PASS IN CORRECT FLIGHT CODE
             onClick={() =>
-              onNavigate("flightResults", flight.code, flight.date)
+              onNavigate(
+                "flightResults",
+                flight.code.replace(/\s+/g, ""),
+                flight.date,
+                {
+                  flights: flights,
+                }
+              )
             }
             variant="outline"
             className="gap-[8px] w-auto border-2 px-[12px] py-[8px]"
@@ -179,50 +179,48 @@ export function RidePreferencesScreen({
                   Timing
                 </p>
 
-                        <div className="content-stretch flex gap-[26px] items-start relative shrink-0 w-full">
-                           {/* Earliest before boarding */}
-                           <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
-                              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                                 <div className="flex items-center gap-[6px]">
-                                    <p
-                                       className="leading-none relative text-[14px] text-white tracking-[0.07px]"
-                                       style={{ fontWeight: 600 }}
-                                    >
-                                       Earliest
-                                    </p>
-                                    <Tooltip>
-                                       <TooltipTrigger asChild>
-                                          <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
-                                             info
-                                          </span>
-                                       </TooltipTrigger>
-                                       <TooltipContent>
-                                          <p className="max-w-[200px]">
-                                             How early you're willing to arrive
-                                             before boarding time
-                                          </p>
-                                       </TooltipContent>
-                                    </Tooltip>
-                                 </div>
-                                 <div className="flex items-center gap-[8px] w-full">
-                                    <Input
-                                       type="text"
-                                       inputMode="numeric"
-                                       value={earliestBeforeBoarding}
-                                       onChange={(e) =>
-                                          handleTimingChange(
-                                             e.target.value,
-                                             setEarliestBeforeBoarding
-                                          )
-                                       }
-                                       className="w-[80px]"
-                                       style={{ maxWidth: "80px" }}
-                                    />
-                                    <span className="text-[14px] text-zinc-400">
-                                       mins
-                                    </span>
-                                 </div>
-                              </div>
+                <div className="content-stretch flex gap-[26px] items-start relative shrink-0 w-full">
+                  {/* Earliest before boarding */}
+                  <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
+                    <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                      <div className="flex items-center gap-[6px]">
+                        <p
+                          className="leading-none relative text-[14px] text-white tracking-[0.07px]"
+                          style={{ fontWeight: 600 }}
+                        >
+                          Earliest
+                        </p>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
+                              info
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-[200px]">
+                              How early you're willing to arrive before boarding
+                              time
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="flex items-center gap-[8px] w-full">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={earliestBeforeBoarding}
+                          onChange={(e) =>
+                            handleTimingChange(
+                              e.target.value,
+                              setEarliestBeforeBoarding
+                            )
+                          }
+                          className="w-[80px]"
+                          style={{ maxWidth: "80px" }}
+                        />
+                        <span className="text-[14px] text-zinc-400">mins</span>
+                      </div>
+                    </div>
 
                     <div className="content-stretch flex flex-col gap-[8px] items-start leading-none relative shrink-0">
                       <p
@@ -237,49 +235,47 @@ export function RidePreferencesScreen({
                     </div>
                   </div>
 
-                           {/* Latest before boarding */}
-                           <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
-                              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                                 <div className="flex items-center gap-[6px]">
-                                    <p
-                                       className="leading-none relative text-[14px] text-white tracking-[0.07px]"
-                                       style={{ fontWeight: 600 }}
-                                    >
-                                       Latest
-                                    </p>
-                                    <Tooltip>
-                                       <TooltipTrigger asChild>
-                                          <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
-                                             info
-                                          </span>
-                                       </TooltipTrigger>
-                                       <TooltipContent>
-                                          <p className="max-w-[200px]">
-                                             The latest you are willing to
-                                             arrive before boarding time
-                                          </p>
-                                       </TooltipContent>
-                                    </Tooltip>
-                                 </div>
-                                 <div className="flex items-center gap-[8px] w-full">
-                                    <Input
-                                       type="text"
-                                       inputMode="numeric"
-                                       value={latestBeforeBoarding}
-                                       onChange={(e) =>
-                                          handleTimingChange(
-                                             e.target.value,
-                                             setLatestBeforeBoarding
-                                          )
-                                       }
-                                       className="w-[80px]"
-                                       style={{ maxWidth: "80px" }}
-                                    />
-                                    <span className="text-[14px] text-zinc-400">
-                                       mins
-                                    </span>
-                                 </div>
-                              </div>
+                  {/* Latest before boarding */}
+                  <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
+                    <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                      <div className="flex items-center gap-[6px]">
+                        <p
+                          className="leading-none relative text-[14px] text-white tracking-[0.07px]"
+                          style={{ fontWeight: 600 }}
+                        >
+                          Latest
+                        </p>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
+                              info
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-[200px]">
+                              The latest you are willing to arrive before
+                              boarding time
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="flex items-center gap-[8px] w-full">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={latestBeforeBoarding}
+                          onChange={(e) =>
+                            handleTimingChange(
+                              e.target.value,
+                              setLatestBeforeBoarding
+                            )
+                          }
+                          className="w-[80px]"
+                          style={{ maxWidth: "80px" }}
+                        />
+                        <span className="text-[14px] text-zinc-400">mins</span>
+                      </div>
+                    </div>
 
                     <div className="content-stretch flex flex-col gap-[8px] items-start leading-none relative shrink-0">
                       <p
@@ -391,7 +387,7 @@ export function RidePreferencesScreen({
                         <button
                           key={location}
                           onMouseDown={(e) => {
-                            e.preventDefault(); // Prevent blur
+                            e.preventDefault();
                             setPickupLocation(location);
                             setSearchQuery("");
                             setShowDropdown(false);
@@ -412,6 +408,7 @@ export function RidePreferencesScreen({
               onClick={() =>
                 onNavigate("rideWithGroup", undefined, undefined, {
                   flight,
+                  flights,
                   earliestTime: earliestArrival,
                   latestTime: latestArrival,
                   numCarryOn,

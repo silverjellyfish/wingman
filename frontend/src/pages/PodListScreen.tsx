@@ -55,6 +55,7 @@ export function PodListScreen({
 }: PodListScreenProps) {
   const {
     flight = {},
+    flights = [],
     earliestTime = "",
     latestTime = "",
     numCarryOn = 0,
@@ -81,7 +82,6 @@ export function PodListScreen({
         const data: Pod[] = await res.json();
 
         const filtered = data.filter((pod) => {
-          console.log("Evaluating pod:", pod);
           // Check if pod and flight date match
           const podDate = new Date(pod.pickup_time)
             .toLocaleString()
@@ -89,13 +89,7 @@ export function PodListScreen({
           const flightDate = new Date(flight.date).toISOString().split("T")[0];
           const flightArray = flightDate.split("-");
           const podArray = podDate.split("/");
-          console.log("Pod date:", podDate, "Flight date:", flightDate);
-          console.log(
-            "Earlitest time:",
-            earliestTime,
-            "Latest time:",
-            latestTime
-          );
+
           const sameDay =
             podArray[0] == flightArray[1] &&
             podArray[2] == flightArray[0] &&
@@ -116,15 +110,6 @@ export function PodListScreen({
             Number(splitTimeLatest[0]),
             Number(splitTimeLatest[1]),
           ];
-          // const [earliestHour, earliestMin] = (earliestTime || "00:00")
-          //   .split(":")
-          //   .map(Number);
-
-          // const
-          // console.log("Earliest hour and min:", earliestHour, earliestMin);
-          // const [latestHour, latestMin] = (latestTime || "23:59")
-          //   .split(":")
-          //   .map(Number);
 
           const earliest = new Date(podTime);
           earliest.setHours(earliestHour, earliestMin, 0, 0);
@@ -132,14 +117,6 @@ export function PodListScreen({
           const latest = new Date(podTime);
           latest.setHours(latestHour, latestMin, 0, 0);
 
-          console.log("Pod time:", podTime);
-          console.log("Earliest time:", earliest);
-          console.log("Latest time:", latest);
-          console.log(
-            "Is within time:",
-            podTime >= earliest,
-            podTime <= latest
-          );
           const withinTime = podTime >= earliest && podTime <= latest;
 
           // Check if user pickup location matches pod location
@@ -155,10 +132,7 @@ export function PodListScreen({
           const withinLuggage =
             Number(numCarryOn) + Number(numChecked) <=
             pod.num_small_luggage + pod.num_big_luggage;
-          console.log("Luggage check:", withinLuggage);
-          console.log("Day check:", sameDay);
-          console.log("Time check:", withinTime);
-          console.log("Location check:", withinLocation);
+
           // Return if all checks are valid
           return sameDay && withinTime && withinLocation && withinLuggage;
         });
@@ -224,7 +198,9 @@ export function PodListScreen({
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white px-[12px] pt-[20px]">
       {loading ? (
         <div className="flex flex-col items-center justify-center h-full text-white px-6">
-          <p className="text-lg font-medium mb-[1rem]">Searching for rides...</p>
+          <p className="text-lg font-medium mb-[1rem]">
+            Searching for rides...
+          </p>
           <div className="spinner" />
         </div>
       ) : (
@@ -233,7 +209,12 @@ export function PodListScreen({
             {/* Back Button */}
             <div className="content-stretch flex items-start relative shrink-0 w-full">
               <Button
-                onClick={() => onNavigate("flightPreferences")}
+                onClick={() =>
+                  onNavigate("flightPreferences", undefined, undefined, {
+                    flight,
+                    flights,
+                  })
+                }
                 variant="outline"
                 className="gap-[8px] w-auto border-2 px-[12px] py-[8px]"
               >
