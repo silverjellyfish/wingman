@@ -104,17 +104,13 @@ function Calendar({ className, selected, onSelect }: CalendarProps) {
             >
                <button
                   onClick={() => handleDateSelect(day)}
-                  className={`box-border content-stretch flex items-center justify-center px-[9px] py-[8px] relative rounded-[6px] shrink-0 size-[36px] cursor-pointer ${
-                     isSelected ? "bg-neutral-50" : ""
+                  className={`box-border content-stretch flex items-center justify-center px-[9px] py-[8px] relative rounded-[6px] shrink-0 size-[36px] cursor-pointer transition-all duration-200 font-['Inter:Regular',_sans-serif] font-normal text-[14px] ${
+                     isSelected
+                        ? "bg-zinc-700 text-neutral-50"
+                        : "text-neutral-50 hover:!bg-zinc-700"
                   }`}
                >
-                  <div
-                     className={`flex flex-col font-['Inter:Regular',_sans-serif] font-normal justify-center leading-[0] not-italic relative shrink-0 text-[14px] text-center text-nowrap ${
-                        isSelected ? "text-zinc-900" : "text-neutral-50"
-                     }`}
-                  >
-                     <p className="leading-[20px] whitespace-pre">{day}</p>
-                  </div>
+                  {day}
                </button>
             </div>
          );
@@ -143,21 +139,21 @@ function Calendar({ className, selected, onSelect }: CalendarProps) {
    return (
       <div className={cn("p-3 bg-background", className)}>
          {/* Header with month/year and navigation */}
-         <div className="flex items-center justify-between mb-4">
+         <div className="flex items-center justify-between pb-[8px] px-[4px]">
             <button
                onClick={handlePreviousMonth}
                className="p-2 hover:bg-accent rounded-md"
             >
-               <ChevronLeftIcon className="size-4" />
+               <ChevronLeftIcon className="size-6" />
             </button>
-            <div className="text-sm font-medium">
+            <div className="text-md font-medium">
                {monthNames[currentMonth]} {currentYear}
             </div>
             <button
                onClick={handleNextMonth}
                className="p-2 hover:bg-accent rounded-md"
             >
-               <ChevronRightIcon className="size-4" />
+               <ChevronRightIcon className="size-6" />
             </button>
          </div>
 

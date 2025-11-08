@@ -1,5 +1,7 @@
 /* Contributors: Vince */
 /* Time: 0.5 hours */
+@import "tailwindcss";
+
 #root {
   background-color: #16161b;
   min-height: 100vh;
@@ -39,4 +41,14 @@
 
 .read-the-docs {
   color: #888;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

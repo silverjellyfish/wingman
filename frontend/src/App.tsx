@@ -22,14 +22,28 @@ import "./App.css";
 
 function AuthenticatedApp() {
   const [payload, setPayload] = useState<any>(null);
+  const [payload, setPayload] = useState<any>(null);
 
+  const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
+  const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
+  const [planeCode, setPlaneCode] = useState("");
+  const [selectedFlight, setSelectedFlight] = useState<any>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen>("ride");
   const [hasJoinedGroup, setHasJoinedGroup] = useState(false);
   const [planeCode, setPlaneCode] = useState("");
   const [selectedFlight, setSelectedFlight] = useState<any>(null);
 
   const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
 
+  const navigateTo = (
+    screen: Screen,
+    planeCodeArg?: string,
+    dateArg?: string,
+    payloadArg?: any
+  ) => {
+    if (planeCodeArg) setPlaneCode(planeCodeArg);
+    if (dateArg) setSelectedDate(dateArg);
   const navigateTo = (
     screen: Screen,
     planeCodeArg?: string,
@@ -45,6 +59,8 @@ function AuthenticatedApp() {
     // Save selected flight only when it’s a flight object (used by flightPreferences/createPod)
     if (payloadArg?.flight) setSelectedFlight(payloadArg.flight);
 
+    setCurrentScreen(screen);
+  };
     setCurrentScreen(screen);
   };
 
@@ -84,9 +100,13 @@ function AuthenticatedApp() {
         return payload ? (
           <PodListScreen onNavigate={navigateTo} payload={payload} />
         ) : null;
+      case "rideWithGroup":
+        return payload ? (
+          <PodListScreen onNavigate={navigateTo} payload={payload} />
+        ) : null;
 
       case "trip":
-        return <TripScreen />;
+        return <TripScreen onNavigate={navigateTo} />;
       case "profile":
         return <ProfileScreen onNavigate={navigateTo} />;
       case "createPod":
@@ -100,10 +120,24 @@ function AuthenticatedApp() {
         );
     }
   };
+      default:
+        return (
+          <FlightInputScreen onNavigate={navigateTo} planeCode={planeCode} />
+        );
+    }
+  };
 
   // Determine if current screen should show the bottom navigation
   const shouldShowNavbar = !["loading", "createPod"].includes(currentScreen);
+  // Determine if current screen should show the bottom navigation
+  const shouldShowNavbar = !["loading", "createPod"].includes(currentScreen);
 
+  // Map currentScreen to BottomNavigation screen type
+  const getNavbarScreen = (): "ride" | "trip" | "profile" => {
+    if (currentScreen === "trip") return "trip";
+    if (currentScreen === "profile") return "profile";
+    return "ride"; // Default for all ride-related screens
+  };
   // Map currentScreen to BottomNavigation screen type
   const getNavbarScreen = (): "ride" | "trip" | "profile" => {
     if (currentScreen === "trip") return "trip";
@@ -126,6 +160,21 @@ function AuthenticatedApp() {
       </div>
     </div>
   );
+  return (
+    <div className="min-h-screen w-screen bg-[#16161b] flex items-center justify-center">
+      <div className="max-w-[393px] w-screen h-screen flex flex-col">
+        <div className="flex-1 overflow-hidden">{renderScreen()}</div>
+        {shouldShowNavbar && (
+          <div className="sticky bottom-0 w-full z-50">
+            <BottomNavigation
+              currentScreen={getNavbarScreen()}
+              onNavigate={navigateTo}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function App() {
@@ -133,6 +182,11 @@ function App() {
     "login" | "register" | "profileInfo" | "app"
   >("login");
 
+  return (
+    <AuthProvider>
+      <AuthWrapper authScreen={authScreen} setAuthScreen={setAuthScreen} />
+    </AuthProvider>
+  );
   return (
     <AuthProvider>
       <AuthWrapper authScreen={authScreen} setAuthScreen={setAuthScreen} />

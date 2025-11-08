@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "./ui/button";
 
 interface FlightResultCardProps {
    flight: {
@@ -16,7 +17,12 @@ interface FlightResultCardProps {
    onSelect: (flight: FlightResultCardProps["flight"]) => void;
 }
 
-export function FlightResultCard({ flight, isExpanded, onExpand, onSelect }: FlightResultCardProps) {
+export function FlightResultCard({
+   flight,
+   isExpanded,
+   onExpand,
+   onSelect,
+}: FlightResultCardProps) {
    const [isHovered, setIsHovered] = useState(false);
 
    const handleCardClick = () => {
@@ -30,7 +36,7 @@ export function FlightResultCard({ flight, isExpanded, onExpand, onSelect }: Fli
 
    return (
       <div
-         className="box-border content-stretch flex flex-col items-start p-[12px] relative rounded-[16px] shrink-0 w-full cursor-pointer transition-all text-white"
+         className="box-border content-stretch flex flex-col items-start p-[16px] relative rounded-[16px] shrink-0 w-full cursor-pointer transition-all text-white"
          style={{
             backgroundColor: isHovered ? "#3f3f47" : "#27272A",
             gap: isExpanded ? "16px" : "16px",
@@ -44,7 +50,10 @@ export function FlightResultCard({ flight, isExpanded, onExpand, onSelect }: Fli
             {/* Flight Code and Date Range */}
             <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
                {/* Flight Code */}
-               <p className="leading-none relative text-[16px] text-neutral-50 text-nowrap tracking-[0.08px]" style={{ fontWeight: 700 }}>
+               <p
+                  className="leading-none relative text-[16px] text-neutral-50 text-nowrap tracking-[0.08px]"
+                  style={{ fontWeight: 700 }}
+               >
                   {flight.flightCode}
                </p>
 
@@ -67,7 +76,10 @@ export function FlightResultCard({ flight, isExpanded, onExpand, onSelect }: Fli
                   <span className="material-symbols-outlined text-[20px] text-neutral-50">
                      login
                   </span>
-                  <p className="leading-none relative shrink-0 text-[14px] text-center text-neutral-50 text-nowrap tracking-[0.07px] whitespace-pre" style={{ fontWeight: 700 }}>
+                  <p
+                     className="leading-none relative shrink-0 text-[14px] text-center text-neutral-50 text-nowrap tracking-[0.07px] whitespace-pre"
+                     style={{ fontWeight: 600 }}
+                  >
                      {flight.boardingTime}
                   </p>
                </div>
@@ -77,7 +89,10 @@ export function FlightResultCard({ flight, isExpanded, onExpand, onSelect }: Fli
                   <span className="material-symbols-outlined text-[20px] text-neutral-50">
                      flight_takeoff
                   </span>
-                  <p className="leading-none relative shrink-0 text-[14px] text-center text-neutral-50 text-nowrap tracking-[0.07px] whitespace-pre" style={{ fontWeight: 700 }}>
+                  <p
+                     className="leading-none relative shrink-0 text-[14px] text-center text-neutral-50 text-nowrap tracking-[0.07px] whitespace-pre"
+                     style={{ fontWeight: 600 }}
+                  >
                      {flight.departureTime}
                   </p>
                </div>
@@ -87,7 +102,10 @@ export function FlightResultCard({ flight, isExpanded, onExpand, onSelect }: Fli
                   <span className="material-symbols-outlined text-[20px] text-neutral-50">
                      flight_land
                   </span>
-                  <p className="leading-none relative shrink-0 text-[14px] text-center text-neutral-50 text-nowrap tracking-[0.07px] whitespace-pre" style={{ fontWeight: 700 }}>
+                  <p
+                     className="leading-none relative shrink-0 text-[14px] text-center text-neutral-50 text-nowrap tracking-[0.07px] whitespace-pre"
+                     style={{ fontWeight: 600 }}
+                  >
                      {flight.arrivalTime}
                   </p>
                </div>
@@ -96,22 +114,22 @@ export function FlightResultCard({ flight, isExpanded, onExpand, onSelect }: Fli
 
          {/* Expanded Section - Select Button */}
          {isExpanded && (
-            <button
+            <Button
                onClick={handleSelectClick}
-               className="w-full font-['Geist:SemiBold',_sans-serif] font-semibold py-[12px] px-[16px] rounded-[8px] transition-colors text-[14px] tracking-[0.07px]"
+               className="w-full text-[14px] font-semibold py-[12px] px-[16px] rounded-[8px] transition-colors tracking-[0.07px]"
                style={{
-                  backgroundColor: '#FFFFFF',
-                  color: '#000000',
+                  backgroundColor: "#FFFFFF",
+                  color: "#000000",
                }}
                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#E5E5E5';
+                  e.currentTarget.style.backgroundColor = "#E5E5E5";
                }}
                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FFFFFF';
+                  e.currentTarget.style.backgroundColor = "#FFFFFF";
                }}
             >
                Select this flight
-            </button>
+            </Button>
          )}
       </div>
    );

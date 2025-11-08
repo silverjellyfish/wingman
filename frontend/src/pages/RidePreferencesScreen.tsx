@@ -5,6 +5,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { FlightResultCard } from "@/components/FlightResultCard";
+import {
+   Tooltip,
+   TooltipTrigger,
+   TooltipContent,
+} from "@/components/ui/tooltip.tsx";
 import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
 import type { Screen } from "@/types/index.ts";
 
@@ -174,33 +179,50 @@ export function RidePreferencesScreen({
                   Timing
                 </p>
 
-                <div className="content-stretch flex gap-[26px] items-start relative shrink-0 w-full">
-                  {/* Earliest before boarding */}
-                  <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
-                    <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                      <p
-                        className="leading-none relative text-[14px] text-white tracking-[0.07px] w-full"
-                        style={{ fontWeight: 600 }}
-                      >
-                        Earliest
-                      </p>
-                      <div className="flex items-center gap-[8px] w-full">
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          value={earliestBeforeBoarding}
-                          onChange={(e) =>
-                            handleTimingChange(
-                              e.target.value,
-                              setEarliestBeforeBoarding
-                            )
-                          }
-                          className="w-[80px]"
-                          style={{ maxWidth: "80px" }}
-                        />
-                        <span className="text-[14px] text-zinc-400">mins</span>
-                      </div>
-                    </div>
+                        <div className="content-stretch flex gap-[26px] items-start relative shrink-0 w-full">
+                           {/* Earliest before boarding */}
+                           <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
+                              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                                 <div className="flex items-center gap-[6px]">
+                                    <p
+                                       className="leading-none relative text-[14px] text-white tracking-[0.07px]"
+                                       style={{ fontWeight: 600 }}
+                                    >
+                                       Earliest
+                                    </p>
+                                    <Tooltip>
+                                       <TooltipTrigger asChild>
+                                          <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
+                                             info
+                                          </span>
+                                       </TooltipTrigger>
+                                       <TooltipContent>
+                                          <p className="max-w-[200px]">
+                                             How early you're willing to arrive
+                                             before boarding time
+                                          </p>
+                                       </TooltipContent>
+                                    </Tooltip>
+                                 </div>
+                                 <div className="flex items-center gap-[8px] w-full">
+                                    <Input
+                                       type="text"
+                                       inputMode="numeric"
+                                       value={earliestBeforeBoarding}
+                                       onChange={(e) =>
+                                          handleTimingChange(
+                                             e.target.value,
+                                             setEarliestBeforeBoarding
+                                          )
+                                       }
+                                       className="w-[80px]"
+                                       style={{ maxWidth: "80px" }}
+                                    />
+                                    <span className="text-[14px] text-zinc-400">
+                                       mins
+                                    </span>
+                                 </div>
+                              </div>
 
                     <div className="content-stretch flex flex-col gap-[8px] items-start leading-none relative shrink-0">
                       <p
@@ -215,32 +237,49 @@ export function RidePreferencesScreen({
                     </div>
                   </div>
 
-                  {/* Latest before boarding */}
-                  <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
-                    <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                      <p
-                        className="leading-none relative text-[14px] text-white tracking-[0.07px] w-full"
-                        style={{ fontWeight: 600 }}
-                      >
-                        Latest
-                      </p>
-                      <div className="flex items-center gap-[8px] w-full">
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          value={latestBeforeBoarding}
-                          onChange={(e) =>
-                            handleTimingChange(
-                              e.target.value,
-                              setLatestBeforeBoarding
-                            )
-                          }
-                          className="w-[80px]"
-                          style={{ maxWidth: "80px" }}
-                        />
-                        <span className="text-[14px] text-zinc-400">mins</span>
-                      </div>
-                    </div>
+                           {/* Latest before boarding */}
+                           <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
+                              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                                 <div className="flex items-center gap-[6px]">
+                                    <p
+                                       className="leading-none relative text-[14px] text-white tracking-[0.07px]"
+                                       style={{ fontWeight: 600 }}
+                                    >
+                                       Latest
+                                    </p>
+                                    <Tooltip>
+                                       <TooltipTrigger asChild>
+                                          <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
+                                             info
+                                          </span>
+                                       </TooltipTrigger>
+                                       <TooltipContent>
+                                          <p className="max-w-[200px]">
+                                             The latest you are willing to
+                                             arrive before boarding time
+                                          </p>
+                                       </TooltipContent>
+                                    </Tooltip>
+                                 </div>
+                                 <div className="flex items-center gap-[8px] w-full">
+                                    <Input
+                                       type="text"
+                                       inputMode="numeric"
+                                       value={latestBeforeBoarding}
+                                       onChange={(e) =>
+                                          handleTimingChange(
+                                             e.target.value,
+                                             setLatestBeforeBoarding
+                                          )
+                                       }
+                                       className="w-[80px]"
+                                       style={{ maxWidth: "80px" }}
+                                    />
+                                    <span className="text-[14px] text-zinc-400">
+                                       mins
+                                    </span>
+                                 </div>
+                              </div>
 
                     <div className="content-stretch flex flex-col gap-[8px] items-start leading-none relative shrink-0">
                       <p
