@@ -11,7 +11,12 @@ const Location = require("../models/Location");
 router.get("/all", async (req, res) => {
   try {
     // Fetch all pods from the database
-    const pods = await Pod.find().populate("members").populate("location");
+    const pods = await Pod.find()
+      .populate({
+        path: "members.user",
+        select: "name email gender createdAt"
+      })
+      .populate("location");
 
     // If no pods are found, return an empty array
     if (!pods || pods.length === 0) {
@@ -72,7 +77,10 @@ router.post("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const pod = await Pod.findById(req.params.id)
-      .populate("members")
+      .populate({
+        path: "members.user",
+        select: "name email gender createdAt"
+      })
       .populate("location");
     if (!pod) return res.status(404).json({ error: "Pod not found" });
     res.status(200).json(pod);

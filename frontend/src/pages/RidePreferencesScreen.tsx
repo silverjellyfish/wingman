@@ -1,10 +1,12 @@
 // Contributors: Michelle
 // Time: 2 hours
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
+import { Switch } from "@/components/ui/switch.tsx";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
 import type { Screen } from "@/types/index.ts";
 
@@ -27,6 +29,28 @@ export function RidePreferencesScreen({
   const [numCarryOn, setNumCarryOn] = useState("1");
   const [numChecked, setNumChecked] = useState("0");
   const [pickupLocation, setPickupLocation] = useState("");
+  const [genderMatchingEnabled, setGenderMatchingEnabled] = useState(false);
+  const [userGender, setUserGender] = useState<string>("");
+  const { user } = useAuth();
+
+  // Fetch user's gender from backend
+  useEffect(() => {
+    const fetchUserGender = async () => {
+      if (!user) return;
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/users/profile/${user.id}`
+        );
+        if (res.ok) {
+          const userData = await res.json();
+          setUserGender(userData.gender || "");
+        }
+      } catch (error) {
+        console.error("Error fetching user gender:", error);
+      }
+    };
+    fetchUserGender();
+  }, [user]);
 
   // Parse flight time
   const parseFlightTime = (timeStr: string) => {
@@ -207,6 +231,16 @@ export function RidePreferencesScreen({
             />
           </div>
 
+          {/* Gender matching toggle */}
+          <div className="content-stretch flex flex-row items-center justify-between relative w-full">
+            <p className="text-[18px]" style={{ fontWeight: 600 }}>Match same gender only</p>
+            <Switch
+              checked={genderMatchingEnabled}
+              onCheckedChange={setGenderMatchingEnabled}
+              className="h-[1.75rem] w-[3.5rem] p-[3px] [&>span]:size-[1.25rem] [&>span[data-state=checked]]:translate-x-[calc(100%+6px)]"
+            />
+          </div>
+
           {/* Search rideshare */}
           <Button
             className="pl-[2vw] pr-[2vw]"
@@ -218,6 +252,7 @@ export function RidePreferencesScreen({
                 numCarryOn,
                 numChecked,
                 pickupLocation,
+                genderPreference: genderMatchingEnabled ? userGender : null,
               })
             }
           >
