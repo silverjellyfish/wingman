@@ -17,6 +17,7 @@ interface User {
   email: string;
   name: string;
   createdAt: string;
+  gender?: string;
 }
 
 interface Pod {
@@ -47,6 +48,7 @@ export function PodListScreen({
     numCarryOn = 0,
     numChecked = 0,
     pickupLocation = "",
+    genderPreference = null,
   } = payload;
 
   const [pods, setPods] = useState<Pod[]>([]);
@@ -106,8 +108,12 @@ export function PodListScreen({
             pod.num_small_luggage + pod.num_big_luggage <=
             Number(numCarryOn) + Number(numChecked);
 
+          // Check gender matching if genderPreference is set
+          const genderMatches = !genderPreference ||
+            pod.members.every(member => member.gender === genderPreference);
+
           // Return if all checks are valid
-          return sameDay && withinTime && withinLocation && withinLuggage;
+          return sameDay && withinTime && withinLocation && withinLuggage && genderMatches;
         });
 
         // List of pods found
