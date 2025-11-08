@@ -1,11 +1,10 @@
 // seedLocations.js
 // Run this script once to populate the Location collection with preset data
 
-require("dotenv").config(); // ✅ allows you to load MONGODB_URI from .env
+require("dotenv").config();
 const mongoose = require("mongoose");
 const Location = require("./src/models/Location");
 
-// Use your real connection string (auto-read from .env)
 const MONGODB_URI = process.env.MONGO_URI;
 
 const locations = [

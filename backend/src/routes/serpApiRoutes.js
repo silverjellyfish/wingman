@@ -68,7 +68,6 @@ router.get("/", async (req, res) => {
       },
     });
 
-
     const bestFlights = response.data.best_flights || [];
     const otherFlights = response.data.other_flights || [];
     const allFlights = [...bestFlights, ...otherFlights];
