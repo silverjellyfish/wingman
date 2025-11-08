@@ -215,7 +215,7 @@ export function FlightInputScreen({
          </div>
 
          <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
-            <DialogContent className="w-2/3 max-w-[300px] border-2 border-accent rounded-[12px]">
+            <DialogContent className="w-2/3 max-w-[260px] border-2 border-accent rounded-[16px]">
                <div className="flex justify-center pt-[40px] rounded-[12px]">
                   <Calendar
                      className="rounded-[12px]"
