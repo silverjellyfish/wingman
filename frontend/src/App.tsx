@@ -163,10 +163,20 @@ function App() {
   const [authScreen, setAuthScreen] = useState<
     "login" | "register" | "profileInfo" | "app"
   >("login");
+  const [tempUserData, setTempUserData] = useState<{
+    name: string;
+    email: string;
+    password: string;
+  } | null>(null);
 
   return (
     <AuthProvider>
-      <AuthWrapper authScreen={authScreen} setAuthScreen={setAuthScreen} />
+      <AuthWrapper
+        authScreen={authScreen}
+        setAuthScreen={setAuthScreen}
+        tempUserData={tempUserData}
+        setTempUserData={setTempUserData}
+      />
     </AuthProvider>
   );
 }
@@ -174,9 +184,19 @@ function App() {
 function AuthWrapper({
   authScreen,
   setAuthScreen,
+  tempUserData,
+  setTempUserData,
 }: {
   authScreen: "login" | "register" | "profileInfo" | "app";
   setAuthScreen: (screen: "login" | "register" | "profileInfo" | "app") => void;
+  tempUserData: { name: string; email: string; password: string } | null;
+  setTempUserData: React.Dispatch<
+    React.SetStateAction<{
+      name: string;
+      email: string;
+      password: string;
+    } | null>
+  >;
 }) {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -201,21 +221,39 @@ function AuthWrapper({
       return (
         <RegisterPage
           onNavigateToLogin={() => setAuthScreen("login")}
-          onNavigateToProfileInfo={() => setAuthScreen("profileInfo")}
+          onNext={(data) => {
+            setTempUserData(data);
+            setAuthScreen("profileInfo");
+          }}
+          // onNavigateToProfileInfo={() => setAuthScreen("profileInfo")}
         />
       );
 
     case "profileInfo":
-      return <ProfileInfoPage onContinue={() => setAuthScreen("app")} />;
+      return tempUserData ? (
+        <ProfileInfoPage
+          tempUserData={tempUserData}
+          onComplete={() => setAuthScreen("app")}
+        />
+      ) : null;
+    // return <ProfileInfoPage onContinue={() => setAuthScreen("app")} />;
 
     case "app":
-      if (isAuthenticated) return <AuthenticatedApp />;
-      return (
+      return isAuthenticated ? (
+        <AuthenticatedApp />
+      ) : (
         <LoginPage
           onNavigateToRegister={() => setAuthScreen("register")}
           onLoginSuccess={() => setAuthScreen("app")}
         />
       );
+    // if (isAuthenticated) return <AuthenticatedApp />;
+    // return (
+    //   <LoginPage
+    //     onNavigateToRegister={() => setAuthScreen("register")}
+    //     onLoginSuccess={() => setAuthScreen("app")}
+    //   />
+    // );
 
     default:
       return (
@@ -224,6 +262,12 @@ function AuthWrapper({
           onLoginSuccess={() => setAuthScreen("app")}
         />
       );
+    // return (
+    //   <LoginPage
+    //     onNavigateToRegister={() => setAuthScreen("register")}
+    //     onLoginSuccess={() => setAuthScreen("app")}
+    //   />
+    // );
   }
 }
 

@@ -50,7 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  // TODO: Currently gives 404 if login doesn't exist. Firebase SDK.
   const login = async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -88,7 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       displayName: name,
     });
 
-    setUser(mapFirebaseUser(userCredential.user));
+    const mappedUser = mapFirebaseUser(userCredential.user);
+    setUser(mappedUser);
+
+    return mappedUser;
   };
 
   const logout = async () => {
@@ -97,10 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteAccount = async (userId: string) => {
+    if (!auth.currentUser) {
+      throw new Error("No authenticated user found");
+    }
+
     try {
-      if (auth.currentUser) {
-        await deleteUser(auth.currentUser);
-      }
       const API_BASE_URL = import.meta.env.VITE_API_URL;
       const res = await fetch(`${API_BASE_URL}/users/firebase/${userId}`, {
         method: "DELETE",
@@ -108,8 +111,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "Content-Type": "application/json",
         },
       });
-      // const text = await res.text();
-      if (!res.ok) throw new Error("Failed to delete user from backend");
+
+      if (!res.ok) {
+        throw new Error("Failed to delete user from backend");
+      }
+
+      await deleteUser(auth.currentUser);
       setUser(null);
     } catch (error) {
       console.error("Error deleting account:", error);
