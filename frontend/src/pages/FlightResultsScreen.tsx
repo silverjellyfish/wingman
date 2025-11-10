@@ -169,9 +169,9 @@ export function FlightResultsScreen({
 
             {/* Flight Results Section */}
             <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
-              <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[18px] text-white tracking-[0.07px] w-full">
-                Flight Results
-              </p>
+              <div className="flex flex-col justify-center relative text-[32px] mb-[2rem] text-center text-white tracking-[0.12px] w-full">
+                <p className="leading-none font-semibold">Flight Results</p>
+              </div>
 
               {/* Flight Cards */}
               <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">

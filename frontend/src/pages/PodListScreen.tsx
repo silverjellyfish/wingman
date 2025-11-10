@@ -8,6 +8,7 @@ import { FlightResultCard } from "@/components/FlightResultCard";
 import { GroupOptionCard } from "@/components/GroupOptionCard";
 import { toast } from "sonner";
 
+// TODO: WHEN USER ALEADY JOINED POD
 // TODO: Consolidate these interfaces. Will be deleted later.
 interface PodListScreenProps {
   onNavigate: (...args: any[]) => void;
@@ -295,12 +296,12 @@ export function PodListScreen({
                     No pods available matching your preferences.
                   </p>
                 ) : (
-                  options.map((pod) => (
+                  options.map((pod, idx) => (
                     <GroupOptionCard
                       key={pod.id}
                       optionNumber={pod.id}
                       // TODO: determine is recommended by algorithm
-                      isRecommended={false}
+                      isRecommended={idx == 0}
                       members={pod.members}
                       location={pod.location}
                       luggageCount={pod.luggageCount}

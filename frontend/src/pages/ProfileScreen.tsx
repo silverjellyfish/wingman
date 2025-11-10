@@ -27,6 +27,9 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const { user, logout, deleteAccount } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  // PROFILE IMAGE
+  const [profileImage, setProfileImage] = useState<string>(imgAvatar);
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Profile state
   const [name, setName] = useState("");
@@ -147,9 +150,9 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
               {/* Avatar */}
               <div className="overflow-clip relative rounded-[9999px] size-[64px]">
                 <img
+                  src={profileImage}
                   alt={name}
                   className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none size-full"
-                  src={imgAvatar}
                 />
               </div>
 
@@ -255,6 +258,21 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                   <Input type="text" value={gender} disabled />
                 )}
               </div>
+            </div>
+            {/* TODO: MAKE THIS WORK */}
+            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+              <p
+                className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                style={{ fontWeight: 600 }}
+              >
+                Emergency Contact
+              </p>
+              <Input
+                type="tel"
+                value={phone}
+                onChange={handlePhoneChange}
+                disabled={!isEditing}
+              />
             </div>
 
             {/* Logout Button */}
