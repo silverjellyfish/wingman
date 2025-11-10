@@ -1,303 +1,477 @@
 // Contributors: Vince
 // Time: 1.5 hours
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { RidePreferencesScreen } from './RidePreferencesScreen'
-import type { Flight } from '@/mock/mockFlights.ts'
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { RidePreferencesScreen } from "./RidePreferencesScreen";
+import type { Flight } from "@/mock/mockFlights.ts";
 
-describe('RidePreferencesScreen', () => {
-  const mockNavigate = vi.fn()
-  const mockFlight: Flight = {
-    code: 'WN123',
-    date: '2025-12-25',
-    from: 'BNA',
-    to: 'LAX',
-    boarding: '2:30 PM',
-    launch: '3:00 PM',
-    landing: '5:00 PM',
-  }
+// Mock AuthContext
+vi.mock("@/contexts/AuthContext", () => ({
+   useAuth: () => ({ user: { id: "user123", name: "John Doe" } }),
+}));
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+describe("RidePreferencesScreen", () => {
+   const mockNavigate = vi.fn();
+   const mockFlight: Flight = {
+      code: "WN123",
+      date: "2025-12-25",
+      from: "BNA",
+      to: "LAX",
+      boarding: "2:30 PM",
+      launch: "3:00 PM",
+      landing: "5:00 PM",
+   };
+   const mockFlights = [
+      {
+         id: "1",
+         flightCode: "WN123",
+         dateRange: "2025-12-25",
+         route: "BNA → LAX",
+         airports: "BNA - LAX",
+         boardingTime: "2:30 PM",
+         departureTime: "3:00 PM",
+         arrivalTime: "5:00 PM",
+      },
+   ];
 
-  describe('Initial Rendering', () => {
-    it('renders the back button', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
-      expect(screen.getByText('Back')).toBeInTheDocument()
-    })
+   beforeEach(() => {
+      vi.clearAllMocks();
+   });
 
-    it('renders flight information card', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
-      expect(screen.getByText(/BNA → LAX/i)).toBeInTheDocument()
-    })
+   describe("Initial Rendering", () => {
+      it("renders the back button", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
+         expect(screen.getByText("Back")).toBeInTheDocument();
+      });
 
-    it('renders timing section', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
-      expect(screen.getByText('Timing')).toBeInTheDocument()
-      expect(screen.getByText('Earliest')).toBeInTheDocument()
-      expect(screen.getByText('Latest')).toBeInTheDocument()
-    })
+      it("renders flight information card", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
+         expect(screen.getByText(/BNA → LAX/i)).toBeInTheDocument();
+      });
 
-    it('renders luggage section', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
-      expect(screen.getByText('Luggage')).toBeInTheDocument()
-      expect(screen.getByText('Checked Bags')).toBeInTheDocument()
-      expect(screen.getByText('Carry-On Bags')).toBeInTheDocument()
-    })
+      it("renders timing section", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
+         expect(screen.getByText("Timing")).toBeInTheDocument();
+         expect(screen.getByText("Earliest")).toBeInTheDocument();
+         expect(screen.getByText("Latest")).toBeInTheDocument();
+      });
 
-    it('renders pickup location section', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
-      expect(screen.getByText('Pick up Location')).toBeInTheDocument()
-    })
+      it("renders luggage section", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
+         expect(screen.getByText("Luggage")).toBeInTheDocument();
+         expect(screen.getByText("Checked Bags")).toBeInTheDocument();
+         expect(screen.getByText("Carry-On Bags")).toBeInTheDocument();
+      });
 
-    it('renders search button', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
-      expect(screen.getByText('Search for rideshare')).toBeInTheDocument()
-    })
-  })
+      it("renders pickup location section", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
+         expect(screen.getByText("Pick up Location")).toBeInTheDocument();
+      });
 
-  describe('Navigation', () => {
-    it('navigates back to flight results', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+      it("renders search button", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
+         expect(screen.getByText("Search for rideshare")).toBeInTheDocument();
+      });
+   });
 
-      await user.click(screen.getByText('Back'))
+   describe("Navigation", () => {
+      it("navigates back to flight results", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      expect(mockNavigate).toHaveBeenCalledWith('flightResults', 'WN123', '2025-12-25')
-    })
-  })
+         await user.click(screen.getByText("Back"));
 
-  describe('Timing Inputs', () => {
-    it('only allows numeric input for earliest time', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         expect(mockNavigate).toHaveBeenCalledWith(
+            "flightResults",
+            "WN123",
+            "2025-12-25"
+         );
+      });
+   });
 
-      const inputs = screen.getAllByRole('textbox')
-      const earliestInput = inputs.find(input =>
-        input.getAttribute('inputMode') === 'numeric' &&
-        input.closest('.flex-col')?.textContent?.includes('Earliest')
-      )
+   describe("Timing Inputs", () => {
+      it("only allows numeric input for earliest time", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      if (earliestInput) {
-        await user.type(earliestInput, 'abc123')
-        expect(earliestInput).toHaveValue('123')
-      }
-    })
+         const inputs = screen.getAllByRole("textbox");
+         const earliestInput = inputs.find(
+            (input) =>
+               input.getAttribute("inputMode") === "numeric" &&
+               input.closest(".flex-col")?.textContent?.includes("Earliest")
+         );
 
-    it('only allows numeric input for latest time', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         if (earliestInput) {
+            await user.type(earliestInput, "abc123");
+            expect(earliestInput).toHaveValue("123");
+         }
+      });
 
-      const inputs = screen.getAllByRole('textbox')
-      const latestInput = inputs.find(input =>
-        input.getAttribute('inputMode') === 'numeric' &&
-        input.closest('.flex-col')?.textContent?.includes('Latest')
-      )
+      it("only allows numeric input for latest time", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      if (latestInput) {
-        await user.type(latestInput, 'xyz456')
-        expect(latestInput).toHaveValue('456')
-      }
-    })
+         const inputs = screen.getAllByRole("textbox");
+         const latestInput = inputs.find(
+            (input) =>
+               input.getAttribute("inputMode") === "numeric" &&
+               input.closest(".flex-col")?.textContent?.includes("Latest")
+         );
 
-    it('calculates earliest arrival time correctly', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         if (latestInput) {
+            await user.type(latestInput, "xyz456");
+            expect(latestInput).toHaveValue("456");
+         }
+      });
 
-      const inputs = screen.getAllByRole('textbox')
-      const earliestInput = inputs.find(input =>
-        input.getAttribute('inputMode') === 'numeric' &&
-        input.closest('.flex-col')?.textContent?.includes('Earliest')
-      )
+      it("calculates earliest arrival time correctly", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      if (earliestInput) {
-        fireEvent.change(earliestInput, { target: { value: '60' } })
+         const inputs = screen.getAllByRole("textbox");
+         const earliestInput = inputs.find(
+            (input) =>
+               input.getAttribute("inputMode") === "numeric" &&
+               input.closest(".flex-col")?.textContent?.includes("Earliest")
+         );
 
-        // Should show calculated arrival time (boarding time - 60 mins)
-        expect(screen.getByText('Earliest Arrival')).toBeInTheDocument()
-      }
-    })
+         if (earliestInput) {
+            fireEvent.change(earliestInput, { target: { value: "60" } });
 
-    it('displays --:-- when timing input is empty', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+            // Should show calculated arrival time (boarding time - 60 mins)
+            expect(screen.getByText("Earliest Arrival")).toBeInTheDocument();
+         }
+      });
 
-      // Initially should show --:--
-      const arrivalTimes = screen.getAllByText('--:--')
-      expect(arrivalTimes.length).toBeGreaterThan(0)
-    })
-  })
+      it("displays --:-- when timing input is empty", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-  describe('Luggage Inputs', () => {
-    it('initializes with default luggage values', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         // Initially should show --:--
+         const arrivalTimes = screen.getAllByText("--:--");
+         expect(arrivalTimes.length).toBeGreaterThan(0);
+      });
+   });
 
-      const inputs = screen.getAllByPlaceholderText('0')
-      // Should have inputs for checked and carry-on bags
-      expect(inputs.length).toBeGreaterThanOrEqual(2)
-    })
+   describe("Luggage Inputs", () => {
+      it("initializes with default luggage values", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-    it('only allows numeric input for checked bags', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         const inputs = screen.getAllByPlaceholderText("0");
+         // Should have inputs for checked and carry-on bags
+         expect(inputs.length).toBeGreaterThanOrEqual(2);
+      });
 
-      const inputs = screen.getAllByPlaceholderText('0')
-      const checkedBagsInput = inputs.find(input =>
-        input.closest('.flex-col')?.textContent?.includes('Checked')
-      )
+      it("only allows numeric input for checked bags", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      if (checkedBagsInput) {
-        await user.type(checkedBagsInput, 'abc5')
-        expect(checkedBagsInput).toHaveValue('5')
-      }
-    })
+         const inputs = screen.getAllByPlaceholderText("0");
+         const checkedBagsInput = inputs.find((input) =>
+            input.closest(".flex-col")?.textContent?.includes("Checked")
+         );
 
-    it('only allows numeric input for carry-on bags', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         if (checkedBagsInput) {
+            await user.type(checkedBagsInput, "abc5");
+            expect(checkedBagsInput).toHaveValue("5");
+         }
+      });
 
-      const inputs = screen.getAllByPlaceholderText('0')
-      const carryOnInput = inputs.find(input =>
-        input.closest('.flex-col')?.textContent?.includes('Carry-On')
-      )
+      it("only allows numeric input for carry-on bags", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      if (carryOnInput) {
-        await user.type(carryOnInput, 'xyz3')
-        expect(carryOnInput).toHaveValue('3')
-      }
-    })
-  })
+         const inputs = screen.getAllByPlaceholderText("0");
+         const carryOnInput = inputs.find((input) =>
+            input.closest(".flex-col")?.textContent?.includes("Carry-On")
+         );
 
-  describe('Location Search', () => {
-    it('renders location search input', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
-      expect(screen.getByPlaceholderText('Search location')).toBeInTheDocument()
-    })
+         if (carryOnInput) {
+            await user.type(carryOnInput, "xyz3");
+            expect(carryOnInput).toHaveValue("3");
+         }
+      });
+   });
 
-    it('shows dropdown when typing in location search', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+   describe("Location Search", () => {
+      it("renders location search input", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
+         expect(
+            screen.getByPlaceholderText("Search location")
+         ).toBeInTheDocument();
+      });
 
-      const locationInput = screen.getByPlaceholderText('Search location')
-      await user.type(locationInput, 'Kirk')
+      it("shows dropdown when typing in location search", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      // Dropdown should appear with matching locations
-      expect(screen.getByText('Kirkland Hall')).toBeInTheDocument()
-    })
+         const locationInput = screen.getByPlaceholderText("Search location");
+         await user.type(locationInput, "Kirk");
 
-    it('filters locations based on search query', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         // Dropdown should appear with matching locations
+         expect(screen.getByText("Kirkland Hall")).toBeInTheDocument();
+      });
 
-      const locationInput = screen.getByPlaceholderText('Search location')
-      await user.type(locationInput, 'Library')
+      it("filters locations based on search query", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      // Should show library locations
-      expect(screen.getByText('Central Library')).toBeInTheDocument()
-    })
+         const locationInput = screen.getByPlaceholderText("Search location");
+         await user.type(locationInput, "Library");
 
-    it('selects location from dropdown', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         // Should show library locations
+         expect(screen.getByText("Central Library")).toBeInTheDocument();
+      });
 
-      const locationInput = screen.getByPlaceholderText('Search location')
-      await user.type(locationInput, 'Kirk')
+      it("selects location from dropdown", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      const kirklandOption = screen.getByText('Kirkland Hall')
-      fireEvent.mouseDown(kirklandOption)
+         const locationInput = screen.getByPlaceholderText("Search location");
+         await user.type(locationInput, "Kirk");
 
-      // Location should be selected
-      expect(locationInput).toHaveValue('Kirkland Hall')
-    })
-  })
+         const kirklandOption = screen.getByText("Kirkland Hall");
+         fireEvent.mouseDown(kirklandOption);
 
-  describe('Form Validation', () => {
-    it('disables search button when form is incomplete', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         // Location should be selected
+         expect(locationInput).toHaveValue("Kirkland Hall");
+      });
+   });
 
-      const searchButton = screen.getByText('Search for rideshare')
-      expect(searchButton).toBeDisabled()
-    })
+   describe("Form Validation", () => {
+      it("disables search button when form is incomplete", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-    it('enables search button when all fields are filled', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         const searchButton = screen.getByText("Search for rideshare");
+         expect(searchButton).toBeDisabled();
+      });
 
-      // Fill in all required fields
-      const inputs = screen.getAllByRole('textbox')
+      it("enables search button when all fields are filled", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      // Set timing values
-      const timingInputs = inputs.filter(input => input.getAttribute('inputMode') === 'numeric')
-      if (timingInputs[0]) fireEvent.change(timingInputs[0], { target: { value: '120' } })
-      if (timingInputs[1]) fireEvent.change(timingInputs[1], { target: { value: '60' } })
+         // Fill in all required fields
+         const inputs = screen.getAllByRole("textbox");
 
-      // Set location
-      const locationInput = screen.getByPlaceholderText('Search location')
-      await user.type(locationInput, 'Kirk')
-      const kirklandOption = screen.getByText('Kirkland Hall')
-      fireEvent.mouseDown(kirklandOption)
+         // Set timing values
+         const timingInputs = inputs.filter(
+            (input) => input.getAttribute("inputMode") === "numeric"
+         );
+         if (timingInputs[0])
+            fireEvent.change(timingInputs[0], { target: { value: "120" } });
+         if (timingInputs[1])
+            fireEvent.change(timingInputs[1], { target: { value: "60" } });
 
-      // Button should now be enabled
-      const searchButton = screen.getByText('Search for rideshare')
-      expect(searchButton).not.toBeDisabled()
-    })
-  })
+         // Set location
+         const locationInput = screen.getByPlaceholderText("Search location");
+         await user.type(locationInput, "Kirk");
+         const kirklandOption = screen.getByText("Kirkland Hall");
+         fireEvent.mouseDown(kirklandOption);
 
-  describe('Search Submission', () => {
-    it('navigates to loading screen with preferences', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         // Button should now be enabled
+         const searchButton = screen.getByText("Search for rideshare");
+         expect(searchButton).not.toBeDisabled();
+      });
+   });
 
-      // Fill form
-      const inputs = screen.getAllByRole('textbox')
-      const timingInputs = inputs.filter(input => input.getAttribute('inputMode') === 'numeric')
+   describe("Search Submission", () => {
+      it("navigates to loading screen with preferences", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      if (timingInputs[0]) fireEvent.change(timingInputs[0], { target: { value: '120' } })
-      if (timingInputs[1]) fireEvent.change(timingInputs[1], { target: { value: '60' } })
+         // Fill form
+         const inputs = screen.getAllByRole("textbox");
+         const timingInputs = inputs.filter(
+            (input) => input.getAttribute("inputMode") === "numeric"
+         );
 
-      const locationInput = screen.getByPlaceholderText('Search location')
-      await user.type(locationInput, 'Kirk')
-      fireEvent.mouseDown(screen.getByText('Kirkland Hall'))
+         if (timingInputs[0])
+            fireEvent.change(timingInputs[0], { target: { value: "120" } });
+         if (timingInputs[1])
+            fireEvent.change(timingInputs[1], { target: { value: "60" } });
 
-      // Submit
-      const searchButton = screen.getByText('Search for rideshare')
-      await user.click(searchButton)
+         const locationInput = screen.getByPlaceholderText("Search location");
+         await user.type(locationInput, "Kirk");
+         fireEvent.mouseDown(screen.getByText("Kirkland Hall"));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'loading',
-        undefined,
-        undefined,
-        expect.objectContaining({
-          flight: mockFlight,
-          pickupLocation: 'Kirkland Hall',
-        })
-      )
-    })
-  })
+         // Submit
+         const searchButton = screen.getByText("Search for rideshare");
+         await user.click(searchButton);
 
-  describe('Edge Cases', () => {
-    it('handles empty timing inputs gracefully', () => {
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         expect(mockNavigate).toHaveBeenCalledWith(
+            "loading",
+            undefined,
+            undefined,
+            expect.objectContaining({
+               flight: mockFlight,
+               pickupLocation: "Kirkland Hall",
+            })
+         );
+      });
+   });
 
-      // Should display --:-- for empty inputs
-      const placeholders = screen.getAllByText('--:--')
-      expect(placeholders.length).toBeGreaterThan(0)
-    })
+   describe("Edge Cases", () => {
+      it("handles empty timing inputs gracefully", () => {
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-    it('handles non-numeric timing inputs', async () => {
-      const user = userEvent.setup()
-      render(<RidePreferencesScreen onNavigate={mockNavigate} flight={mockFlight} />)
+         // Should display --:-- for empty inputs
+         const placeholders = screen.getAllByText("--:--");
+         expect(placeholders.length).toBeGreaterThan(0);
+      });
 
-      const inputs = screen.getAllByRole('textbox')
-      const timingInput = inputs.find(input => input.getAttribute('inputMode') === 'numeric')
+      it("handles non-numeric timing inputs", async () => {
+         const user = userEvent.setup();
+         render(
+            <RidePreferencesScreen
+               onNavigate={mockNavigate}
+               flight={mockFlight}
+               flights={mockFlights}
+            />
+         );
 
-      if (timingInput) {
-        await user.type(timingInput, 'abc')
-        // Should show --:-- since input is invalid
-        expect(screen.getByText('--:--')).toBeInTheDocument()
-      }
-    })
-  })
-})
+         const inputs = screen.getAllByRole("textbox");
+         const timingInput = inputs.find(
+            (input) => input.getAttribute("inputMode") === "numeric"
+         );
+
+         if (timingInput) {
+            await user.type(timingInput, "abc");
+            // Should show --:-- since input is invalid
+            expect(screen.getByText("--:--")).toBeInTheDocument();
+         }
+      });
+   });
+});

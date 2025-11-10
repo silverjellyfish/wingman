@@ -300,6 +300,86 @@ describe("FlightInputScreen", () => {
          alertSpy.mockRestore();
       });
 
+      it("shows alert when departure ID is missing", async () => {
+         const user = userEvent.setup();
+         const alertSpy = vi
+            .spyOn(window, "alert")
+            .mockImplementation(() => {});
+
+         render(<FlightInputScreen {...defaultProps} />);
+
+         await user.click(screen.getByPlaceholderText(/Search for flight/i));
+         await user.type(screen.getByPlaceholderText(/Plane code/i), "WN123");
+         await user.click(screen.getByText("Next"));
+
+         const dateInput = screen.getByPlaceholderText(/YYYY-MM-DD/i);
+         fireEvent.change(dateInput, { target: { value: "2025-12-25" } });
+
+         await user.click(screen.getByText("Search"));
+
+         expect(alertSpy).toHaveBeenCalledWith(
+            "Invalid departure_id. Use 3-letter airport code or /m/... format."
+         );
+
+         alertSpy.mockRestore();
+      });
+
+      it("shows alert when arrival ID is missing", async () => {
+         const user = userEvent.setup();
+         const alertSpy = vi
+            .spyOn(window, "alert")
+            .mockImplementation(() => {});
+
+         render(<FlightInputScreen {...defaultProps} />);
+
+         await user.click(screen.getByPlaceholderText(/Search for flight/i));
+         await user.type(screen.getByPlaceholderText(/Plane code/i), "WN123");
+         await user.click(screen.getByText("Next"));
+
+         const dateInput = screen.getByPlaceholderText(/YYYY-MM-DD/i);
+         fireEvent.change(dateInput, { target: { value: "2025-12-25" } });
+
+         const departureInput = screen.getByPlaceholderText(/Departure/i);
+         await user.type(departureInput, "JFK");
+
+         await user.click(screen.getByText("Search"));
+
+         expect(alertSpy).toHaveBeenCalledWith(
+            "Invalid arrival_id. Use 3-letter airport code or /m/... format."
+         );
+
+         alertSpy.mockRestore();
+      });
+
+      it("accepts valid Knowledge Graph IDs for departure/arrival", async () => {
+         const user = userEvent.setup();
+         render(<FlightInputScreen {...defaultProps} />);
+
+         await user.click(screen.getByPlaceholderText(/Search for flight/i));
+         await user.type(screen.getByPlaceholderText(/Plane code/i), "WN123");
+         await user.click(screen.getByText("Next"));
+
+         const dateInput = screen.getByPlaceholderText(/YYYY-MM-DD/i);
+         fireEvent.change(dateInput, { target: { value: "2025-12-25" } });
+
+         const departureInput = screen.getByPlaceholderText(/Departure/i);
+         const arrivalInput = screen.getByPlaceholderText(/Arrival/i);
+         await user.type(departureInput, "/m/02_286");
+         await user.type(arrivalInput, "/m/030qb3t");
+
+         await user.click(screen.getByText("Search"));
+
+         expect(mockNavigate).toHaveBeenCalledWith(
+            "flightResults",
+            "WN123",
+            "2025-12-25",
+            {
+               departureId: "/M/02_286",
+               arrivalId: "/M/030QB3T",
+            }
+         );
+      });
+
       it("calls onNavigate with correct params when all fields are valid", async () => {
          const user = userEvent.setup();
          render(<FlightInputScreen {...defaultProps} />);
@@ -311,19 +391,29 @@ describe("FlightInputScreen", () => {
          const dateInput = screen.getByPlaceholderText(/YYYY-MM-DD/i);
          fireEvent.change(dateInput, { target: { value: "2025-12-25" } });
 
+         // Fill in required departure and arrival fields
+         const departureInput = screen.getByPlaceholderText(/Departure/i);
+         const arrivalInput = screen.getByPlaceholderText(/Arrival/i);
+         await user.type(departureInput, "JFK");
+         await user.type(arrivalInput, "LAX");
+
          const searchButton = screen.getByText("Search");
          await user.click(searchButton);
 
          expect(mockNavigate).toHaveBeenCalledWith(
             "flightResults",
             "WN123",
-            "2025-12-25"
+            "2025-12-25",
+            {
+               departureId: "JFK",
+               arrivalId: "LAX",
+            }
          );
       });
    });
 
    describe("Clear Functionality", () => {
-      it("shows Clear button after search is initiated", async () => {
+      it("shows Search button before search is initiated", async () => {
          const user = userEvent.setup();
          render(<FlightInputScreen {...defaultProps} />);
 
@@ -331,15 +421,11 @@ describe("FlightInputScreen", () => {
          await user.type(screen.getByPlaceholderText(/Plane code/i), "WN123");
          await user.click(screen.getByText("Next"));
 
-         const dateInput = screen.getByPlaceholderText(/YYYY-MM-DD/i);
-         fireEvent.change(dateInput, { target: { value: "2025-12-25" } });
-
-         await user.click(screen.getByText("Search"));
-
-         expect(screen.getByText("Clear")).toBeInTheDocument();
+         // Button should show "Search" before clicking
+         expect(screen.getByText("Search")).toBeInTheDocument();
       });
 
-      it("resets all fields when Clear is clicked", async () => {
+      it("resets all fields when Clear is clicked after search", async () => {
          const user = userEvent.setup();
          render(<FlightInputScreen {...defaultProps} />);
 
@@ -350,7 +436,19 @@ describe("FlightInputScreen", () => {
          const dateInput = screen.getByPlaceholderText(/YYYY-MM-DD/i);
          fireEvent.change(dateInput, { target: { value: "2025-12-25" } });
 
+         // Fill in required departure and arrival fields
+         const departureInput = screen.getByPlaceholderText(/Departure/i);
+         const arrivalInput = screen.getByPlaceholderText(/Arrival/i);
+         await user.type(departureInput, "JFK");
+         await user.type(arrivalInput, "LAX");
+
          await user.click(screen.getByText("Search"));
+
+         // After search, button should show "Clear"
+         await waitFor(() => {
+            expect(screen.getByText("Clear")).toBeInTheDocument();
+         });
+
          await user.click(screen.getByText("Clear"));
 
          // Should return to initial state
@@ -373,7 +471,7 @@ describe("FlightInputScreen", () => {
    });
 
    describe("Input Width Adjustments", () => {
-      it("adjusts airline code input width based on content", async () => {
+      it("airline code input has fixed width", async () => {
          const user = userEvent.setup();
          render(<FlightInputScreen {...defaultProps} />);
 
@@ -382,13 +480,12 @@ describe("FlightInputScreen", () => {
          await user.click(screen.getByText("Next"));
 
          const airlineInput = screen.getByDisplayValue("WN");
-         const style = window.getComputedStyle(airlineInput);
 
-         // Width should be dynamically calculated
-         expect(airlineInput).toHaveAttribute("style");
+         // Width is set via className, not inline style
+         expect(airlineInput).toHaveClass("w-[70px]");
       });
 
-      it("adjusts flight number input width based on content", async () => {
+      it("flight number input has fixed width", async () => {
          const user = userEvent.setup();
          render(<FlightInputScreen {...defaultProps} />);
 
@@ -398,8 +495,8 @@ describe("FlightInputScreen", () => {
 
          const flightNumberInput = screen.getByDisplayValue("123");
 
-         // Width should be dynamically calculated
-         expect(flightNumberInput).toHaveAttribute("style");
+         // Width is set via className, not inline style
+         expect(flightNumberInput).toHaveClass("w-[80px]");
       });
    });
 });

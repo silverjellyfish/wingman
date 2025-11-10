@@ -1,118 +1,116 @@
 // Contributors: Vince
 // Time: 0.5 hours
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { LoadingScreen } from './FindingPodLoadingScreen'
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { LoadingScreen } from "./LoadingScreen";
 
-describe('LoadingScreen', () => {
-  const mockNavigate = vi.fn()
-  const mockPayload = { flight: {}, preferences: {} }
+describe("LoadingScreen", () => {
+   beforeEach(() => {
+      vi.clearAllMocks();
+      vi.useFakeTimers();
+   });
 
-  beforeEach(() => {
-    vi.clearAllMocks()
-    vi.useFakeTimers()
-  })
+   afterEach(() => {
+      vi.useRealTimers();
+   });
 
-  afterEach(() => {
-    vi.useRealTimers()
-  })
+   describe("Initial Rendering", () => {
+      it("renders default loading text", () => {
+         render(<LoadingScreen />);
+         expect(screen.getByText("Loading...")).toBeInTheDocument();
+      });
 
-  describe('Initial Rendering', () => {
-    it('renders loading text', () => {
-      render(<LoadingScreen onNavigate={mockNavigate} payload={mockPayload} />)
-      expect(screen.getByText('Searching for rides...')).toBeInTheDocument()
-    })
+      it("renders custom text when provided", () => {
+         render(<LoadingScreen text="Searching for rides..." />);
+         expect(screen.getByText("Searching for rides...")).toBeInTheDocument();
+      });
 
-    it('renders progress bar', () => {
-      render(<LoadingScreen onNavigate={mockNavigate} payload={mockPayload} />)
-      const progressBar = document.querySelector('.progress-bar')
-      expect(progressBar).toBeInTheDocument()
-    })
+      it("renders spinner element", () => {
+         render(<LoadingScreen />);
+         const spinner = document.querySelector(".spinner");
+         expect(spinner).toBeInTheDocument();
+      });
 
-    it('renders progress bar fill', () => {
-      render(<LoadingScreen onNavigate={mockNavigate} payload={mockPayload} />)
-      const progressBarFill = document.querySelector('.progress-bar-fill')
-      expect(progressBarFill).toBeInTheDocument()
-    })
-  })
+      it("renders loading container", () => {
+         render(<LoadingScreen />);
+         const container = document.querySelector(".loading-container");
+         expect(container).toBeInTheDocument();
+      });
+   });
 
-  describe('Auto-Navigation', () => {
-    it('navigates to rideWithGroup after 3 seconds', async () => {
-      render(<LoadingScreen onNavigate={mockNavigate} payload={mockPayload} />)
+   describe("Auto-Complete", () => {
+      it("calls onComplete after default duration", () => {
+         const mockComplete = vi.fn();
+         render(<LoadingScreen onComplete={mockComplete} />);
 
-      // Initially should not have navigated
-      expect(mockNavigate).not.toHaveBeenCalled()
+         // Initially should not have called
+         expect(mockComplete).not.toHaveBeenCalled();
 
-      // Fast-forward time by 3 seconds
-      vi.advanceTimersByTime(3000)
+         // Fast-forward time by default 1 second
+         vi.advanceTimersByTime(1000);
 
-      // Should have navigated with correct params
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('rideWithGroup', undefined, undefined, mockPayload)
-      })
-    })
+         // Should have called onComplete
+         expect(mockComplete).toHaveBeenCalled();
+      });
 
-    it('does not navigate before 3 seconds', () => {
-      render(<LoadingScreen onNavigate={mockNavigate} payload={mockPayload} />)
+      it("calls onComplete after custom duration", () => {
+         const mockComplete = vi.fn();
+         render(<LoadingScreen duration={3000} onComplete={mockComplete} />);
 
-      // Fast-forward time by 2 seconds
-      vi.advanceTimersByTime(2000)
+         // Fast-forward time by 2 seconds (not enough)
+         vi.advanceTimersByTime(2000);
+         expect(mockComplete).not.toHaveBeenCalled();
 
-      // Should not have navigated yet
-      expect(mockNavigate).not.toHaveBeenCalled()
-    })
+         // Fast-forward remaining time
+         vi.advanceTimersByTime(1000);
+         expect(mockComplete).toHaveBeenCalled();
+      });
 
-    it('passes payload to next screen', async () => {
-      const customPayload = {
-        flight: { code: 'WN123' },
-        preferences: { location: 'BNA' },
-      }
+      it("does not crash when onComplete is not provided", () => {
+         render(<LoadingScreen />);
 
-      render(<LoadingScreen onNavigate={mockNavigate} payload={customPayload} />)
+         // Fast-forward time
+         vi.advanceTimersByTime(1000);
 
-      vi.advanceTimersByTime(3000)
+         // Should not crash
+         expect(screen.getByText("Loading...")).toBeInTheDocument();
+      });
+   });
 
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('rideWithGroup', undefined, undefined, customPayload)
-      })
-    })
-  })
+   describe("Cleanup", () => {
+      it("clears timeout on unmount", () => {
+         const mockComplete = vi.fn();
+         const { unmount } = render(
+            <LoadingScreen onComplete={mockComplete} />
+         );
 
-  describe('Cleanup', () => {
-    it('clears timeout on unmount', () => {
-      const { unmount } = render(<LoadingScreen onNavigate={mockNavigate} payload={mockPayload} />)
+         // Unmount before timer completes
+         unmount();
 
-      // Unmount before timer completes
-      unmount()
+         // Fast-forward time
+         vi.advanceTimersByTime(1000);
 
-      // Fast-forward time
-      vi.advanceTimersByTime(3000)
+         // Should not have called after unmount
+         expect(mockComplete).not.toHaveBeenCalled();
+      });
+   });
 
-      // Should not have navigated after unmount
-      expect(mockNavigate).not.toHaveBeenCalled()
-    })
-  })
+   describe("Props Variations", () => {
+      it("handles all props together", () => {
+         const mockComplete = vi.fn();
+         render(
+            <LoadingScreen
+               text="Custom loading..."
+               duration={2000}
+               onComplete={mockComplete}
+            />
+         );
 
-  describe('Edge Cases', () => {
-    it('handles undefined payload', async () => {
-      render(<LoadingScreen onNavigate={mockNavigate} payload={undefined} />)
+         expect(screen.getByText("Custom loading...")).toBeInTheDocument();
 
-      vi.advanceTimersByTime(3000)
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalled()
-      })
-    })
-
-    it('handles empty payload object', async () => {
-      render(<LoadingScreen onNavigate={mockNavigate} payload={{}} />)
-
-      vi.advanceTimersByTime(3000)
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('rideWithGroup', undefined, undefined, {})
-      })
-    })
-  })
-})
+         vi.advanceTimersByTime(2000);
+         expect(mockComplete).toHaveBeenCalled();
+      });
+   });
+});
