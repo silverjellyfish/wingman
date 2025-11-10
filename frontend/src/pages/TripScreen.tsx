@@ -8,6 +8,8 @@ import type { Screen } from "@/types/index.ts";
 import { Toggle } from "@/components/ui/toggle";
 import { useAuth } from "@/contexts/AuthContext";
 import React, { useEffect, useState } from "react";
+import "@/pages/styles/LoadingScreen.css";
+import { CalendarClock, Archive } from "lucide-react";
 
 interface TripScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -179,7 +181,7 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           </div>
           <div className="w-full">
             {loading ? (
-              <p>Loading your trips...</p>
+              <div />
             ) : view === "upcoming" ? (
               upcomingTrips.length > 0 ? (
                 upcomingTrips.map((trip, idx) => (
@@ -215,7 +217,12 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
                   </div>
                 ))
               ) : (
-                <p>No upcoming trips.</p>
+                <div className="flex items-center justify-center h-[15rem] flex-col">
+                  <CalendarClock className="w-13 h-13 text-gray-400 mb-[1rem]" />
+                  <p className="text-gray-400 text-center">
+                    No upcoming trips.
+                  </p>
+                </div>
               )
             ) : pastTrips.length > 0 ? (
               pastTrips.map((trip) => (
@@ -232,7 +239,10 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
                 />
               ))
             ) : (
-              <p>No past trips.</p>
+              <div className="flex items-center justify-center h-[15rem] flex-col">
+                <Archive className="w-13 h-13 text-gray-400 mb-[1rem]" />
+                <p className="text-gray-400 text-center">No past trips.</p>
+              </div>
             )}
           </div>
         </div>

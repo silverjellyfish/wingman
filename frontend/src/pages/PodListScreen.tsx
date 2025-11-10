@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import { GroupOptionCard } from "@/components/GroupOptionCard";
-// import { Toast } from "@/components/ui/toast";
+import { toast } from "sonner";
 
 // TODO: Consolidate these interfaces. Will be deleted later.
 interface PodListScreenProps {
@@ -67,7 +67,6 @@ export function PodListScreen({
   const [pods, setPods] = useState<Pod[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const [toastMessage, setToastMessage] = useState("");
 
   const charToSplit = [":", " "];
   const regex = new RegExp(`[${charToSplit.join("")}]`, "g");
@@ -97,13 +96,12 @@ export function PodListScreen({
         console.error("API Error Response:", errorData); // Log the detailed error
         throw new Error(`Failed to join pod: ${errorData.error || res.statusText}`);
       }
-      alert("Successfully joined the pod!");
-      setToastMessage("Successfully joined the pod!");
-      setTimeout(() => setToastMessage(""), 3000);
+      toast.success("Sucessfully joined the pod!")
+      setTimeout(() => 3000);
     } catch (err) {
       console.error("Error joining pod:", err);
-      setToastMessage("Error joining the pod. Please try again.");
-      setTimeout(() => setToastMessage(""), 3000);
+      toast.error(`Error joining pod: ${err}`)
+      setTimeout(() => 3000);
     }
   };
 

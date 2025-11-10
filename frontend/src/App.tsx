@@ -178,7 +178,7 @@ function App() {
         tempUserData={tempUserData}
         setTempUserData={setTempUserData}
       />
-      <Toaster richColors position="top-center" duration={2000}/>
+      <Toaster richColors position="top-center" duration={2000} />
     </AuthProvider>
   );
 }
@@ -249,13 +249,6 @@ function AuthWrapper({
           onLoginSuccess={() => setAuthScreen("app")}
         />
       );
-    // if (isAuthenticated) return <AuthenticatedApp />;
-    // return (
-    //   <LoginPage
-    //     onNavigateToRegister={() => setAuthScreen("register")}
-    //     onLoginSuccess={() => setAuthScreen("app")}
-    //   />
-    // );
 
     default:
       return (
@@ -264,12 +257,6 @@ function AuthWrapper({
           onLoginSuccess={() => setAuthScreen("app")}
         />
       );
-    // return (
-    //   <LoginPage
-    //     onNavigateToRegister={() => setAuthScreen("register")}
-    //     onLoginSuccess={() => setAuthScreen("app")}
-    //   />
-    // );
   }
 }
 
