@@ -21,13 +21,13 @@ export interface Pod {
 }
 
 // Mock users
-const mockUsers: User[] = [
-  { id: "u1", name: "Alice Johnson", email: "alice@example.com", createdAt: "2025-10-01" },
-  { id: "u2", name: "Bob Smith", email: "bob@example.com", createdAt: "2025-10-02" },
-  { id: "u3", name: "Charlie Brown", email: "charlie@example.com", createdAt: "2025-10-03" },
-  { id: "u4", name: "Dana White", email: "dana@example.com", createdAt: "2025-10-04" },
-  { id: "u5", name: "Eve Davis", email: "eve@example.com", createdAt: "2025-10-05" },
-];
+// const mockUsers: User[] = [
+//   { id: "u1", name: "Alice Johnson", email: "alice@example.com", createdAt: "2025-10-01" },
+//   { id: "u2", name: "Bob Smith", email: "bob@example.com", createdAt: "2025-10-02" },
+//   { id: "u3", name: "Charlie Brown", email: "charlie@example.com", createdAt: "2025-10-03" },
+//   { id: "u4", name: "Dana White", email: "dana@example.com", createdAt: "2025-10-04" },
+//   { id: "u5", name: "Eve Davis", email: "eve@example.com", createdAt: "2025-10-05" },
+// ];
 
 // Mock pods
 // export const mockPods: Pod[] = [

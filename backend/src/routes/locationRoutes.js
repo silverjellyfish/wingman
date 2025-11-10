@@ -1,6 +1,6 @@
 // Contributors: Lana
 // Time: 0.5 hours
-
+// TODO: Remove POST requests since locations are preset
 const express = require("express");
 const router = express.Router();
 const Location = require("../models/Location");

@@ -3,8 +3,9 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { FlightResultCard } from "@/components/FlightResultCard";
+import { GroupOptionCard } from "@/components/GroupOptionCard";
 
 // TODO: Consolidate these interfaces. Will be deleted later.
 interface PodListScreenProps {
@@ -37,12 +38,25 @@ interface Pod {
   updated_at: string;
 }
 
+function convertToMilitaryTime(timeStr: string): string {
+  // Create a Date object. The specific date doesn't matter,
+  // we just need it to parse the time string.
+  const d = new Date(`2025/10/28 ${timeStr}`);
+
+  // Extract the hours and minutes in 24-hour format
+  const hours = d.getHours().toString().padStart(2, "0");
+  const minutes = d.getMinutes().toString().padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+}
+
 export function PodListScreen({
   onNavigate,
   payload = {},
 }: PodListScreenProps) {
   const {
     flight = {},
+    flights = [],
     earliestTime = "",
     latestTime = "",
     numCarryOn = 0,
@@ -52,12 +66,17 @@ export function PodListScreen({
   } = payload;
 
   const [pods, setPods] = useState<Pod[]>([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const charToSplit = [":", " "];
+  const regex = new RegExp(`[${charToSplit.join("")}]`, "g");
 
   useEffect(() => {
     if (!user || !flight?.date) return;
 
     const fetchPods = async () => {
+      setLoading(true);
+      const startTime = Date.now();
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/pods/all`);
         if (!res.ok) throw new Error("Failed to fetch pods");
@@ -65,7 +84,6 @@ export function PodListScreen({
         const data: Pod[] = await res.json();
 
         const filtered = data.filter((pod) => {
-
           // Check if pod and flight date match
           const podDate = new Date(pod.pickup_time)
             .toLocaleString()
@@ -81,12 +99,19 @@ export function PodListScreen({
 
           // Check if pod time is within boundaries set by user
           const podTime = new Date(pod.pickup_time);
-          const [earliestHour, earliestMin] = (earliestTime || "00:00")
-            .split(":")
-            .map(Number);
-          const [latestHour, latestMin] = (latestTime || "23:59")
-            .split(":")
-            .map(Number);
+          const splitTimeEarliest =
+            convertToMilitaryTime(earliestTime).split(regex);
+          const splitTimeLatest =
+            convertToMilitaryTime(latestTime).split(regex);
+
+          const [earliestHour, earliestMin] = [
+            Number(splitTimeEarliest[0]),
+            Number(splitTimeEarliest[1]),
+          ];
+          const [latestHour, latestMin] = [
+            Number(splitTimeLatest[0]),
+            Number(splitTimeLatest[1]),
+          ];
 
           const earliest = new Date(podTime);
           earliest.setHours(earliestHour, earliestMin, 0, 0);
@@ -104,9 +129,11 @@ export function PodListScreen({
               .includes(pickupLocation.toLowerCase());
 
           // Check if luggage total is within pod limits
+          // TODO: ERROR BECAUSE WE NEED TO TRACK SPACE LEFT
+          // THIS IS INCORRECT RN!!!!
           const withinLuggage =
-            pod.num_small_luggage + pod.num_big_luggage <=
-            Number(numCarryOn) + Number(numChecked);
+            Number(numCarryOn) + Number(numChecked) <=
+            pod.num_small_luggage + pod.num_big_luggage;
 
           // Check gender matching if genderPreference is set
           const genderMatches = !genderPreference ||
@@ -120,6 +147,10 @@ export function PodListScreen({
         setPods(filtered);
       } catch (err) {
         console.error("Error fetching pods:", err);
+      } finally {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 1000 - elapsed);
+        setTimeout(() => setLoading(false), remaining);
       }
     };
 
@@ -134,126 +165,126 @@ export function PodListScreen({
     numChecked,
   ]);
 
+  // Transform flight data for FlightResultCard component
+  const selectedFlight = flight?.code
+    ? {
+        id: "selected-flight",
+        flightCode: flight.code,
+        dateRange: flight.date || "",
+        route: `${flight.from || ""} → ${flight.to || ""}`,
+        airports: `${flight.from || ""} - ${flight.to || ""}`,
+        boardingTime: flight.boarding || "",
+        departureTime: flight.launch || "",
+        arrivalTime: flight.landing || "",
+      }
+    : null;
+
+  // Transform pods data for GroupOptionCard components
+  const options = pods.map((pod, idx) => ({
+    id: idx + 1,
+    isRecommended: idx === 0,
+    members: pod.members.map((m) => ({
+      name: m.name?.split(" ")[0] || "User",
+      initial: m.name?.[0] || "?",
+      isEmpty: false,
+    })),
+    location: pod.location?.name || "Unknown location",
+    luggageCount: pod.num_big_luggage + pod.num_small_luggage,
+    time: new Date(pod.pickup_time).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  }));
+
+  const handleAccept = (optionId: number) => {
+    alert(`Accepted! Option ${optionId} selected.`);
+  };
+
   return (
-    <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden">
-        {/* Back button */}
-        <Button
-          variant="back"
-          className="mt-[1rem] pl-[2vw] pr-[2vw]"
-          onClick={() => onNavigate("flightPreferences")}
-        >
-          Back
-        </Button>
+    <div className="flex flex-col justify-between h-full bg-[#16161b] text-white px-[12px] pt-[20px]">
+      {loading ? (
+        <div className="flex flex-col items-center justify-center h-full text-white px-6">
+          <p className="text-lg font-medium mb-[1rem]">
+            Searching for rides...
+          </p>
+          <div className="spinner" />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] w-full">
+            {/* Back Button */}
+            <div className="content-stretch flex items-start relative shrink-0 w-full">
+              <Button
+                onClick={() =>
+                  onNavigate("flightPreferences", undefined, undefined, {
+                    flight,
+                    flights,
+                  })
+                }
+                variant="outline"
+                className="gap-[8px] w-auto border-2 px-[12px] py-[8px]"
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  arrow_back
+                </span>
+                Back
+              </Button>
+            </div>
 
-        <div className="flex flex-col items-center gap-[40px] pb-[40px] pt-[80px] px-[40px] w-full">
-          <h1 className="text-[32px] font-semibold text-center">
-            Available Pods
-          </h1>
-
-          <Button
-            className="mt-[0.1rem] px-[2vw]"
-            onClick={() => onNavigate("createPod")}
-          >
-            Create Pod
-          </Button>
-
-          {flight?.code && (
-            <div className="flex flex-col p-[12px] bg-[#566957] rounded-[20px] mt-[1rem] w-full max-w-md">
-              <div className="flex justify-between items-center">
-                <p className="text-xl font-semibold">{flight.code}</p>
-                <p className="text-gray-400 text-sm font-semibold">
-                  {flight.date}
-                </p>
+            {/* Flight Info Header */}
+            {selectedFlight && (
+              <div className="content-stretch flex items-start relative shrink-0 w-full pointer-events-none">
+                <FlightResultCard
+                  flight={selectedFlight}
+                  isExpanded={false}
+                  onExpand={() => {}}
+                  onSelect={() => {}}
+                />
               </div>
-              <div className="flex justify-between text-white/80">
-                <p>
-                  <span className="font-semibold">{flight.from}</span> →{" "}
-                  <span className="font-semibold">{flight.to}</span>
-                </p>
-              </div>
-              <div className="grid grid-cols-3 text-sm text-gray-400 gap-2">
-                <p className="font-semibold">Launch: {flight.launch}</p>
-                <p className="font-semibold">Landing: {flight.landing}</p>
-                <p className="font-semibold">Boarding: {flight.boarding}</p>
+            )}
+
+            {/* Create Pod Button */}
+            <div className="content-stretch flex items-start relative shrink-0 w-full">
+              <Button
+                onClick={() => onNavigate("createPod")}
+                variant="default"
+                className="w-full px-[16px] py-[12px]"
+              >
+                Create Pod
+              </Button>
+            </div>
+
+            {/* Groups Section */}
+            <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+              <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[18px] text-white tracking-[0.07px] w-full">
+                Groups
+              </p>
+
+              {/* Option Cards */}
+              <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                {options.length === 0 ? (
+                  <p className="text-center text-gray-400 mt-6 w-full">
+                    No pods available matching your preferences.
+                  </p>
+                ) : (
+                  options.map((option) => (
+                    <GroupOptionCard
+                      key={option.id}
+                      optionNumber={option.id}
+                      isRecommended={option.isRecommended}
+                      members={option.members}
+                      location={option.location}
+                      luggageCount={option.luggageCount}
+                      time={option.time}
+                      onAccept={() => handleAccept(option.id)}
+                    />
+                  ))
+                )}
               </div>
             </div>
-          )}
-
-          {/* Pods */}
-          <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
-            {pods.length === 0 ? (
-              <p className="text-center text-gray-400 mt-6">
-                No pods available matching your preferences.
-              </p>
-            ) : (
-              pods.map((pod, idx) => (
-                <div
-                  key={pod.id ?? idx}
-                  className="flex flex-col p-[12px] bg-[#28282d] rounded-[20px] mt-[1rem]"
-                >
-                  <div className="flex justify-between items-center">
-                    <p className="text-xl font-semibold">Option {idx + 1}</p>
-                    {idx === 0 && (
-                      <p className="text-sm text-accent font-semibold">
-                        Recommended
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Members */}
-                  <div className="flex flex-col gap-1 mt-2">
-                    <p className="text-gray-400 text-sm font-semibold">
-                      Members:
-                    </p>
-                    <div className="flex gap-2">
-                      {pod.members.map((m, midx) => (
-                        <div
-                          key={m.id ?? midx}
-                          className="flex flex-col items-center text-xs text-white/80"
-                        >
-                          <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white font-semibold">
-                            {m.name?.[0] || "?"}
-                          </div>
-                          <p>{m.name?.split(" ")[0] ?? "User"}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Location and Time */}
-                  <div className="grid grid-cols-2 text-sm text-gray-400 gap-2 mt-3">
-                    <p className="font-semibold">
-                      Pickup: {pod.location?.name || "Unknown location"}
-                    </p>
-                    <p className="font-semibold">
-                      Time:{" "}
-                      {new Date(pod.pickup_time).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-
-                  {/* Luggage */}
-                  <p className="text-sm text-gray-400 font-semibold mt-1">
-                    Total luggage: {pod.num_big_luggage + pod.num_small_luggage}
-                  </p>
-
-                  <Button
-                    className="mt-[1rem] w-full"
-                    onClick={() => alert("Accepted!")}
-                  >
-                    Accept
-                  </Button>
-                </div>
-              ))
-            )}
           </div>
         </div>
-      </div>
-
-      <BottomNavigation currentScreen="ride" onNavigate={onNavigate} />
+      )}
     </div>
   );
 }

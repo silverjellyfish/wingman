@@ -5,11 +5,28 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Switch } from "@/components/ui/switch.tsx";
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { FlightResultCard } from "@/components/FlightResultCard";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip.tsx";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
-import type { Screen } from "@/types/index.ts";
+import type { Screen, MappedFlight } from "@/types/index.ts";
+import { LOCATIONS } from "@/constants/locations";
 
+interface Flight {
+  code: string;
+  date: string;
+  from: string;
+  to: string;
+  boarding: string;
+  launch: string;
+  landing: string;
+  airlineLogo?: string;
+}
+// Update the props interface to include the flights list
 interface RidePreferencesScreenProps {
   onNavigate: (
     screen: Screen,
@@ -17,18 +34,32 @@ interface RidePreferencesScreenProps {
     date?: string,
     payload?: any
   ) => void;
-  flight: MockFlight;
+  flight: Flight;
+  flights: MappedFlight[];
 }
 
 export function RidePreferencesScreen({
   onNavigate,
   flight,
+  flights,
 }: RidePreferencesScreenProps) {
-  const [earliestTime, setEarliestTime] = useState("");
-  const [latestTime, setLatestTime] = useState("");
+  const [earliestBeforeBoarding, setEarliestBeforeBoarding] = useState("");
+  const [latestBeforeBoarding, setLatestBeforeBoarding] = useState("");
   const [numCarryOn, setNumCarryOn] = useState("1");
   const [numChecked, setNumChecked] = useState("0");
   const [pickupLocation, setPickupLocation] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // TODO: Move this and put in the database
+  const locations = LOCATIONS;
+
+  // Filter locations based on search query
+  const filteredLocations = locations.filter((location) =>
+    location
+      .toLowerCase()
+      .includes((searchQuery || pickupLocation).toLowerCase())
+  );
   const [genderMatchingEnabled, setGenderMatchingEnabled] = useState(false);
   const [userGender, setUserGender] = useState<string>("");
   const { user } = useAuth();
@@ -57,8 +88,12 @@ export function RidePreferencesScreen({
     const [hoursMinutes, ampm] = timeStr.split(" ");
     const [hours, minutes] = hoursMinutes.split(":").map(Number);
     let hrs = hours;
-    if (ampm.toLowerCase() === "pm" && hours < 12) hrs += 12;
-    if (ampm.toLowerCase() === "am" && hours === 12) hrs = 0;
+    if (ampm.toLowerCase() === "pm" && hours < 12) {
+      hrs += 12;
+    }
+    if (ampm.toLowerCase() === "am" && hours === 12) {
+      hrs = 0;
+    }
     const d = new Date();
     d.setHours(hrs, minutes, 0, 0);
     return d;
@@ -70,166 +105,327 @@ export function RidePreferencesScreen({
   const formatTime = (d: Date) =>
     d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  // Handle time change
-  const handleLatestTimeChange = (val: string) => {
-    setLatestTime(val);
-    const [h, m] = val.split(":").map(Number);
-    const selected = new Date();
-    selected.setHours(h, m, 0, 0);
-    if (selected > boardingTime) {
-      alert("Latest boarding time cannot be after flight boarding time");
-      setLatestTime(formatTime(boardingTime));
+  // Calculate arrival times based on minutes before boarding
+  const calculateArrivalTime = (minutesBefore: string) => {
+    if (!minutesBefore || minutesBefore === "") {
+      return "--:--";
     }
+    const mins = parseInt(minutesBefore);
+    if (isNaN(mins)) {
+      return "--:--";
+    }
+    const arrivalTime = new Date(boardingTime);
+    arrivalTime.setMinutes(arrivalTime.getMinutes() - mins);
+    return formatTime(arrivalTime);
+  };
+
+  const earliestArrival = calculateArrivalTime(earliestBeforeBoarding);
+  const latestArrival = calculateArrivalTime(latestBeforeBoarding);
+
+  // Handle timing input changes
+  const handleTimingChange = (value: string, setter: (val: string) => void) => {
+    // Only allow numbers
+    const numericValue = value.replace(/[^0-9]/g, "");
+    setter(numericValue);
+  };
+
+  // Validate form - all fields must have values
+  const isFormValid = () => {
+    return (
+      earliestBeforeBoarding !== "" &&
+      latestBeforeBoarding !== "" &&
+      numCarryOn !== "" &&
+      numChecked !== "" &&
+      pickupLocation !== ""
+    );
+  };
+
+  // Transform MockFlight to FlightResultCard format
+  const transformedFlight = {
+    id: flight.code,
+    flightCode: flight.code.replace(/\s+/g, ""),
+    dateRange: flight.date,
+    route: `${flight.from} → ${flight.to}`,
+    airports: `${flight.from} - ${flight.to}`,
+    boardingTime: flight.boarding,
+    departureTime: flight.launch,
+    arrivalTime: flight.landing,
+    airlineLogo: flight.airlineLogo,
   };
 
   return (
-    <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <Button
-          variant="back"
-          className="mt-[1rem] pl-[2vw] pr-[2vw]"
-          onClick={() => onNavigate("flightResults", flight.code, flight.date)}
-        >
-          Back
-        </Button>
-        <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
-          <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
-            <p className="leading-none" style={{ fontWeight: 600 }}>
-              Ride Details
-            </p>
-          </div>
-          {/* Flight info */}
-          <div className="flex flex-col space-between p-[12px] bg-[#566957] rounded-[20px] mt-[1rem]">
-            <div className="flex flex-row justify-between items-center">
-              <p className="text-xl" style={{ fontWeight: 600 }}>
-                {flight.code}
-              </p>
-              <p className="text-gray-400 text-sm" style={{ fontWeight: 600 }}>
-                {flight.date}
-              </p>
-            </div>
-            <div className="flex justify-between text-white/80">
-              <p>
-                <span className="font-semibold">{flight.from}</span> →{" "}
-                <span className="font-semibold">{flight.to}</span>
-              </p>
-            </div>
-            <div className="grid grid-cols-3 text-sm text-gray-400 gap-2">
-              <p style={{ fontWeight: 600 }}>Launch: {flight.launch}</p>
-              <p style={{ fontWeight: 600 }}>Landing: {flight.landing}</p>
-              <p style={{ fontWeight: 600 }}>Boarding: {flight.boarding}</p>
-            </div>
-          </div>
-          <div className="flex flex-row gap-[1rem] w-full items-center">
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p style={{ fontWeight: 600 }}>Earliest Arrival</p>
-              <Input
-                type="time"
-                value={earliestTime}
-                onChange={(e) => setEarliestTime(e.target.value)}
-              />
-            </div>
-
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p style={{ fontWeight: 600 }}>Latest Arrival</p>
-              <Input
-                type="time"
-                value={latestTime}
-                onChange={(e) => handleLatestTimeChange(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Earliest and Latest boarding times */}
-          {/* <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-            <p
-              className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
-              style={{ fontWeight: 600 }}
-            >
-              Earliest boarding time
-            </p>
-            <Input
-              type="time"
-              value={earliestTime}
-              onChange={(e) => setEarliestTime(e.target.value)}
-            />
-
-            <p
-              className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
-              style={{ fontWeight: 600 }}
-            >
-              Latest boarding time
-            </p>
-            <Input
-              type="time"
-              value={latestTime}
-              onChange={(e) => handleLatestTimeChange(e.target.value)}
-            />
-          </div> */}
-
-          <div className="flex flex-row gap-[1rem] w-full items-center">
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p style={{ fontWeight: 600 }}># Carry-on(s)</p>
-              <Input
-                type="text"
-                value={numCarryOn}
-                onChange={(e) =>
-                  setNumCarryOn(e.target.value.replace(/[^0-9]/g, ""))
+    <div className="bg-[#16161b] flex flex-col justify-between h-full text-white p-[12px] pt-[20px]">
+      {/* Main Content - Scrollable */}
+      <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="box-border content-stretch flex flex-col gap-[32px] items-start relative w-full">
+          {/* Back Button */}
+          <Button
+            // TODO: TEMP FIX, SHOULD ALWAYS PASS IN CORRECT FLIGHT CODE
+            onClick={() =>
+              onNavigate(
+                "flightResults",
+                flight.code.replace(/\s+/g, ""),
+                flight.date,
+                {
+                  flights: flights,
                 }
+              )
+            }
+            variant="outline"
+            className="gap-[8px] w-auto border-2 px-[12px] py-[8px]"
+          >
+            <span className="material-symbols-outlined text-[20px]">
+              arrow_back
+            </span>
+            Back
+          </Button>
+
+          {/* Main Content Container */}
+          <div className="content-stretch flex flex-col gap-[48px] items-start relative shrink-0 w-full px-[4px]">
+            {/* Flight Info Card */}
+            <div className="pointer-events-none w-full">
+              <FlightResultCard
+                flight={transformedFlight}
+                isExpanded={false}
+                onExpand={() => {}}
+                onSelect={() => {}}
               />
             </div>
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p style={{ fontWeight: 600 }}># Checked-in(s)</p>
-              <Input
-                type="text"
-                value={numChecked}
-                onChange={(e) =>
-                  setNumChecked(e.target.value.replace(/[^0-9]/g, ""))
-                }
-              />
+
+            {/* Preferences Form */}
+            <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+              {/* Timing Section */}
+              <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                <p
+                  className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                  style={{ fontWeight: 600 }}
+                >
+                  Timing
+                </p>
+
+                <div className="content-stretch flex gap-[26px] items-start relative shrink-0 w-full">
+                  {/* Earliest before boarding */}
+                  <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
+                    <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                      <div className="flex items-center gap-[6px]">
+                        <p
+                          className="leading-none relative text-[14px] text-white tracking-[0.07px]"
+                          style={{ fontWeight: 600 }}
+                        >
+                          Earliest
+                        </p>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
+                              info
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-[200px]">
+                              How early you're willing to arrive before boarding
+                              time
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="flex items-center gap-[8px] w-full">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={earliestBeforeBoarding}
+                          onChange={(e) =>
+                            handleTimingChange(
+                              e.target.value,
+                              setEarliestBeforeBoarding
+                            )
+                          }
+                          className="w-[80px]"
+                          style={{ maxWidth: "80px" }}
+                        />
+                        <span className="text-[14px] text-zinc-400">mins</span>
+                      </div>
+                    </div>
+
+                    <div className="content-stretch flex flex-col gap-[8px] items-start leading-none relative shrink-0">
+                      <p
+                        className="leading-none relative text-[14px] text-zinc-400 tracking-[0.07px]"
+                        style={{ fontWeight: 600 }}
+                      >
+                        Earliest Arrival
+                      </p>
+                      <p className="font-['Geist:SemiBold',_sans-serif] font-semibold relative shrink-0 text-[16px] text-white tracking-[0.08px]">
+                        {earliestArrival}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Latest before boarding */}
+                  <div className="content-stretch flex flex-col gap-[14px] items-start relative w-full">
+                    <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                      <div className="flex items-center gap-[6px]">
+                        <p
+                          className="leading-none relative text-[14px] text-white tracking-[0.07px]"
+                          style={{ fontWeight: 600 }}
+                        >
+                          Latest
+                        </p>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
+                              info
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-[200px]">
+                              The latest you are willing to arrive before
+                              boarding time
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="flex items-center gap-[8px] w-full">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={latestBeforeBoarding}
+                          onChange={(e) =>
+                            handleTimingChange(
+                              e.target.value,
+                              setLatestBeforeBoarding
+                            )
+                          }
+                          className="w-[80px]"
+                          style={{ maxWidth: "80px" }}
+                        />
+                        <span className="text-[14px] text-zinc-400">mins</span>
+                      </div>
+                    </div>
+
+                    <div className="content-stretch flex flex-col gap-[8px] items-start leading-none relative shrink-0">
+                      <p
+                        className="leading-none relative text-[14px] text-zinc-400 tracking-[0.07px]"
+                        style={{ fontWeight: 600 }}
+                      >
+                        Latest Arrival
+                      </p>
+                      <p className="font-['Geist:SemiBold',_sans-serif] font-semibold relative shrink-0 text-[16px] text-white tracking-[0.08px]">
+                        {latestArrival}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-[2px] w-full bg-zinc-800 rounded-full" />
+
+              {/* Luggage Section */}
+              <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                <p
+                  className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                  style={{ fontWeight: 600 }}
+                >
+                  Luggage
+                </p>
+
+                <div className="content-stretch flex gap-[26px] items-center relative shrink-0 w-full">
+                  {/* Checked Bags */}
+                  <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                    <p
+                      className="leading-none relative text-[14px] text-white tracking-[0.07px] w-full"
+                      style={{ fontWeight: 600 }}
+                    >
+                      Checked Bags
+                    </p>
+                    <div className="flex items-center gap-[8px] w-full">
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={numChecked}
+                        onChange={(e) =>
+                          setNumChecked(e.target.value.replace(/[^0-9]/g, ""))
+                        }
+                        className="w-[60px]"
+                        style={{ maxWidth: "60px" }}
+                        placeholder="0"
+                      />
+                      <span className="text-[14px] text-zinc-400">bags</span>
+                    </div>
+                  </div>
+
+                  {/* Carry-On Bags */}
+                  <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                    <p
+                      className="leading-none relative text-[14px] text-white tracking-[0.07px] w-full"
+                      style={{ fontWeight: 600 }}
+                    >
+                      Carry-On Bags
+                    </p>
+                    <div className="flex items-center gap-[8px] w-full">
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={numCarryOn}
+                        onChange={(e) =>
+                          setNumCarryOn(e.target.value.replace(/[^0-9]/g, ""))
+                        }
+                        className="w-[60px]"
+                        style={{ maxWidth: "60px" }}
+                        placeholder="0"
+                      />
+                      <span className="text-[14px] text-zinc-400">bags</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-[2px] w-full bg-zinc-800 rounded-full" />
+
+              {/* Pick up Location */}
+              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                <p
+                  className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                  style={{ fontWeight: 600 }}
+                >
+                  Pick up Location
+                </p>
+                <div className="relative w-full">
+                  <Input
+                    type="text"
+                    value={searchQuery || pickupLocation}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    onBlur={() => {
+                      // Delay to allow click on dropdown item
+                      setTimeout(() => setShowDropdown(false), 200);
+                    }}
+                    placeholder="Search location"
+                  />
+                  {showDropdown && filteredLocations.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-primary-foreground border-accent border-[2px] rounded-[10px] shadow-lg max-h-[200px] overflow-y-auto z-50">
+                      {filteredLocations.map((location) => (
+                        <button
+                          key={location}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setPickupLocation(location);
+                            setSearchQuery("");
+                            setShowDropdown(false);
+                          }}
+                          className="w-full text-left px-[14px] py-[12px] hover:bg-accent text-primary transition-colors"
+                        >
+                          {location}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-            <p
-              className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
-              style={{ fontWeight: 600 }}
-            >
-              Carry-on bags
-            </p>
-            <Input
-              type="text"
-              value={numCarryOn}
-              onChange={(e) =>
-                setNumCarryOn(e.target.value.replace(/[^0-9]/g, ""))
-              }
-            />
-
-            <p
-              className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
-              style={{ fontWeight: 600 }}
-            >
-              Checked bags
-            </p>
-            <Input
-              type="text"
-              value={numChecked}
-              onChange={(e) =>
-                setNumChecked(e.target.value.replace(/[^0-9]/g, ""))
-              }
-            />
-          </div> */}
-
-          {/* Pickup location */}
-          <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-            <p style={{ fontWeight: 600 }}>Pickup location</p>
-            <Input
-              type="text"
-              placeholder="Enter pickup address"
-              value={pickupLocation}
-              onChange={(e) => setPickupLocation(e.target.value)}
-            />
-          </div>
 
           {/* Gender matching toggle */}
           <div className="content-stretch flex flex-row items-center justify-between relative w-full">
@@ -241,31 +437,28 @@ export function RidePreferencesScreen({
             />
           </div>
 
-          {/* Search rideshare */}
-          <Button
-            className="pl-[2vw] pr-[2vw]"
-            onClick={() =>
-              onNavigate("loading", undefined, undefined, {
-                flight,
-                earliestTime,
-                latestTime,
-                numCarryOn,
-                numChecked,
-                pickupLocation,
-                genderPreference: genderMatchingEnabled ? userGender : null,
+            {/* Search Button */}
+            <Button
+              onClick={() =>
+                onNavigate("rideWithGroup", undefined, undefined, {
+                  flight,
+                  flights,
+                  earliestTime: earliestArrival,
+                  latestTime: latestArrival,
+                  numCarryOn,
+                  numChecked,
+                  pickupLocation,
+                  genderPreference: genderMatchingEnabled ? userGender : null,
               })
-            }
-          >
-            Search for Rideshare
-          </Button>
+              }
+              className="w-full"
+              disabled={!isFormValid()}
+            >
+              Search for rideshare
+            </Button>
+          </div>
         </div>
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation
-        currentScreen="ride"
-        onNavigate={(s) => onNavigate(s)}
-      />
     </div>
   );
 }

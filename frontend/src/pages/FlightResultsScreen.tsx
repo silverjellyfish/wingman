@@ -1,11 +1,19 @@
-// Contributors: Michelle
-// Time: 0.5 hours
-
-import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { useEffect, useState } from "react";
+import { FlightResultCard } from "@/components/FlightResultCard";
+import type { Screen, MappedFlight } from "@/types/index.ts";
+import { useFlights } from "@/hooks/useFlights.ts";
+import type { Flight } from "@/hooks/useFlights.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { type Flight } from "@/mock/mockFlights.ts";
-import type { Screen } from "@/types/index.ts";
+import { LoadingScreen } from "@/pages/LoadingScreen";
 
+// Interface for the complete payload this screen can receive
+interface FlightResultsPayload {
+  departureId?: string;
+  arrivalId?: string;
+  flights?: MappedFlight[];
+}
+
+// Interface for flight results screen props
 interface FlightResultsScreenProps {
   onNavigate: (
     screen: Screen,
@@ -13,90 +21,180 @@ interface FlightResultsScreenProps {
     date?: string,
     payload?: any
   ) => void;
-  flights: Flight[];
   planeCode: string;
   date: string;
+  payload?: FlightResultsPayload;
 }
 
 export function FlightResultsScreen({
   onNavigate,
-  flights,
   planeCode,
   date,
+  payload,
 }: FlightResultsScreenProps) {
-  const filteredFlights = flights.filter(
-    (f) => f.code === planeCode && f.date === date
+  const initialFlights = payload?.flights || [];
+  const shouldFetchFlights =
+    !!payload && !!planeCode && !!date && initialFlights.length === 0;
+  const {
+    flights: apiFlights,
+    loading,
+    error,
+  } = useFlights(
+    planeCode?.replace(/\s+/g, ""),
+    date,
+    payload?.departureId,
+    payload?.arrivalId,
+    shouldFetchFlights
   );
+  const flights = initialFlights.length > 0 ? initialFlights : apiFlights;
+  const [expandedFlightId, setExpandedFlightId] = useState<string | null>(null);
+  const [minLoading, setMinLoading] = useState(true);
+  const [mappedFlights, setMappedFlights] = useState<MappedFlight[]>([]);
+
+  // Determine minimum loading time
+  useEffect(() => {
+    if (!shouldFetchFlights) {
+      setMinLoading(false);
+      return;
+    }
+    const timer = setTimeout(() => setMinLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, [shouldFetchFlights]);
+
+  // Map flights to MappedFlight format
+  useEffect(() => {
+    if (flights && flights.length > 0) {
+      const isApiFlight = (f: any): f is Flight =>
+        f &&
+        typeof f.flightNumber === "string" &&
+        typeof f.departureTime === "string";
+
+      const isMappedFlight = (f: any): f is MappedFlight =>
+        f &&
+        typeof f.flightCode === "string" &&
+        typeof f.dateRange === "string";
+
+      let transformed: MappedFlight[];
+
+      if (isMappedFlight(flights[0])) {
+        // If we received mapped flights from the payload (navigating back)
+        transformed = flights as MappedFlight[];
+      } else if (isApiFlight(flights[0])) {
+        // If we received fresh API data (navigating from input)
+        transformed = (flights as Flight[]).map((f, idx) => ({
+          id: `${f.flightNumber}-${idx}`,
+          flightCode: f.flightNumber.replace(/\s+/g, ""),
+          dateRange: date,
+          route: `${f.from} → ${f.to}`,
+          airports: `${f.from} - ${f.to}`,
+          boardingTime: getBoardingTime(f.departureTime),
+          departureTime: getTimeOnly(f.departureTime),
+          arrivalTime: getTimeOnly(f.arrivalTime),
+          airlineLogo: f.airlineLogo,
+        }));
+      } else {
+        transformed = [];
+      }
+
+      setMappedFlights(transformed);
+    }
+  }, [flights, date]);
+
+  const isStillLoading = loading || minLoading;
+
+  const handleExpand = (flightId: string) => {
+    setExpandedFlightId(expandedFlightId === flightId ? null : flightId);
+  };
+
+  const handleSelect = (f: MappedFlight) => {
+    const mappedFlight = {
+      code: f.flightCode,
+      from: f.route.split(" → ")[0],
+      to: f.route.split(" → ")[1],
+      boarding: f.boardingTime,
+      launch: f.departureTime,
+      landing: f.arrivalTime,
+      date: f.dateRange,
+    };
+
+    onNavigate("flightPreferences", planeCode, date, {
+      flight: { ...mappedFlight, airlineLogo: f.airlineLogo },
+      flights: mappedFlights,
+    });
+  };
+
+  const getBoardingTime = (dateTime: string) => {
+    const departureDateTime = new Date(dateTime);
+    const boardingDateTime = new Date(departureDateTime);
+    boardingDateTime.setMinutes(departureDateTime.getMinutes() - 30);
+
+    return boardingDateTime.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const getTimeOnly = (dateTime: string) => {
+    const d = new Date(dateTime);
+    return d.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   return (
-    <div className="flex flex-col justify-between h-full bg-[#16161b] text-white p-6">
-      <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {/* Back button */}
-        <Button
-          variant="back"
-          className="mt-[1rem] pl-[2vw] pr-[2vw]"
-          onClick={() => onNavigate("flightInput")}
-        >
-          Back
-        </Button>
-        <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
-          <div className="flex flex-col justify-center relative text-[32px] text-center text-white tracking-[0.12px] w-full">
-            <p className="leading-none" style={{ fontWeight: 600 }}>
-              Search Flight
-            </p>
-          </div>
-
-          {/* Flight list */}
-          <div className="flex flex-col gap-6 w-full max-w-md mx-auto">
-            {filteredFlights.length === 0 && (
-              <p className="text-center text-gray-400">
-                No flights found for {planeCode} on {date}.
-              </p>
-            )}
-
-            {filteredFlights.map((f, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col space-between p-[12px] bg-[#28282d] rounded-[20px] mt-[1rem]"
+    <div className="flex flex-col h-full bg-[#16161b] text-white p-[12px] pt-[20px]">
+      {isStillLoading ? (
+        <LoadingScreen text="Searching for flights..." duration={1000} />
+      ) : error ? (
+        <p className="text-red-500 text-center">{error}</p>
+      ) : (
+        <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] w-full">
+            {/* Back Button */}
+            <div className="content-stretch flex items-start relative shrink-0 w-full">
+              <Button
+                onClick={() => onNavigate("flightInput")}
+                variant="outline"
+                className="gap-[8px] w-auto border-2 px-[12px] py-[8px]"
               >
-                <div className="flex flex-row justify-between items-center">
-                  <p className="text-xl" style={{ fontWeight: 600 }}>
-                    {f.code}
+                <span className="material-symbols-outlined text-[20px]">
+                  arrow_back
+                </span>
+                Back
+              </Button>
+            </div>
+
+            {/* Flight Results Section */}
+            <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+              <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[18px] text-white tracking-[0.07px] w-full">
+                Flight Results
+              </p>
+
+              {/* Flight Cards */}
+              <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
+                {mappedFlights.length === 0 ? (
+                  <p className="text-center text-gray-400 w-full">
+                    No flights found for {planeCode} on {date}.
                   </p>
-                  <p
-                    className="text-gray-400 text-sm"
-                    style={{ fontWeight: 600 }}
-                  >
-                    {date}
-                  </p>
-                </div>
-                <div className="flex justify-between text-white/80">
-                  <p>
-                    <span className="font-semibold">{f.from}</span> →{" "}
-                    <span className="font-semibold">{f.to}</span>
-                  </p>
-                </div>
-                <div className="grid grid-cols-3 text-sm text-gray-400 gap-2">
-                  <p style={{ fontWeight: 600 }}>Launch: {f.launch}</p>
-                  <p style={{ fontWeight: 600 }}>Landing: {f.landing}</p>
-                  <p style={{ fontWeight: 600 }}>Boarding: {f.boarding}</p>
-                </div>
-                <Button
-                  className="mt-[1rem] w-full"
-                  onClick={() =>
-                    onNavigate("flightPreferences", planeCode, date, f)
-                  }
-                >
-                  Select
-                </Button>
+                ) : (
+                  mappedFlights.map((f, idx) => (
+                    <FlightResultCard
+                      key={f.id}
+                      flight={f}
+                      isExpanded={expandedFlightId === f.id}
+                      onExpand={handleExpand}
+                      onSelect={() => handleSelect(f)}
+                    />
+                  ))
+                )}
               </div>
-            ))}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Bottom navigation */}
-      <BottomNavigation currentScreen="ride" onNavigate={onNavigate} />
+      )}
     </div>
   );
 }

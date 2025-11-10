@@ -53,7 +53,6 @@ router.post("/", async (req, res) => {
     if (!location) {
       return res.status(400).json({ error: "Location not found" });
     }
-    console.log(`BLOOP: ${pickup_time}`);
     const newPod = new Pod({
       pickup_time,
       location: location._id,
