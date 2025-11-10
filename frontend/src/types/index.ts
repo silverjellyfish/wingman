@@ -2,6 +2,18 @@
 // Time: 0.5 hours
 // TODO: Consolidate this.
 
+export interface MappedFlight {
+  id: string;
+  flightCode: string;
+  dateRange: string;
+  route: string;
+  airports: string;
+  boardingTime: string;
+  departureTime: string;
+  arrivalTime: string;
+  airlineLogo?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -26,17 +38,6 @@ export interface Trip {
   endDate: string;
   status: 'upcoming' | 'ongoing' | 'completed';
 }
-
-// export interface Flight {
-//   id: string;
-//   airline: string;
-//   flightNumber: string;
-//   departure: string;
-//   arrival: string;
-//   departureTime: string;
-//   arrivalTime: string;
-//   price: number;
-// }
 
 export interface Flight {
   code: string;

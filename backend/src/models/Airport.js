@@ -11,11 +11,7 @@ const airportSchema = new mongoose.Schema({
     code: { type: String, required: true, unique: true },
     city: { type: String, required: true },
     country: { type: String, required: true },
-    location: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Location",
-        required: true,
-    },
+    address: { type: String },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Airport", airportSchema);

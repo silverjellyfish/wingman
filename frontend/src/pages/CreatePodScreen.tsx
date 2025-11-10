@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import type { Screen, Flight } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Props for creating a pod
 interface CreatePodScreenProps {
    onNavigate: (screen: Screen, payload?: any) => void;
    flight: Flight;

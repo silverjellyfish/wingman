@@ -12,6 +12,7 @@ const notificationRoutes = require("./notificationRoutes");
 const podRoutes = require("./podRoutes");
 const userRoutes = require("./userRoutes");
 const userSpecRoutes = require("./userSpecRoutes");
+const serpFlightsRoutes = require("./serpApiRoutes");
 
 // Root API endpoint
 router.get("/", (req, res) => {
@@ -26,5 +27,6 @@ router.use("/notifications", notificationRoutes);
 router.use("/pods", podRoutes);
 router.use("/users", userRoutes);
 router.use("/userSpecs", userSpecRoutes);
+router.use("/serpFlights", serpFlightsRoutes);
 
 module.exports = router;

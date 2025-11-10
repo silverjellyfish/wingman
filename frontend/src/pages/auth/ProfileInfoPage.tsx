@@ -2,9 +2,9 @@
 // Time: 2 hours
 
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
 
 // Interface for props
 interface ProfileInfoPageProps {
@@ -12,7 +12,7 @@ interface ProfileInfoPageProps {
 }
 
 export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, register } = useAuth();
 
   if (isLoading) {
     return (
@@ -33,9 +33,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
   const [phone, setPhone] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
-  // const [earliestBefore, setEarliestBefore] = useState("");
-  // const [latestBefore, setLatestBefore] = useState("");
-  // const [longestWait, setLongestWait] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,22 +60,8 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
       return;
     }
 
-    // if (!earliestBefore) {
-    //   setError("Please enter earliest before boarding time.");
-    //   return;
-    // }
-
-    // if (!latestBefore) {
-    //   setError("Please enter latest before boarding time.");
-    //   return;
-    // }
-
-    // if (!longestWait) {
-    //   setError("Please enter longest wait after landing.");
-    //   return;
-    // }
-
     try {
+      // await register()
       const API_BASE_URL = import.meta.env.VITE_API_URL;
       const res = await fetch(`${API_BASE_URL}/users/profile`, {
         method: "POST",
@@ -94,9 +77,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
           phone,
           age: Number(age),
           gender,
-          // earliestBefore: Number(earliestBefore),
-          // latestBefore: Number(latestBefore),
-          // longestWait: Number(longestWait),
         }),
       });
       if (!res.ok) {
@@ -118,7 +98,7 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
           {/* Header */}
           <div className="text-[32px] text-white text-center w-full">
             <p className="leading-none" style={{ fontWeight: 600 }}>
-              Tell us more about yourself
+              Tell us More About Yourself!
             </p>
           </div>
 
@@ -156,7 +136,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
               <p className="text-[18px] text-white font-semibold">Age</p>
               <Input
                 type="number"
-                min="16"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
                 required
@@ -185,45 +164,6 @@ export function ProfileInfoPage({ onContinue }: ProfileInfoPageProps) {
                 ))}
               </div>
             </div>
-
-            {/* <div className="flex flex-col gap-[4px] w-full">
-              <p className="text-[18px] text-white font-semibold">
-                Earliest before boarding (min)
-              </p>
-              <Input
-                type="number"
-                min="0"
-                value={earliestBefore}
-                onChange={(e) => setEarliestBefore(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-[4px] w-full">
-              <p className="text-[18px] text-white font-semibold">
-                Latest before boarding (min)
-              </p>
-              <Input
-                type="number"
-                min="0"
-                value={latestBefore}
-                onChange={(e) => setLatestBefore(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex flex-col gap-[4px] w-full">
-              <p className="text-[18px] text-white font-semibold">
-                Longest willing to wait after landing (min)
-              </p>
-              <Input
-                type="number"
-                min="0"
-                value={longestWait}
-                onChange={(e) => setLongestWait(e.target.value)}
-                required
-              />
-            </div> */}
 
             {/* Error message */}
             {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
