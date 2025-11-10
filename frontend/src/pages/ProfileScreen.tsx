@@ -271,7 +271,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
             <Button
               onClick={() => setIsConfirmOpen(true)}
               className="w-full mt-2"
-              variant="outline"
+              variant="secondary"
             >
               Delete Account
             </Button>
@@ -289,7 +289,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
           </DialogHeader>
           <DialogFooter className="flex gap-2 justify-end mb-[1rem]">
             <Button
-              variant="outline"
+              variant="secondary"
               className="ml-[1rem] mr-[1rem]"
               onClick={() => setIsConfirmOpen(false)}
             >
