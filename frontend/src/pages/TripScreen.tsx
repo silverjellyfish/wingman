@@ -1,6 +1,7 @@
-// Contributors: Samantha
+// Contributors: Samantha, Michelle
 // Time: 0.5 hours
 
+// TODO: CACHE THIS INFO SO IT DOESN'T HAVE TO KEEP FETCHING
 import { FlightResultCard } from "@/components/FlightResultCard";
 import { ExpandedPodCard } from "@/components/ExpandedPodCard";
 import { PriorTripCard } from "@/components/PriorTripCard";
@@ -10,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import React, { useEffect, useState } from "react";
 import "@/pages/styles/LoadingScreen.css";
 import { CalendarClock, Archive } from "lucide-react";
+import { toast } from "sonner";
 
 interface TripScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -214,7 +216,10 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
                         airports: trip.flight.airports || "",
                       }}
                       pod={trip.pod}
-                      onLeave={() => setRefreshFlag(!refreshFlag)}
+                      onLeave={() => {
+                        toast.success("Successfully left pod.");
+                        setRefreshFlag(!refreshFlag);
+                      }}
                     />
                   </div>
                 ))

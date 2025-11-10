@@ -36,6 +36,16 @@ router.get("/profile/:firebaseUid", async (req, res) => {
   }
 });
 
+router.get("/mongoid/:firebaseUid", async (req, res) => {
+  try {
+    const user = await User.findOne({ firebaseUid: req.params.firebaseUid});
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user._id);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PATCH /api/users/profile/:firebaseUid
 // Update user profile by Firebase UID
 router.patch("/profile/:firebaseUid", async (req, res) => {

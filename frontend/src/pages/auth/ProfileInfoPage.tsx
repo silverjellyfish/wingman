@@ -19,6 +19,7 @@ export function ProfileInfoPage({
 }: ProfileInfoPageProps) {
   const { user, register } = useAuth();
   const [phone, setPhone] = useState("");
+  const [emergencyContact, setEmergencyContact] = useState("");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
   const [error, setError] = useState("");
@@ -65,6 +66,7 @@ export function ProfileInfoPage({
           email: firebaseUser.email,
           university: "Vanderbilt University",
           phone,
+          emergencyContact,
           age: Number(age),
           gender,
         }),
@@ -160,6 +162,26 @@ export function ProfileInfoPage({
                       </Button>
                     ))}
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-[4px] w-full">
+                  <p className="text-[18px] text-white font-semibold">
+                    Emergency Contact
+                  </p>
+                  <Input
+                    type="tel"
+                    placeholder="123-456-7890"
+                    value={emergencyContact}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      const formatted = digits
+                        .replace(/^(\d{3})(\d)/, "$1-$2")
+                        .replace(/-(\d{3})(\d)/, "-$1-$2")
+                        .slice(0, 12);
+                      setEmergencyContact(formatted);
+                    }}
+                    required
+                  />
                 </div>
 
                 {/* Error message */}

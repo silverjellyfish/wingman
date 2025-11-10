@@ -36,6 +36,8 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [emergencyContact, setEmergencyContact] = useState("");
+
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
 
@@ -64,6 +66,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
         setUsername(data.username || "");
         setEmail(data.email || user.email || "");
         setPhone(data.phone || "");
+        setEmergencyContact(data.emergencyContact || "");
         setAge(data.age ? data.age.toString() : "");
         setGender(data.gender || "");
       } catch (err) {
@@ -88,6 +91,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
           phone,
           age: Number(age),
           gender,
+          emergencyContact,
         }),
       });
     } catch (err) {
@@ -116,6 +120,19 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     }
     setPhone(formatted);
   };
+
+  const handleEmergencyContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, "");
+    if (value.length > 10) return;
+    let formatted = value;
+    if (value.length > 6) {
+      formatted = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(6)}`;
+    } else if (value.length > 3) {
+      formatted = `${value.slice(0, 3)}-${value.slice(3)}`;
+    }
+    setEmergencyContact(formatted);
+  };
+
 
   // Handle age change
   const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,8 +286,8 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
               </p>
               <Input
                 type="tel"
-                value={phone}
-                onChange={handlePhoneChange}
+                value={emergencyContact}
+                onChange={handleEmergencyContactChange}
                 disabled={!isEditing}
               />
             </div>

@@ -14,6 +14,7 @@ router.get("/all", async (req, res) => {
   try {
     // Fetch all pods from the database
     // TODO: FOR NOW, DON'T POPULATE LOCATION
+    // TODO: THIS DOESN'T POPULATE MEMBERS.USER.
     const pods = await Pod.find().populate("members").populate("location");
 
     // If no pods are found, return an empty array
@@ -24,7 +25,6 @@ router.get("/all", async (req, res) => {
     // Return the list of all pods
     res.status(200).json(pods);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });

@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import { GroupOptionCard } from "@/components/GroupOptionCard";
 import { toast } from "sonner";
+import type { NonUndefined } from "react-hook-form";
 
 // TODO: WHEN USER ALEADY JOINED POD
 // TODO: Consolidate these interfaces. Will be deleted later.
@@ -70,50 +71,84 @@ export function PodListScreen({
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+  const [mongoId, setMongoId] = useState<string | null>(null);
+  const [isUserIdLoading, setIsUserIdLoading] = useState(true);
+
+  const [joinedPods, setJoinedPods] = useState<Set<string>>(new Set());
+
   const charToSplit = [":", " "];
   const regex = new RegExp(`[${charToSplit.join("")}]`, "g");
 
   const handleAccept = async (podId: string) => {
-    if (!user) {
-      return;
-    }
+    if (!user) return;
+
+    // Optimistic UI update
+    setJoinedPods((prev) => new Set(prev).add(podId));
 
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/pods/${podId}/join`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: user.id,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id }),
         }
       );
 
       if (!res.ok) {
-        // Read the error message from the response body if available
-        const errorData = await res
-          .json()
-          .catch(() => ({ message: "No error message provided" }));
-        console.error("API Error Response:", errorData); // Log the detailed error
-        throw new Error(
-          `Failed to join pod: ${errorData.error || res.statusText}`
-        );
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || res.statusText);
       }
-      toast.success("Sucessfully joined the pod!");
-      // onNavigate("trip");
-      setTimeout(() => 3000);
+
+      toast.success("Successfully joined the pod!");
     } catch (err) {
       console.error("Error joining pod:", err);
-      toast.error(`Error joining pod: ${err}`);
-      setTimeout(() => 3000);
+      toast.error("Failed to join pod");
+
+      // Rollback if error
+      setJoinedPods((prev) => {
+        const next = new Set(prev);
+        next.delete(podId);
+        return next;
+      });
     }
   };
 
   useEffect(() => {
-    if (!user || !flight?.date) return;
+    if (!user?.id) {
+      setIsUserIdLoading(false);
+      return;
+    }
+
+    const findMongoIdFromFirebase = async (firebaseUid: string) => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/users/mongoid/${firebaseUid}`
+        );
+        if (!res.ok) {
+          // Log error but proceed with null ID
+          console.error("Failed to fetch Mongo ID");
+          setMongoId(null);
+        } else {
+          const id = await res.json();
+          setMongoId(id);
+        }
+      } catch (error) {
+        console.error("Error fetching Mongo ID:", error);
+        setMongoId(null);
+      } finally {
+        setIsUserIdLoading(false);
+      }
+    };
+
+    // Only fetch if we haven't already or if user changes
+    if (mongoId === null && isUserIdLoading) {
+      findMongoIdFromFirebase(user.id);
+    }
+  }, [user, mongoId, isUserIdLoading]);
+
+  useEffect(() => {
+    if (!user || !flight?.date || isUserIdLoading) return;
 
     const fetchPods = async () => {
       setLoading(true);
@@ -200,6 +235,8 @@ export function PodListScreen({
     pickupLocation,
     numCarryOn,
     numChecked,
+    isUserIdLoading,
+    // refreshPodList,
   ]);
 
   // Transform flight data for FlightResultCard component
@@ -216,11 +253,38 @@ export function PodListScreen({
       }
     : null;
 
+  // const [mongoId, setMongoId] = useState("");
+
+  // const findMongoIdFromFirebase = async (firebaseUid: string | undefined) => {
+  //   if (!firebaseUid) {
+  //     return;
+  //   }
+  //   const res = await fetch(
+  //     `${import.meta.env.VITE_API_URL}/users/mongoid/${firebaseUid}`
+  //   );
+  //   if (!res.ok) throw new Error("Failed to fetch pods");
+  //   const mongoId = await res.json();
+  //   setMongoId(mongoId);
+  //   // return mongoId;
+  // };
+
   // Transform pods data for GroupOptionCard components
+
   const options = pods.map((pod, idx) => {
-    const userAlreadyInPod = pod.members.some((m) => {
-      return m.user === user?.id;
-    });
+    // findMongoIdFromFirebase(user?.id);
+    // const userId = !mongoId ? user?.id : mongoId;
+
+    const userId = mongoId;
+    // const userId = user?.id;
+    const userAlreadyInPod =
+      joinedPods.has(pod._id) ||
+      pod.members.some((m) => {
+        console.log("m: ", m._id);
+        console.log("mongo: ", userId)
+        return m.user === userId;
+      });
+
+    console.log(userAlreadyInPod);
 
     return {
       podId: pod._id,
@@ -243,7 +307,7 @@ export function PodListScreen({
 
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white px-[12px] pt-[20px]">
-      {loading ? (
+      {loading || isUserIdLoading ? (
         <div className="flex flex-col items-center justify-center h-full text-white px-6">
           <p className="text-lg font-medium mb-[1rem]">
             Searching for rides...
