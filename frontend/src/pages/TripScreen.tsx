@@ -39,6 +39,7 @@ interface PodApiData {
 
 interface GroupMember {
   firebaseUid: string;
+  id: number;
   name: string;
   phoneNumber: string; // Must be a string
 }
@@ -94,12 +95,13 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
         }
         const pods: PodApiData[] = await res.json();
         const tripsData: Trip[] = pods.map((pod) => {
-          console.log("Pod data:", pod);
           const pickupDate = new Date(pod.pickup_time);
 
           // Transform members into GroupMember[]
-          const listPeopleIds: GroupMember[] = pod.members.map((m) => ({
+          // TODO: DID A TEMP FIX, INDEX SHOULDNT JUST BE A NUMBER
+          const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => ({
             firebaseUid: m.user.id,
+            id: idx,
             name: m.user.name,
             phoneNumber: m.user.phone || "", // Ensure phone is a string
           }));

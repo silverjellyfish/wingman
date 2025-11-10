@@ -32,7 +32,8 @@ const podSchema = new mongoose.Schema(
     members: [
       {
         user: {
-          type: String,
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
           required: true,
         },
         status: {

@@ -16,7 +16,8 @@ interface PodListScreenProps {
 }
 
 interface User {
-  id: string;
+  _id: string;
+  user: string;
   email: string;
   name: string;
   createdAt: string;
@@ -77,31 +78,36 @@ export function PodListScreen({
       return;
     }
 
-    console.log("Attempting to join pod:", podId);
-    console.log("User ID:", user.id);
     try {
-      console.log("url: ", `${import.meta.env.VITE_API_URL}/pods/${podId}/join`);
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/pods/${podId}/join`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.id,
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/pods/${podId}/join`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+          }),
+        }
+      );
 
       if (!res.ok) {
         // Read the error message from the response body if available
-        const errorData = await res.json().catch(() => ({ message: 'No error message provided' }));
+        const errorData = await res
+          .json()
+          .catch(() => ({ message: "No error message provided" }));
         console.error("API Error Response:", errorData); // Log the detailed error
-        throw new Error(`Failed to join pod: ${errorData.error || res.statusText}`);
+        throw new Error(
+          `Failed to join pod: ${errorData.error || res.statusText}`
+        );
       }
-      toast.success("Sucessfully joined the pod!")
+      toast.success("Sucessfully joined the pod!");
+      // onNavigate("trip");
       setTimeout(() => 3000);
     } catch (err) {
       console.error("Error joining pod:", err);
-      toast.error(`Error joining pod: ${err}`)
+      toast.error(`Error joining pod: ${err}`);
       setTimeout(() => 3000);
     }
   };
@@ -211,22 +217,29 @@ export function PodListScreen({
     : null;
 
   // Transform pods data for GroupOptionCard components
-  const options = pods.map((pod, idx) => ({
-    podId: pod._id,
-    id: idx + 1,
-    isRecommended: idx === 0,
-    members: pod.members.map((m) => ({
-      name: m.name?.split(" ")[0] || "User",
-      initial: m.name?.[0] || "?",
-      isEmpty: false,
-    })),
-    location: pod.location?.name || "Unknown location",
-    luggageCount: pod.num_big_luggage + pod.num_small_luggage,
-    time: new Date(pod.pickup_time).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  }));
+  const options = pods.map((pod, idx) => {
+    const userAlreadyInPod = pod.members.some((m) => {
+      return m.user === user?.id;
+    });
+
+    return {
+      podId: pod._id,
+      id: idx + 1,
+      isRecommended: idx === 0,
+      userAlreadyInPod,
+      members: pod.members.map((m) => ({
+        name: m.name?.split(" ")[0] || "User",
+        initial: m.name?.[0] || "?",
+        isEmpty: false,
+      })),
+      location: pod.location?.name || "Unknown location",
+      luggageCount: pod.num_big_luggage + pod.num_small_luggage,
+      time: new Date(pod.pickup_time).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+  });
 
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white px-[12px] pt-[20px]">
@@ -306,6 +319,7 @@ export function PodListScreen({
                       location={pod.location}
                       luggageCount={pod.luggageCount}
                       time={pod.time}
+                      userAlreadyInPod={pod.userAlreadyInPod}
                       onAccept={() => handleAccept(pod.podId)}
                     />
                   ))

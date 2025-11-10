@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface GroupMember {
   firebaseUid: string;
+  id: number;
   name: string;
   phoneNumber: string;
 }
@@ -72,7 +73,7 @@ export function ExpandedPodCard({
         if (res.ok) {
           onLeave();
         } else {
-          console.log("Failed to leave group: ", await res.text());
+          alert("Failed to leave group:");
         }
       } catch (error) {
         console.error("Error leaving group:", error);
@@ -114,7 +115,7 @@ export function ExpandedPodCard({
           // each row represents a new member in the pod
           //  TODO: THIS KEY MIGHT BE UNDEFINED, CAUSING AN ERROR
           <div
-            key={member.firebaseUid}
+            key={member.id}
             className="px-[4px] flex flex-row justify-between items-center gap-[4px]"
           >
             {/* name and picture */}
@@ -177,7 +178,6 @@ export function ExpandedPodCard({
           size="icon"
           className="p-[2px] w-[100%]"
           onClick={() => {
-            console.log(pod);
             handleLeaveGroup(pod.id);
           }}
         >

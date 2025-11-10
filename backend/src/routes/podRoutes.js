@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const router = express.Router();
 const Pod = require("../models/Pod");
 const Location = require("../models/Location");
+const User = require("../models/User");
 
 // GET /pods → 200
 // GET all pods
@@ -32,7 +33,8 @@ router.get("/all", async (req, res) => {
 // POST join a pod
 router.post("/:id/join", async (req, res) => {
   try {
-    const pod = await Pod.findById(req.params.id);
+    const pod = await Pod.findById(req.params.id).populate("members.user");
+
     if (!pod) {
       return res.status(404).json({ error: "Pod not found" });
     }
@@ -41,19 +43,24 @@ router.post("/:id/join", async (req, res) => {
     }
 
     const { userId } = req.body;
-    console.log("userId:", userId);
+    const user = await User.findOne({ firebaseUid: userId });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
     if (!userId) {
       return res.status(400).json({ error: "Missing userId" });
     }
 
     const alreadyMember = pod.members.some(
-      (member) => member.user && member.user === userId
+      (member) => member.firebaseUid && member.firebaseUid === userId
     );
     if (!alreadyMember) {
       // pod.members.push({ user: userId, status: "pending" });
-      const newMember = { user: userId, status: "pending" };
-      console.log("newMember:", newMember);
-      pod.members.push(newMember);
+      // const newMember = { user: userId, status: "pending" };
+      // pod.members.push(newMember);
+      pod.members.push({
+        user: user._id,
+        status: "pending",
+      });
       pod.num_members = pod.members.length;
       await pod.validate();
       await pod.save();
@@ -76,8 +83,15 @@ router.post("/:id/leave", async (req, res) => {
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: "Missing userId" });
 
+    const user = await User.findOne({ firebaseUid: userId });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+
     pod.members = pod.members.filter(
-      (member) => member.user.toString() !== userId
+      (member) => member.user.toString() !== user._id.toString()
     );
     pod.num_members = pod.members.length;
     await pod.save();
@@ -101,8 +115,6 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 // POST /pods/:id/lock → 200
 // POST finalize pod
@@ -139,9 +151,20 @@ router.patch("/:id", async (req, res) => {
 // GET pods for a specific user
 router.get("/user/:userId", async (req, res) => {
   try {
-    const pods = await Pod.find({ "members.user": req.params.userId }).populate(
-      "location"
-    );
+    const userId = req.params.userId;
+
+    // FIND USER
+    const user = await User.findOne({ firebaseUid: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    const pods = await Pod.find({ "members.user": user._id })
+      .populate("location")
+      .populate("members.user");
+
     res.status(200).json(pods);
   } catch (err) {
     res.status(500).json({ error: err.message });
