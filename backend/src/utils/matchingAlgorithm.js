@@ -20,10 +20,9 @@ function calculateDistanceInMiles(loc1, loc2) {
     return EARTH_RADIUS_MILES * c;
 }
 
-// right now only matches based on time buffer and distance
-// TODO: add gender matching
+// Matches based on time buffer, distance, and gender preference
 function findMatchingPods(userSpec, pods) {
-    const { earliestArrivalTime, latestArrivalTime, pickupLocation } = userSpec;
+    const { earliestArrivalTime, latestArrivalTime, pickupLocation, genderPreference } = userSpec;
     if (!pickupLocation || !latestArrivalTime || !earliestArrivalTime || pickupLocation.coordinates.length !== 2) {
         throw new Error("Invalid user specification");
     }
@@ -42,7 +41,13 @@ function findMatchingPods(userSpec, pods) {
         const distanceMiles = calculateDistanceInMiles({ latitude: podCoords[0], longitude: podCoords[1] }, { latitude: userCoordsLatLon[0], longitude: userCoordsLatLon[1]});
         const locationMatches = distanceMiles <= MAX_DISTANCE_MILES;
 
-        return timeMatches && locationMatches;
+        // Gender matching: if genderPreference is set, all pod members must match that gender
+        const genderMatches = !genderPreference ||
+            (pod.members && pod.members.every(member =>
+                member.user && member.user.gender === genderPreference
+            ));
+
+        return timeMatches && locationMatches && genderMatches;
     });
     return matchingPods;
 }

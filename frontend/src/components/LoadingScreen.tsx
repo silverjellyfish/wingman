@@ -42,21 +42,18 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    console.log("LoadingScreen mounted");
-    const duration = 3000; // 3 seconds
-    const interval = 50; // Update every 50ms
+    const duration = 3000;
+    const interval = 50;
     const increment = (100 / duration) * interval;
 
     const timer = setInterval(() => {
       setProgress(prev => {
         const newProgress = prev + increment;
-        console.log("Progress:", newProgress);
         if (newProgress >= 100) {
           clearInterval(timer);
           setTimeout(() => {
-            console.log("Loading complete, navigating to results");
             onComplete();
-          }, 200); // Small delay after completion
+          }, 200);
           return 100;
         }
         return newProgress;
@@ -64,7 +61,6 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
     }, interval);
 
     return () => {
-      console.log("LoadingScreen unmounted");
       clearInterval(timer);
     };
   }, [onComplete]);

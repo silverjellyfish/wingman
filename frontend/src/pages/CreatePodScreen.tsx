@@ -5,15 +5,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
-import {
-   Popover,
-   PopoverContent,
-   PopoverTrigger,
-} from "@/components/ui/popover";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import type { Screen, Flight } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Props for creating a pod
 interface CreatePodScreenProps {
    onNavigate: (screen: Screen, payload?: any) => void;
    flight: Flight;
@@ -222,42 +219,36 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
 
                               <div className="flex gap-[16px] w-full">
                                  {/* Date Input */}
-                                 <Popover
+                                 <Input
+                                    type="text"
+                                    placeholder="YYYY-MM-DD"
+                                    value={
+                                       pickupDate
+                                          ? format(pickupDate, "yyyy-MM-dd")
+                                          : ""
+                                    }
+                                    onClick={() => setIsDatePickerOpen(true)}
+                                    readOnly
+                                    className="focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 cursor-pointer"
+                                 />
+
+                                 <Dialog
                                     open={isDatePickerOpen}
                                     onOpenChange={setIsDatePickerOpen}
                                  >
-                                    <PopoverTrigger asChild>
-                                       <Input
-                                          type="text"
-                                          placeholder="YYYY-MM-DD"
-                                          value={
-                                             pickupDate
-                                                ? format(
-                                                     pickupDate,
-                                                     "yyyy-MM-dd"
-                                                  )
-                                                : ""
-                                          }
-                                          onClick={() =>
-                                             setIsDatePickerOpen(true)
-                                          }
-                                          readOnly
-                                          className="focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 cursor-pointer"
-                                       />
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                       className="w-auto p-0"
-                                       align="start"
-                                    >
-                                       <Calendar
-                                          selected={pickupDate}
-                                          onSelect={(date) => {
-                                             setPickupDate(date);
-                                             setIsDatePickerOpen(false);
-                                          }}
-                                       />
-                                    </PopoverContent>
-                                 </Popover>
+                                    <DialogContent className="w-2/3 max-w-[260px] border-2 border-accent rounded-[16px]">
+                                       <div className="flex justify-center pt-[40px] rounded-[12px]">
+                                          <Calendar
+                                             className="rounded-[12px]"
+                                             selected={pickupDate}
+                                             onSelect={(date) => {
+                                                setPickupDate(date);
+                                                setIsDatePickerOpen(false);
+                                             }}
+                                          />
+                                       </div>
+                                    </DialogContent>
+                                 </Dialog>
 
                                  {/* Time Input */}
                                  <Input
