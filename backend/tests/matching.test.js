@@ -33,7 +33,6 @@ describe("findMatchingPods", () => {
     expect(matches[0].pickup_time).toBe("2025-10-18T13:00:00Z");
   });
 
-  //
   test("Filters out pods too far away", () => {
     const pods = [
       {

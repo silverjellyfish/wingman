@@ -11,14 +11,30 @@ import { ProfileInfoPage } from "@/pages/auth/ProfileInfoPage";
 import { FlightInputScreen } from "@/pages/SearchFlightScreen";
 import { FlightResultsScreen } from "@/pages/FlightResultsScreen";
 import { RidePreferencesScreen } from "@/pages/RidePreferencesScreen";
-import { LoadingScreen } from "@/pages/FindingPodLoadingScreen";
+import { LoadingScreen } from "@/pages/LoadingScreen";
 import { PodListScreen } from "@/pages/PodListScreen";
-import { mockFlights } from "@/mock/mockFlights";
+// import { mockFlights } from "@/mock/mockFlights";
 import { CreatePodScreen } from "@/pages/CreatePodScreen";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import type { Screen } from "@/types/index.ts";
 
 import "./App.css";
+
+interface MappedFlight {
+  id: string;
+  flightCode: string;
+  dateRange: string;
+  route: string;
+  airports: string;
+  boardingTime: string;
+  departureTime: string;
+  arrivalTime: string;
+}
+
+interface FlightPayload {
+  flight: any;
+  flights?: MappedFlight[];
+}
 
 function AuthenticatedApp() {
   const [payload, setPayload] = useState<any>(null);
@@ -36,13 +52,20 @@ function AuthenticatedApp() {
     dateArg?: string,
     payloadArg?: any
   ) => {
-    if (planeCodeArg) setPlaneCode(planeCodeArg);
-    if (dateArg) setSelectedDate(dateArg);
+    if (planeCodeArg) {
+      setPlaneCode(planeCodeArg);
+    }
+    if (dateArg) {
+      setSelectedDate(dateArg);
+    }
 
-    if (payloadArg?.flight) {
+    // CONSOLIDATED LOGIC: Set payload only once if provided
+    if (payloadArg) {
       setPayload(payloadArg);
-    } else if (payloadArg) {
-      setSelectedFlight(payloadArg);
+      // Save selected flight only when it’s a flight object
+      if (payloadArg?.flight) {
+        setSelectedFlight(payloadArg.flight);
+      }
     }
 
     setCurrentScreen(screen);
@@ -62,21 +85,30 @@ function AuthenticatedApp() {
         return (
           <FlightResultsScreen
             onNavigate={navigateTo}
-            flights={mockFlights}
             planeCode={planeCode}
             date={selectedDate}
+            payload={payload}
           />
         );
+
       case "flightPreferences":
+        const flightsFromPayload = payload?.flights || [];
         return (
           <RidePreferencesScreen
             onNavigate={navigateTo}
             flight={selectedFlight}
+            flights={flightsFromPayload}
           />
         );
       case "loading":
         return payload ? (
-          <LoadingScreen onNavigate={navigateTo} payload={payload} />
+          <LoadingScreen
+            text="Searching for rides..."
+            duration={3000}
+            onComplete={() =>
+              navigateTo("rideWithGroup", undefined, undefined, payload)
+            }
+          />
         ) : null;
 
       case "rideWithGroup":
