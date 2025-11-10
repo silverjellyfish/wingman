@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import { GroupOptionCard } from "@/components/GroupOptionCard";
+// import { Toast } from "@/components/ui/toast";
 
 // TODO: Consolidate these interfaces. Will be deleted later.
 interface PodListScreenProps {
@@ -21,7 +22,7 @@ interface User {
 }
 
 interface Pod {
-  id: string;
+  _id: string;
   num_members: number;
   members: User[];
   pickup_time: string;
@@ -66,8 +67,45 @@ export function PodListScreen({
   const [pods, setPods] = useState<Pod[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const [toastMessage, setToastMessage] = useState("");
+
   const charToSplit = [":", " "];
   const regex = new RegExp(`[${charToSplit.join("")}]`, "g");
+
+  const handleAccept = async (podId: string) => {
+    if (!user) {
+      return;
+    }
+
+    console.log("Attempting to join pod:", podId);
+    console.log("User ID:", user.id);
+    try {
+      console.log("url: ", `${import.meta.env.VITE_API_URL}/pods/${podId}/join`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/pods/${podId}/join`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+        }),
+      });
+
+      if (!res.ok) {
+        // Read the error message from the response body if available
+        const errorData = await res.json().catch(() => ({ message: 'No error message provided' }));
+        console.error("API Error Response:", errorData); // Log the detailed error
+        throw new Error(`Failed to join pod: ${errorData.error || res.statusText}`);
+      }
+      alert("Successfully joined the pod!");
+      setToastMessage("Successfully joined the pod!");
+      setTimeout(() => setToastMessage(""), 3000);
+    } catch (err) {
+      console.error("Error joining pod:", err);
+      setToastMessage("Error joining the pod. Please try again.");
+      setTimeout(() => setToastMessage(""), 3000);
+    }
+  };
 
   useEffect(() => {
     if (!user || !flight?.date) return;
@@ -175,6 +213,7 @@ export function PodListScreen({
 
   // Transform pods data for GroupOptionCard components
   const options = pods.map((pod, idx) => ({
+    podId: pod._id,
     id: idx + 1,
     isRecommended: idx === 0,
     members: pod.members.map((m) => ({
@@ -190,10 +229,6 @@ export function PodListScreen({
     }),
   }));
 
-  const handleAccept = (optionId: number) => {
-    alert(`Accepted! Option ${optionId} selected.`);
-  };
-
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white px-[12px] pt-[20px]">
       {loading ? (
@@ -205,6 +240,7 @@ export function PodListScreen({
         </div>
       ) : (
         <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {/* {toastMessage && <Toast message={toastMessage} />} */}
           <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] w-full">
             {/* Back Button */}
             <div className="content-stretch flex items-start relative shrink-0 w-full">
@@ -261,16 +297,17 @@ export function PodListScreen({
                     No pods available matching your preferences.
                   </p>
                 ) : (
-                  options.map((option) => (
+                  options.map((pod) => (
                     <GroupOptionCard
-                      key={option.id}
-                      optionNumber={option.id}
-                      isRecommended={option.isRecommended}
-                      members={option.members}
-                      location={option.location}
-                      luggageCount={option.luggageCount}
-                      time={option.time}
-                      onAccept={() => handleAccept(option.id)}
+                      key={pod.id}
+                      optionNumber={pod.id}
+                      // TODO: determine is recommended by algorithm
+                      isRecommended={false}
+                      members={pod.members}
+                      location={pod.location}
+                      luggageCount={pod.luggageCount}
+                      time={pod.time}
+                      onAccept={() => handleAccept(pod.podId)}
                     />
                   ))
                 )}

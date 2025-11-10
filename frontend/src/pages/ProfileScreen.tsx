@@ -7,6 +7,17 @@ import { Input } from "@/components/ui/input.tsx";
 import { useAuth } from "@/contexts/AuthContext";
 import imgAvatar from "@/assets/images/avatar.png";
 import type { Screen } from "@/types";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface ProfileScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -15,6 +26,7 @@ interface ProfileScreenProps {
 export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const { user, logout, deleteAccount } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   // Profile state
   const [name, setName] = useState("");
@@ -86,6 +98,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const handleSave = () => {
     handleChangeProfileInfo();
     setIsEditing(false);
+    toast.success("Profile updated successfully");
   };
 
   // Handle phone number change
@@ -114,18 +127,12 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const handleDeleteAccount = async () => {
     if (!user) return;
 
-    const confirm = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone."
-    );
-    if (!confirm) return;
-
     try {
       await deleteAccount(user.id);
-      alert("Account deleted successfully.");
+      toast.success("Account deleted successfully");
       onNavigate("login");
     } catch (error) {
-      console.error("Error deleting account:", error);
-      alert("Failed to delete account. Please try again later.");
+      toast.error("Failed to delete account. Please try again later.");
     }
   };
 
@@ -234,7 +241,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="bg-primary-foreground text-primary border-accent h-9 w-full rounded-[10px] border-[2px] px-[14px] py-[12px] text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm [&>option]:rounded-lg"
+                    className="bg-primary-foreground text-primary border-accent w-full rounded-[10px] border-[2px] px-[14px] py-[12px] text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm [&>option]:rounded-lg"
                   >
                     {[gender, "male", "female", "other"]
                       .filter((g, i, arr) => g && arr.indexOf(g) === i)
@@ -262,7 +269,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
               Logout
             </Button>
             <Button
-              onClick={handleDeleteAccount}
+              onClick={() => setIsConfirmOpen(true)}
               className="w-full mt-2"
               variant="outline"
             >
@@ -271,6 +278,33 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
           </div>
         </div>
       </div>
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent className="bg-[#1f1f23] text-white">
+          <DialogHeader>
+            <DialogTitle className="mt-[1rem]">Delete Account?</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              This action cannot be undone. All your data will be permanently
+              deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 justify-end mb-[1rem]">
+            <Button
+              variant="outline"
+              className="ml-[1rem] mr-[1rem]"
+              onClick={() => setIsConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="ml-[1rem] mr-[1rem]"
+              onClick={handleDeleteAccount}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

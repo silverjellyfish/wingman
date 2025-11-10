@@ -52,7 +52,35 @@ export function RegisterPage({ onNavigateToLogin, onNext }: RegisterPageProps) {
       return;
     }
 
-    onNext({ name, email, password });
+    try {
+      // Call backend to check if email already exists
+      const res = await fetch(
+        `${
+          import.meta.env.VITE_API_URL
+        }/users/check-email?email=${encodeURIComponent(email)}`
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to check email availability");
+      }
+
+      const data = await res.json();
+
+      if (data.exists) {
+        setError("This email is already in use.");
+        return;
+      }
+
+      // If email is free, proceed to next step
+      onNext({ name, email, password });
+    } catch (error) {
+      console.error(error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again."
+      );
+    }
   };
 
   return (

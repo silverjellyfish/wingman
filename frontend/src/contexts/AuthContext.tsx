@@ -18,6 +18,7 @@ import {
   updateProfile,
   deleteUser,
 } from "firebase/auth";
+import { toast } from "sonner";
 
 import type { User as FirebaseUser } from "firebase/auth";
 
@@ -96,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     await signOut(auth);
     setUser(null);
+    toast.success("Logged out successfully");
   };
 
   const deleteAccount = async (userId: string) => {

@@ -116,4 +116,23 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// GET /api/users/check-email?email=example@vanderbilt.edu
+router.get("/check-email", async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ error: "Email query parameter is required" });
+    }
+
+    const exists = await User.exists({ email: email.toString() });
+
+    res.json({ exists: !!exists });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

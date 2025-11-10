@@ -17,6 +17,7 @@ import { PodListScreen } from "@/pages/PodListScreen";
 import { CreatePodScreen } from "@/pages/CreatePodScreen";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import type { Screen } from "@/types/index.ts";
+import { Toaster } from "sonner";
 
 import "./App.css";
 
@@ -177,6 +178,7 @@ function App() {
         tempUserData={tempUserData}
         setTempUserData={setTempUserData}
       />
+      <Toaster richColors position="top-center" duration={2000}/>
     </AuthProvider>
   );
 }
