@@ -19,19 +19,17 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, Postman, or server-to-server)
-      if (!origin) return callback(null, true);
-
-      // Check if the incoming origin is in the whitelist
-      if (allowedOrigins.includes(origin)) {
+      console.log("Incoming origin:", origin); // <-- log origin
+      if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
         return callback(new Error("Not allowed by CORS"), false);
       }
     },
-    credentials: true, // allow cookies or Authorization headers
+    credentials: true,
   })
 );
+
 
 // Middleware
 app.use(express.json());
