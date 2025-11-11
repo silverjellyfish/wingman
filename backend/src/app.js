@@ -10,17 +10,20 @@ const { errorHandler } = require("./middleware/errorHandler");
 const app = express();
 
 // List of allowed origins (local dev + your Vercel frontend(s))
+// ADD http://localhost:5173/api to list if want test
 const allowedOrigins = [
   "https://wingman-for-you.vercel.app",
   "https://wingman-git-deploy-m1chelle7s-projects.vercel.app",
+  // "http://localhost:5173/api",
 ];
 
 // CORS configuration
 app.use(
   cors({
     origin: function (origin, callback) {
-      console.log("Incoming origin:", origin); // <-- log origin
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
         return callback(new Error("Not allowed by CORS"), false);
@@ -29,7 +32,6 @@ app.use(
     credentials: true,
   })
 );
-
 
 // Middleware
 app.use(express.json());
