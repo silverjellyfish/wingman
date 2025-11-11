@@ -298,7 +298,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 logout();
                 onNavigate("ride");
               }}
-              className="w-full mt-[5rem]"
+              className="w-full mt-[3rem]"
               variant="destructive"
             >
               Logout
