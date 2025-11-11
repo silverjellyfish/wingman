@@ -9,20 +9,16 @@ import { Input } from "@/components/ui/input";
 // Interface for props
 interface RegisterPageProps {
   onNavigateToLogin: () => void;
-  onNavigateToProfileInfo: () => void;
+  onNext: (data: { name: string; email: string; password: string }) => void;
 }
 
-export function RegisterPage({
-  onNavigateToLogin,
-  onNavigateToProfileInfo,
-}: RegisterPageProps) {
+export function RegisterPage({ onNavigateToLogin, onNext }: RegisterPageProps) {
   const { register } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -56,16 +52,34 @@ export function RegisterPage({
       return;
     }
 
-    setIsLoading(true);
-
-    // TODO: What if I register and I exit out of profile info page?
     try {
-      await register(email, password, name);
-      onNavigateToProfileInfo();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
-    } finally {
-      setIsLoading(false);
+      // Call backend to check if email already exists
+      const res = await fetch(
+        `${
+          import.meta.env.VITE_API_URL
+        }/users/check-email?email=${encodeURIComponent(email)}`
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to check email availability");
+      }
+
+      const data = await res.json();
+
+      if (data.exists) {
+        setError("This email is already in use.");
+        return;
+      }
+
+      // If email is free, proceed to next step
+      onNext({ name, email, password });
+    } catch (error) {
+      console.error(error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred. Please try again."
+      );
     }
   };
 
@@ -99,7 +113,6 @@ export function RegisterPage({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                disabled={isLoading}
               />
             </div>
 
@@ -117,7 +130,6 @@ export function RegisterPage({
                 value={email}
                 onChange={handleEmailChange}
                 required
-                disabled={isLoading}
               />
             </div>
 
@@ -134,7 +146,6 @@ export function RegisterPage({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={isLoading}
               />
             </div>
 
@@ -151,7 +162,6 @@ export function RegisterPage({
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                disabled={isLoading}
               />
             </div>
 
@@ -164,12 +174,8 @@ export function RegisterPage({
 
             {/* Submit Button */}
             <div className="content-stretch flex flex-col gap-[2px] items-start relative w-full pt-[80px]">
-              <Button
-                type="submit"
-                className="w-full mt-4"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating account..." : "Create account"}
+              <Button type="submit" className="w-full mt-4">
+                Continue
               </Button>
 
               {/* Sign In Link */}

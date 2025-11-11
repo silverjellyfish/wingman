@@ -7,6 +7,17 @@ import { Input } from "@/components/ui/input.tsx";
 import { useAuth } from "@/contexts/AuthContext";
 import imgAvatar from "@/assets/images/avatar.png";
 import type { Screen } from "@/types";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface ProfileScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -15,12 +26,18 @@ interface ProfileScreenProps {
 export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const { user, logout, deleteAccount } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  // PROFILE IMAGE
+  const [profileImage, setProfileImage] = useState<string>(imgAvatar);
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Profile state
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [emergencyContact, setEmergencyContact] = useState("");
+
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
 
@@ -49,6 +66,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
         setUsername(data.username || "");
         setEmail(data.email || user.email || "");
         setPhone(data.phone || "");
+        setEmergencyContact(data.emergencyContact || "");
         setAge(data.age ? data.age.toString() : "");
         setGender(data.gender || "");
       } catch (err) {
@@ -73,6 +91,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
           phone,
           age: Number(age),
           gender,
+          emergencyContact,
         }),
       });
     } catch (err) {
@@ -86,6 +105,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const handleSave = () => {
     handleChangeProfileInfo();
     setIsEditing(false);
+    toast.success("Profile updated successfully");
   };
 
   // Handle phone number change
@@ -101,6 +121,19 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
     setPhone(formatted);
   };
 
+  const handleEmergencyContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, "");
+    if (value.length > 10) return;
+    let formatted = value;
+    if (value.length > 6) {
+      formatted = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(6)}`;
+    } else if (value.length > 3) {
+      formatted = `${value.slice(0, 3)}-${value.slice(3)}`;
+    }
+    setEmergencyContact(formatted);
+  };
+
+
   // Handle age change
   const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
@@ -114,18 +147,12 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const handleDeleteAccount = async () => {
     if (!user) return;
 
-    const confirm = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone."
-    );
-    if (!confirm) return;
-
     try {
       await deleteAccount(user.id);
-      alert("Account deleted successfully.");
+      toast.success("Account deleted successfully");
       onNavigate("login");
     } catch (error) {
-      console.error("Error deleting account:", error);
-      alert("Failed to delete account. Please try again later.");
+      toast.error("Failed to delete account. Please try again later.");
     }
   };
 
@@ -140,9 +167,9 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
               {/* Avatar */}
               <div className="overflow-clip relative rounded-[9999px] size-[64px]">
                 <img
+                  src={profileImage}
                   alt={name}
                   className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none size-full"
-                  src={imgAvatar}
                 />
               </div>
 
@@ -234,7 +261,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="bg-primary-foreground text-primary border-accent h-9 w-full rounded-[10px] border-[2px] px-[14px] py-[12px] text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm [&>option]:rounded-lg"
+                    className="bg-primary-foreground text-primary border-accent w-full rounded-[10px] border-[2px] px-[14px] py-[12px] text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm [&>option]:rounded-lg"
                   >
                     {[gender, "male", "female", "other"]
                       .filter((g, i, arr) => g && arr.indexOf(g) === i)
@@ -249,6 +276,21 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 )}
               </div>
             </div>
+            {/* TODO: MAKE THIS WORK */}
+            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+              <p
+                className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                style={{ fontWeight: 600 }}
+              >
+                Emergency Contact
+              </p>
+              <Input
+                type="tel"
+                value={emergencyContact}
+                onChange={handleEmergencyContactChange}
+                disabled={!isEditing}
+              />
+            </div>
 
             {/* Logout Button */}
             <Button
@@ -256,21 +298,48 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
                 logout();
                 onNavigate("ride");
               }}
-              className="w-full mt-[5rem]"
+              className="w-full mt-[3rem]"
               variant="destructive"
             >
               Logout
             </Button>
             <Button
-              onClick={handleDeleteAccount}
+              onClick={() => setIsConfirmOpen(true)}
               className="w-full mt-2"
-              variant="outline"
+              variant="secondary"
             >
               Delete Account
             </Button>
           </div>
         </div>
       </div>
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent className="bg-[#1f1f23] text-white">
+          <DialogHeader>
+            <DialogTitle className="mt-[1rem]">Delete Account?</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              This action cannot be undone. All your data will be permanently
+              deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 justify-end mb-[1rem]">
+            <Button
+              variant="secondary"
+              className="ml-[1rem] mr-[1rem]"
+              onClick={() => setIsConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="ml-[1rem] mr-[1rem]"
+              onClick={handleDeleteAccount}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

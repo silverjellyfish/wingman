@@ -14,6 +14,7 @@ import {
 import { Calendar } from "@/components/ui/calendar.tsx";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Screen } from "@/types/index.ts";
+import { toast } from "sonner";
 
 interface FlightInputScreenProps {
   onNavigate: (
@@ -95,7 +96,7 @@ export function FlightInputScreen({
 
   const handleNextClick = () => {
     if (!/^([A-Z]{2})(\d{1,4})$/i.test(localPlaneCode)) {
-      alert("Enter valid plane code (e.g., WN123)");
+      toast.error("Enter valid plane code (e.g., WN123)");
       return;
     }
     const match = localPlaneCode.match(/^([A-Z]{2})(\d{1,4})$/i);
@@ -108,21 +109,21 @@ export function FlightInputScreen({
 
   const handleSearch = () => {
     if (!airlineCode || !flightNumber) {
-      alert("Enter airline code and flight number");
+      toast.error("Enter airline code and flight number");
       return;
     }
     if (!flightDate) {
-      alert("Select a date");
+      toast.error("Select a date");
       return;
     }
     if (!isValidAirportOrKgmid(departureId)) {
-      alert(
+      toast.error(
         "Invalid departure_id. Use 3-letter airport code or /m/... format."
       );
       return;
     }
     if (!isValidAirportOrKgmid(arrivalId)) {
-      alert("Invalid arrival_id. Use 3-letter airport code or /m/... format.");
+      toast.error("Invalid arrival_id. Use 3-letter airport code or /m/... format.");
       return;
     }
 

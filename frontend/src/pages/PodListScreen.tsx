@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import { GroupOptionCard } from "@/components/GroupOptionCard";
+import { toast } from "sonner";
+import type { NonUndefined } from "react-hook-form";
 
+// TODO: WHEN USER ALEADY JOINED POD
 // TODO: Consolidate these interfaces. Will be deleted later.
 interface PodListScreenProps {
   onNavigate: (...args: any[]) => void;
@@ -14,7 +17,8 @@ interface PodListScreenProps {
 }
 
 interface User {
-  id: string;
+  _id: string;
+  user: string;
   email: string;
   name: string;
   createdAt: string;
@@ -22,7 +26,7 @@ interface User {
 }
 
 interface Pod {
-  id: string;
+  _id: string;
   num_members: number;
   members: User[];
   pickup_time: string;
@@ -68,11 +72,85 @@ export function PodListScreen({
   const [pods, setPods] = useState<Pod[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  const [mongoId, setMongoId] = useState<string | null>(null);
+  const [isUserIdLoading, setIsUserIdLoading] = useState(true);
+
+  const [joinedPods, setJoinedPods] = useState<Set<string>>(new Set());
+
   const charToSplit = [":", " "];
   const regex = new RegExp(`[${charToSplit.join("")}]`, "g");
 
+  const handleAccept = async (podId: string) => {
+    if (!user) return;
+
+    // Optimistic UI update
+    setJoinedPods((prev) => new Set(prev).add(podId));
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/pods/${podId}/join`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id }),
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || res.statusText);
+      }
+
+      toast.success("Successfully joined the pod!");
+    } catch (err) {
+      console.error("Error joining pod:", err);
+      toast.error("Failed to join pod");
+
+      // Rollback if error
+      setJoinedPods((prev) => {
+        const next = new Set(prev);
+        next.delete(podId);
+        return next;
+      });
+    }
+  };
+
   useEffect(() => {
-    if (!user || !flight?.date) return;
+    if (!user?.id) {
+      setIsUserIdLoading(false);
+      return;
+    }
+
+    const findMongoIdFromFirebase = async (firebaseUid: string) => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/users/mongoid/${firebaseUid}`
+        );
+        if (!res.ok) {
+          // Log error but proceed with null ID
+          console.error("Failed to fetch Mongo ID");
+          setMongoId(null);
+        } else {
+          const id = await res.json();
+          setMongoId(id);
+        }
+      } catch (error) {
+        console.error("Error fetching Mongo ID:", error);
+        setMongoId(null);
+      } finally {
+        setIsUserIdLoading(false);
+      }
+    };
+
+    // Only fetch if we haven't already or if user changes
+    if (mongoId === null && isUserIdLoading) {
+      findMongoIdFromFirebase(user.id);
+    }
+  }, [user, mongoId, isUserIdLoading]);
+
+  useEffect(() => {
+    if (!user || !flight?.date || isUserIdLoading) return;
 
     const fetchPods = async () => {
       setLoading(true);
@@ -163,6 +241,8 @@ export function PodListScreen({
     pickupLocation,
     numCarryOn,
     numChecked,
+    isUserIdLoading,
+    // refreshPodList,
   ]);
 
   // Transform flight data for FlightResultCard component
@@ -179,30 +259,61 @@ export function PodListScreen({
       }
     : null;
 
-  // Transform pods data for GroupOptionCard components
-  const options = pods.map((pod, idx) => ({
-    id: idx + 1,
-    isRecommended: idx === 0,
-    members: pod.members.map((m) => ({
-      name: m.name?.split(" ")[0] || "User",
-      initial: m.name?.[0] || "?",
-      isEmpty: false,
-    })),
-    location: pod.location?.name || "Unknown location",
-    luggageCount: pod.num_big_luggage + pod.num_small_luggage,
-    time: new Date(pod.pickup_time).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  }));
+  // const [mongoId, setMongoId] = useState("");
 
-  const handleAccept = (optionId: number) => {
-    alert(`Accepted! Option ${optionId} selected.`);
-  };
+  // const findMongoIdFromFirebase = async (firebaseUid: string | undefined) => {
+  //   if (!firebaseUid) {
+  //     return;
+  //   }
+  //   const res = await fetch(
+  //     `${import.meta.env.VITE_API_URL}/users/mongoid/${firebaseUid}`
+  //   );
+  //   if (!res.ok) throw new Error("Failed to fetch pods");
+  //   const mongoId = await res.json();
+  //   setMongoId(mongoId);
+  //   // return mongoId;
+  // };
+
+  // Transform pods data for GroupOptionCard components
+
+  const options = pods.map((pod, idx) => {
+    // findMongoIdFromFirebase(user?.id);
+    // const userId = !mongoId ? user?.id : mongoId;
+
+    const userId = mongoId;
+    // const userId = user?.id;
+    const userAlreadyInPod =
+      joinedPods.has(pod._id) ||
+      pod.members.some((m) => {
+        console.log("m: ", m._id);
+        console.log("mongo: ", userId)
+        return m.user === userId;
+      });
+
+    console.log(userAlreadyInPod);
+
+    return {
+      podId: pod._id,
+      id: idx + 1,
+      isRecommended: idx === 0,
+      userAlreadyInPod,
+      members: pod.members.map((m) => ({
+        name: m.name?.split(" ")[0] || "User",
+        initial: m.name?.[0] || "?",
+        isEmpty: false,
+      })),
+      location: pod.location?.name || "Unknown location",
+      luggageCount: pod.num_big_luggage + pod.num_small_luggage,
+      time: new Date(pod.pickup_time).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+  });
 
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white px-[12px] pt-[20px]">
-      {loading ? (
+      {loading || isUserIdLoading ? (
         <div className="flex flex-col items-center justify-center h-full text-white px-6">
           <p className="text-lg font-medium mb-[1rem]">
             Searching for rides...
@@ -211,6 +322,7 @@ export function PodListScreen({
         </div>
       ) : (
         <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {/* {toastMessage && <Toast message={toastMessage} />} */}
           <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] w-full">
             {/* Back Button */}
             <div className="content-stretch flex items-start relative shrink-0 w-full">
@@ -267,16 +379,18 @@ export function PodListScreen({
                     No pods available matching your preferences.
                   </p>
                 ) : (
-                  options.map((option) => (
+                  options.map((pod, idx) => (
                     <GroupOptionCard
-                      key={option.id}
-                      optionNumber={option.id}
-                      isRecommended={option.isRecommended}
-                      members={option.members}
-                      location={option.location}
-                      luggageCount={option.luggageCount}
-                      time={option.time}
-                      onAccept={() => handleAccept(option.id)}
+                      key={pod.id}
+                      optionNumber={pod.id}
+                      // TODO: determine is recommended by algorithm
+                      isRecommended={idx == 0}
+                      members={pod.members}
+                      location={pod.location}
+                      luggageCount={pod.luggageCount}
+                      time={pod.time}
+                      userAlreadyInPod={pod.userAlreadyInPod}
+                      onAccept={() => handleAccept(pod.podId)}
                     />
                   ))
                 )}
