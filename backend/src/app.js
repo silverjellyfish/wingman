@@ -11,7 +11,6 @@ const app = express();
 
 // List of allowed origins (local dev + your Vercel frontend(s))
 const allowedOrigins = [
-  "http://localhost:5173",
   "https://wingman-for-you.vercel.app",
   "https://wingman-git-deploy-m1chelle7s-projects.vercel.app",
 ];
