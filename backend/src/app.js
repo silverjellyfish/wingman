@@ -10,17 +10,15 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://wingman-two-ebon.vercel.app",
+  "https://wingman-for-you.vercel.app",
 ];
 
-// Enable CORS for frontend
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = `CORS policy: origin ${origin} not allowed`;
-        return callback(new Error(msg), false);
+        return callback(new Error("Not allowed by CORS"), false);
       }
       return callback(null, true);
     },
