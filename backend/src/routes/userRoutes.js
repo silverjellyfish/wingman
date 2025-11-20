@@ -36,6 +36,16 @@ router.get("/profile/:firebaseUid", async (req, res) => {
   }
 });
 
+router.get("/mongoid/:firebaseUid", async (req, res) => {
+  try {
+    const user = await User.findOne({ firebaseUid: req.params.firebaseUid});
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user._id);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PATCH /api/users/profile/:firebaseUid
 // Update user profile by Firebase UID
 router.patch("/profile/:firebaseUid", async (req, res) => {
@@ -111,6 +121,25 @@ router.delete("/:id", async (req, res) => {
     const deleted = await User.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ error: "User not found" });
     res.json({ message: "User deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/users/check-email?email=example@vanderbilt.edu
+router.get("/check-email", async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res
+        .status(400)
+        .json({ error: "Email query parameter is required" });
+    }
+
+    const exists = await User.exists({ email: email.toString() });
+
+    res.json({ exists: !!exists });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

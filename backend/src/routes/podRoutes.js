@@ -2,21 +2,20 @@
 // Time: 0.5 hours
 
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const Pod = require("../models/Pod");
 const Location = require("../models/Location");
+const User = require("../models/User");
 
 // GET /pods → 200
 // GET all pods
 router.get("/all", async (req, res) => {
   try {
     // Fetch all pods from the database
-    const pods = await Pod.find()
-      .populate({
-        path: "members.user",
-        select: "name email gender createdAt"
-      })
-      .populate("location");
+    // TODO: FOR NOW, DON'T POPULATE LOCATION
+    // TODO: THIS DOESN'T POPULATE MEMBERS.USER.
+    const pods = await Pod.find().populate("members").populate("location");
 
     // If no pods are found, return an empty array
     if (!pods || pods.length === 0) {
@@ -26,64 +25,6 @@ router.get("/all", async (req, res) => {
     // Return the list of all pods
     res.status(200).json(pods);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// POST /pods → 201
-// Create a new pod
-// POST /pods → 201
-router.post("/", async (req, res) => {
-  try {
-    const {
-      pickup_time,
-      locationId,
-      userId,
-      num_big_luggage,
-      num_small_luggage,
-    } = req.body;
-
-    if (!pickup_time || !locationId || !userId) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Make sure location exists
-    const location = await Location.findById(locationId);
-    if (!location) {
-      return res.status(400).json({ error: "Location not found" });
-    }
-    const newPod = new Pod({
-      pickup_time,
-      location: location._id,
-      num_members: 1,
-      members: [{ user: userId, status: "accepted" }],
-      num_big_luggage: num_big_luggage || 0,
-      num_small_luggage: num_small_luggage || 0,
-      locked: false,
-    });
-
-    await newPod.save();
-    res.status(201).json(newPod);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /pods/:id → 200
-// GET details about a specific pod
-router.get("/:id", async (req, res) => {
-  try {
-    const pod = await Pod.findById(req.params.id)
-      .populate({
-        path: "members.user",
-        select: "name email gender createdAt"
-      })
-      .populate("location");
-    if (!pod) return res.status(404).json({ error: "Pod not found" });
-    res.status(200).json(pod);
-  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
@@ -92,25 +33,42 @@ router.get("/:id", async (req, res) => {
 // POST join a pod
 router.post("/:id/join", async (req, res) => {
   try {
-    const pod = await Pod.findById(req.param.id);
-    if (!pod) return res.status(404).json({ error: "Pod not found" });
-    if (pod.locked) return res.status(403).json({ error: "Pod is locked" });
+    const pod = await Pod.findById(req.params.id).populate("members.user");
+
+    if (!pod) {
+      return res.status(404).json({ error: "Pod not found" });
+    }
+    if (pod.locked) {
+      return res.status(403).json({ error: "Pod is locked" });
+    }
 
     const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: "Missing userId" });
+    const user = await User.findOne({ firebaseUid: userId });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
 
     const alreadyMember = pod.members.some(
-      (member) => member.user.toString() === userId
+      (member) => member.firebaseUid && member.firebaseUid === userId
     );
-
     if (!alreadyMember) {
-      pod.members.push({ user: userId, status: "pending" });
+      // pod.members.push({ user: userId, status: "pending" });
+      // const newMember = { user: userId, status: "pending" };
+      // pod.members.push(newMember);
+      pod.members.push({
+        user: user._id,
+        status: "pending",
+      });
       pod.num_members = pod.members.length;
+      await pod.validate();
       await pod.save();
     }
 
     res.status(200).json({ message: "Join request sent" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -125,13 +83,34 @@ router.post("/:id/leave", async (req, res) => {
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: "Missing userId" });
 
+    const user = await User.findOne({ firebaseUid: userId });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+
     pod.members = pod.members.filter(
-      (member) => member.user.toString() !== userId
+      (member) => member.user.toString() !== user._id.toString()
     );
     pod.num_members = pod.members.length;
     await pod.save();
 
     res.status(200).json({ message: "Left pod" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /pods/:id → 200
+// GET details about a specific pod
+router.get("/:id", async (req, res) => {
+  try {
+    const pod = await Pod.findById(req.params.id)
+      .populate("members")
+      .populate("location");
+    if (!pod) return res.status(404).json({ error: "Pod not found" });
+    res.status(200).json(pod);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -172,9 +151,20 @@ router.patch("/:id", async (req, res) => {
 // GET pods for a specific user
 router.get("/user/:userId", async (req, res) => {
   try {
-    const pods = await Pod.find({ "members.user": req.params.userId }).populate(
-      "location"
-    );
+    const userId = req.params.userId;
+
+    // FIND USER
+    const user = await User.findOne({ firebaseUid: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+    const pods = await Pod.find({ "members.user": user._id })
+      .populate("location")
+      .populate("members.user");
+
     res.status(200).json(pods);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -203,6 +193,46 @@ router.patch("/:podId/members/:userId", async (req, res) => {
 
     res.status(200).json({ message: `User ${status}` });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /pods → 201
+// Create a new pod
+// POST /pods → 201
+router.post("/", async (req, res) => {
+  try {
+    const {
+      pickup_time,
+      locationId,
+      userId,
+      num_big_luggage,
+      num_small_luggage,
+    } = req.body;
+
+    if (!pickup_time || !locationId || !userId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Make sure location exists
+    const location = await Location.findById(locationId);
+    if (!location) {
+      return res.status(400).json({ error: "Location not found" });
+    }
+    const newPod = new Pod({
+      pickup_time,
+      location: location._id,
+      num_members: 1,
+      members: [{ user: userId, status: "accepted" }],
+      num_big_luggage: num_big_luggage || 0,
+      num_small_luggage: num_small_luggage || 0,
+      locked: false,
+    });
+
+    await newPod.save();
+    res.status(201).json(newPod);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
