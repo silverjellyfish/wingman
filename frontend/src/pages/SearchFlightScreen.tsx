@@ -56,7 +56,7 @@ export function FlightInputScreen({
       .split(",")
       .every(
         (v) =>
-          /^[A-Z]{3}$/.test(v.trim()) || /^\/m\/[a-zA-Z0-9_]+$/.test(v.trim())
+          /^[A-Z]{3}$/.test(v.trim()) || /^\/[mM]\/[a-zA-Z0-9_]+$/i.test(v.trim())
       );
   };
 
