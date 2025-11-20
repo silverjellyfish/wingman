@@ -2,39 +2,43 @@
 // Time: 1 hour
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FlightResultsScreen } from "./FlightResultsScreen";
-import type { Flight } from "@/mock/mockFlights.ts";
+import type { MappedFlight } from "@/types/index.ts";
 
 describe("FlightResultsScreen", () => {
    const mockNavigate = vi.fn();
-   const mockFlights: Flight[] = [
+   const mockMappedFlights: MappedFlight[] = [
       {
-         code: "WN123",
-         date: "2025-12-25",
-         from: "BNA",
-         to: "LAX",
-         boarding: "2:30 PM",
-         launch: "3:00 PM",
-         landing: "5:00 PM",
+         id: "WN123-0",
+         flightCode: "WN123",
+         dateRange: "2025-12-25",
+         route: "BNA → LAX",
+         airports: "BNA - LAX",
+         boardingTime: "2:30 PM",
+         departureTime: "3:00 PM",
+         arrivalTime: "5:00 PM",
       },
       {
-         code: "WN456",
-         date: "2025-12-25",
-         from: "ORD",
-         to: "JFK",
-         boarding: "10:00 AM",
-         launch: "10:30 AM",
-         landing: "1:00 PM",
+         id: "WN456-0",
+         flightCode: "WN456",
+         dateRange: "2025-12-25",
+         route: "ORD → JFK",
+         airports: "ORD - JFK",
+         boardingTime: "10:00 AM",
+         departureTime: "10:30 AM",
+         arrivalTime: "1:00 PM",
       },
    ];
 
    const defaultProps = {
       onNavigate: mockNavigate,
-      flights: mockFlights,
       planeCode: "WN123",
       date: "2025-12-25",
+      payload: {
+         flights: mockMappedFlights.filter(f => f.flightCode === "WN123"),
+      },
    };
 
    beforeEach(() => {
@@ -71,8 +75,12 @@ describe("FlightResultsScreen", () => {
 
       it("shows no flights message when no matches found", () => {
          const props = {
-            ...defaultProps,
+            onNavigate: mockNavigate,
             planeCode: "AA999",
+            date: "2025-12-25",
+            payload: {
+               flights: [],
+            },
          };
 
          render(<FlightResultsScreen {...props} />);
@@ -82,30 +90,34 @@ describe("FlightResultsScreen", () => {
       });
 
       it("filters correctly when multiple flights match", () => {
-         const samePlaneFlights: Flight[] = [
+         const samePlaneFlights: MappedFlight[] = [
             {
-               code: "WN123",
-               date: "2025-12-25",
-               from: "BNA",
-               to: "LAX",
-               boarding: "2:30 PM",
-               launch: "3:00 PM",
-               landing: "5:00 PM",
+               id: "WN123-0",
+               flightCode: "WN123",
+               dateRange: "2025-12-25",
+               route: "BNA → LAX",
+               airports: "BNA - LAX",
+               boardingTime: "2:30 PM",
+               departureTime: "3:00 PM",
+               arrivalTime: "5:00 PM",
             },
             {
-               code: "WN123",
-               date: "2025-12-25",
-               from: "BNA",
-               to: "SFO",
-               boarding: "6:00 PM",
-               launch: "6:30 PM",
-               landing: "9:00 PM",
+               id: "WN123-1",
+               flightCode: "WN123",
+               dateRange: "2025-12-25",
+               route: "BNA → SFO",
+               airports: "BNA - SFO",
+               boardingTime: "6:00 PM",
+               departureTime: "6:30 PM",
+               arrivalTime: "9:00 PM",
             },
          ];
 
          const props = {
             ...defaultProps,
-            flights: samePlaneFlights,
+            payload: {
+               flights: samePlaneFlights,
+            },
          };
 
          render(<FlightResultsScreen {...props} />);
@@ -160,31 +172,43 @@ describe("FlightResultsScreen", () => {
       it("handles empty flights array", () => {
          const props = {
             ...defaultProps,
-            flights: [],
+            payload: {
+               flights: [],
+            },
          };
 
          render(<FlightResultsScreen {...props} />);
          expect(screen.getByText(/No flights found/i)).toBeInTheDocument();
       });
 
-      it("handles missing date", () => {
+      it("handles missing date", async () => {
          const props = {
             ...defaultProps,
             date: "",
+            payload: {
+               flights: [],
+            },
          };
 
          render(<FlightResultsScreen {...props} />);
-         expect(screen.getByText(/No flights found/i)).toBeInTheDocument();
+         await waitFor(() => {
+            expect(screen.getByText(/No flights found/i)).toBeInTheDocument();
+         }, { timeout: 2000 });
       });
 
-      it("handles missing plane code", () => {
+      it("handles missing plane code", async () => {
          const props = {
             ...defaultProps,
             planeCode: "",
+            payload: {
+               flights: [],
+            },
          };
 
          render(<FlightResultsScreen {...props} />);
-         expect(screen.getByText(/No flights found/i)).toBeInTheDocument();
+         await waitFor(() => {
+            expect(screen.getByText(/No flights found/i)).toBeInTheDocument();
+         }, { timeout: 2000 });
       });
    });
 });

@@ -99,6 +99,21 @@ describe("TripScreen", () => {
          const locationLabels = screen.getAllByText(/Location:/i);
          expect(locationLabels.length).toBeGreaterThan(0);
       });
+
+      it("switches back to upcoming trips from past trips", async () => {
+         const user = userEvent.setup();
+         render(<TripScreen onNavigate={mockNavigate} />);
+
+         // Switch to past trips
+         await user.click(screen.getByText("Past Trips"));
+         expect(screen.getAllByText(/Location:/i).length).toBeGreaterThan(0);
+
+         // Switch back to upcoming trips
+         await user.click(screen.getByText("Upcoming"));
+
+         // Should show upcoming trip
+         expect(screen.getByText(/AA1234/i)).toBeInTheDocument();
+      });
    });
 
    describe("Empty State", () => {

@@ -171,6 +171,42 @@ describe("ProfileScreen", () => {
          }
       });
 
+      it("formats phone number with 3-6 digits (partial)", async () => {
+         const user = userEvent.setup();
+         render(<ProfileScreen onNavigate={mockNavigate} />);
+
+         await waitFor(() => screen.getByText("edit"));
+         await user.click(screen.getByText("edit"));
+
+         const phoneInput = document.querySelector('input[type="tel"]');
+
+         if (phoneInput) {
+            fireEvent.change(phoneInput, { target: { value: "615555" } });
+
+            await waitFor(() => {
+               expect(phoneInput).toHaveValue("615-555");
+            });
+         }
+      });
+
+      it("formats phone number with less than 3 digits", async () => {
+         const user = userEvent.setup();
+         render(<ProfileScreen onNavigate={mockNavigate} />);
+
+         await waitFor(() => screen.getByText("edit"));
+         await user.click(screen.getByText("edit"));
+
+         const phoneInput = document.querySelector('input[type="tel"]');
+
+         if (phoneInput) {
+            fireEvent.change(phoneInput, { target: { value: "61" } });
+
+            await waitFor(() => {
+               expect(phoneInput).toHaveValue("61");
+            });
+         }
+      });
+
       it("limits phone number to 10 digits", async () => {
          const user = userEvent.setup();
          render(<ProfileScreen onNavigate={mockNavigate} />);
@@ -204,6 +240,21 @@ describe("ProfileScreen", () => {
 
          await waitFor(() => {
             expect(ageInput).toHaveValue("30");
+         });
+      });
+
+      it("allows empty age input", async () => {
+         const user = userEvent.setup();
+         render(<ProfileScreen onNavigate={mockNavigate} />);
+
+         await waitFor(() => screen.getByText("edit"));
+         await user.click(screen.getByText("edit"));
+
+         const ageInput = screen.getByDisplayValue("25");
+         fireEvent.change(ageInput, { target: { value: "" } });
+
+         await waitFor(() => {
+            expect(ageInput).toHaveValue("");
          });
       });
 

@@ -71,7 +71,7 @@ describe("PodListScreen", () => {
    });
 
    describe("Initial Rendering", () => {
-      it("renders the back button", () => {
+      it("renders the back button", async () => {
          (global.fetch as any).mockResolvedValueOnce({
             ok: true,
             json: async () => [],
@@ -79,10 +79,12 @@ describe("PodListScreen", () => {
          render(
             <PodListScreen onNavigate={mockNavigate} payload={mockPayload} />
          );
-         expect(screen.getByText("Back")).toBeInTheDocument();
+         await waitFor(() => {
+            expect(screen.getByText("Back")).toBeInTheDocument();
+         });
       });
 
-      it("renders flight information card", () => {
+      it("renders flight information card", async () => {
          (global.fetch as any).mockResolvedValueOnce({
             ok: true,
             json: async () => [],
@@ -90,10 +92,12 @@ describe("PodListScreen", () => {
          render(
             <PodListScreen onNavigate={mockNavigate} payload={mockPayload} />
          );
-         expect(screen.getByText(/BNA → LAX/i)).toBeInTheDocument();
+         await waitFor(() => {
+            expect(screen.getByText(/BNA → LAX/i)).toBeInTheDocument();
+         });
       });
 
-      it("renders create pod button", () => {
+      it("renders create pod button", async () => {
          (global.fetch as any).mockResolvedValueOnce({
             ok: true,
             json: async () => [],
@@ -101,10 +105,12 @@ describe("PodListScreen", () => {
          render(
             <PodListScreen onNavigate={mockNavigate} payload={mockPayload} />
          );
-         expect(screen.getByText("Create Pod")).toBeInTheDocument();
+         await waitFor(() => {
+            expect(screen.getByText("Create Pod")).toBeInTheDocument();
+         });
       });
 
-      it("renders groups section title", () => {
+      it("renders groups section title", async () => {
          (global.fetch as any).mockResolvedValueOnce({
             ok: true,
             json: async () => [],
@@ -112,7 +118,9 @@ describe("PodListScreen", () => {
          render(
             <PodListScreen onNavigate={mockNavigate} payload={mockPayload} />
          );
-         expect(screen.getByText("Groups")).toBeInTheDocument();
+         await waitFor(() => {
+            expect(screen.getByText("Groups")).toBeInTheDocument();
+         });
       });
    });
 
@@ -126,6 +134,10 @@ describe("PodListScreen", () => {
          render(
             <PodListScreen onNavigate={mockNavigate} payload={mockPayload} />
          );
+
+         await waitFor(() => {
+            expect(screen.getByText("Back")).toBeInTheDocument();
+         });
 
          await user.click(screen.getByText("Back"));
 
@@ -141,6 +153,10 @@ describe("PodListScreen", () => {
          render(
             <PodListScreen onNavigate={mockNavigate} payload={mockPayload} />
          );
+
+         await waitFor(() => {
+            expect(screen.getByText("Create Pod")).toBeInTheDocument();
+         });
 
          await user.click(screen.getByText("Create Pod"));
 
