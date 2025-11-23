@@ -10,23 +10,17 @@ const podSchema = new mongoose.Schema(
   {
     pickup_time: { type: Date, required: true },
 
-    location: {
+    pickup_location: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Location",
       required: true,
     },
 
-    // TODO: ADD THESE TO SCHEMA LATER
-    // pickup_location: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "Location",
-    //   required: true,
-    // },
-    // dropoff_location: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "Airport",
-    //   required: true,
-    // },
+    dropoff_location: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Airport",
+      required: true,
+    },
 
     num_members: { type: Number, default: 0 },
     members: [
@@ -41,9 +35,12 @@ const podSchema = new mongoose.Schema(
           enum: ["pending", "accepted", "rejected"],
           default: "pending",
         },
+        flightCode: { type: String, required: true },
+        flightDate: { type: Date, required: true },
+        origin: { type: String },
+        destination: { type: String },
       },
     ],
-    // TODO: Change this to be num_big_luggage_leftover?
     num_big_luggage: { type: Number, default: 0 },
     num_small_luggage: { type: Number, default: 0 },
     locked: { type: Boolean, default: false },

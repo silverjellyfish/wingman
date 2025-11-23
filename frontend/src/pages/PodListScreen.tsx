@@ -92,16 +92,42 @@ export function PodListScreen({
     }
     setJoinedPods((prev) => new Set(prev).add(podId));
 
+    // --- NEW: Extract required flight details for the current user ---
+    const flightCode = flight.code;
+    const flightDate = flight.date;
+    const origin = flight.from;
+    const destination = flight.to;
+
+    if (!flightCode || !flightDate || !destination) {
+      toast.error("Missing flight details required to join pod.");
+      setJoinedPods((prev) => {
+        const next = new Set(prev);
+        next.delete(podId);
+        return next;
+      });
+      return;
+    }
+    // -----------------------------------------------------------------
+
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/pods/${podId}/join`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: user.id }),
+          body: JSON.stringify({
+            userId: user.id, // Firebase UID
+            // --- NEW: Send flight details for the joining member ---
+            flightCode: flightCode,
+            flightDate: flightDate,
+            origin: origin,
+            destination: destination,
+            // -------------------------------------------------------
+          }),
         }
       );
 
+      // ... (rest of joinPod function remains the same)
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || res.statusText);

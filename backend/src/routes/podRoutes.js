@@ -7,22 +7,21 @@ const router = express.Router();
 const Pod = require("../models/Pod");
 const Location = require("../models/Location");
 const User = require("../models/User");
+const Airport = require("../models/Airport");
 
 // GET /pods → 200
 // GET all pods
 router.get("/all", async (req, res) => {
   try {
-    // Fetch all pods from the database
-    // TODO: FOR NOW, DON'T POPULATE LOCATION
-    // TODO: THIS DOESN'T POPULATE MEMBERS.USER.
-    const pods = await Pod.find().populate("members").populate("location");
+    const pods = await Pod.find()
+      .populate("members.user")
+      .populate("pickup_location")
+      .populate("dropoff_location", "name");
 
-    // If no pods are found, return an empty array
     if (!pods || pods.length === 0) {
-      return res.status(404).json({ error: "No pods found" });
+      return res.status(200).json([]);
     }
 
-    // Return the list of all pods
     res.status(200).json(pods);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -153,7 +152,6 @@ router.get("/user/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    // FIND USER
     const user = await User.findOne({ firebaseUid: userId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -161,8 +159,10 @@ router.get("/user/:userId", async (req, res) => {
     if (!userId) {
       return res.status(400).json({ error: "Missing userId" });
     }
+
     const pods = await Pod.find({ "members.user": user._id })
-      .populate("location")
+      .populate("pickup_location")
+      .populate("dropoff_location", "name")
       .populate("members.user");
 
     res.status(200).json(pods);
@@ -204,26 +204,55 @@ router.post("/", async (req, res) => {
   try {
     const {
       pickup_time,
-      locationId,
+      pickupLocationId,
+      dropoffLocationId,
       userId,
       num_big_luggage,
       num_small_luggage,
+      flightCode,
+      flightDate,
+      origin,
+      destination,
     } = req.body;
 
-    if (!pickup_time || !locationId || !userId) {
+    if (
+      !pickup_time ||
+      !pickupLocationId ||
+      !dropoffLocationId ||
+      !userId ||
+      !flightCode ||
+      !flightDate
+    ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Make sure location exists
-    const location = await Location.findById(locationId);
-    if (!location) {
-      return res.status(400).json({ error: "Location not found" });
+    // Check if pickup location exists (Location model)
+    const pickupLocation = await Location.findById(pickupLocationId);
+    if (!pickupLocation) {
+      return res.status(400).json({ error: "Pickup Location not found" });
     }
+
+    // Check if dropoff location exists (Airport model)
+    const dropoffLocation = await Airport.findById(dropoffLocationId); // <-- Check Airport model
+    if (!dropoffLocation) {
+      return res.status(400).json({ error: "Dropoff Airport not found" });
+    }
+
     const newPod = new Pod({
       pickup_time,
-      location: location._id,
+      pickup_location: pickupLocation._id,
+      dropoff_location: dropoffLocation._id,
       num_members: 1,
-      members: [{ user: userId, status: "accepted" }],
+      members: [
+        {
+          user: userId,
+          status: "accepted",
+          flightCode,
+          flightDate,
+          origin: origin || "N/A",
+          destination: destination || "N/A",
+        },
+      ],
       num_big_luggage: num_big_luggage || 0,
       num_small_luggage: num_small_luggage || 0,
       locked: false,

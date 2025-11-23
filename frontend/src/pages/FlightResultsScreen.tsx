@@ -105,16 +105,73 @@ export function FlightResultsScreen({
   const handleExpand = (flightId: string) => {
     setExpandedFlightId(expandedFlightId === flightId ? null : flightId);
   };
+  const ensureAirportExists = async (
+    airportCode: string,
+    airportName: string
+  ) => {
+    // NOTE: This assumes airportName is the full name, but since the flight data
+    // often only provides the code (e.g., 'BNA'), we'll use the code for both
+    // code and name if needed, or pass more data if available in the flight API.
 
-  const handleSelect = (f: MappedFlight) => {
+    // For now, let's derive the full name from the mapped route if necessary.
+    // The f.route split below will provide 'from' and 'to' which are codes/names.
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/airports/ensure`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: airportCode,
+            name: airportName, // We are posting a unique name/code pair
+            // For simplicity, we omit city/country/address, letting the backend use "Unknown"
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to ensure airport existence.");
+      }
+
+      const airport = await response.json();
+      return airport._id; // Return the MongoDB ID of the airport
+    } catch (error) {
+      console.error("Error saving airport:", error);
+      throw new Error(`Could not find or create airport: ${airportName}`);
+    }
+  };
+
+  const handleSelect = async (f: MappedFlight) => {
+    // <-- Made async
+    const originAirportName = f.route.split(" → ")[0];
+    const destinationAirportName = f.route.split(" → ")[1];
+
+    // 1. ENSURE DROP-OFF AIRPORT EXISTS
+    let dropoffAirportId = "";
+    try {
+      // Use the destination name/code to find/create the airport.
+      // Assuming destinationAirportName is the unique airport code (e.g., BNA)
+      dropoffAirportId = await ensureAirportExists(
+        destinationAirportName,
+        destinationAirportName // Use name for now, improve later if full name is available
+      );
+    } catch (err) {
+      // Stop navigation and show error if airport cannot be ensured
+      console.error(err);
+      return;
+    }
+
     const mappedFlight = {
       code: f.flightCode,
-      from: f.route.split(" → ")[0],
-      to: f.route.split(" → ")[1],
+      from: originAirportName,
+      to: destinationAirportName,
       boarding: f.boardingTime,
       launch: f.departureTime,
       landing: f.arrivalTime,
       date: f.dateRange,
+      // 2. ADD THE AIRPORT ID TO THE PAYLOAD
+      dropoffAirportId: dropoffAirportId,
     };
 
     onNavigate("flightPreferences", planeCode, date, {

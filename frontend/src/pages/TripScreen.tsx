@@ -30,10 +30,19 @@ interface PodLocation {
 interface PodApiData {
   _id: string;
   pickup_time: string;
-  location: PodLocation;
+
+  // --- FIX: REPLACE 'location' with the new fields ---
+  pickup_location: PodLocation;
+  dropoff_location: PodLocation;
+  // ---------------------------------------------------
+
   members: {
     user: PodMemberUser;
     status: "pending" | "accepted" | "rejected";
+    flightCode: string;
+    flightDate: string;
+    origin: string;
+    destination: string;
   }[];
   num_big_luggage: number;
   num_small_luggage: number;
@@ -113,42 +122,57 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
         }
         const pods: PodApiData[] = await res.json();
         console.log("Fetched pods:", pods);
+
         const tripsData: Trip[] = pods.map((pod) => {
           const pickupDate = new Date(pod.pickup_time);
           const { time: pickupTimeFormatted, date: pickupDateFormatted } =
             formatTripDateTime(pod.pickup_time);
 
-          // Transform members into GroupMember[]
-          // TODO: DID A TEMP FIX, INDEX SHOULDNT JUST BE A NUMBER
+          // ... (Find currentUserMember logic remains the same)
+          const currentUserMember = pod.members.find(
+            (m) => m.user.id === user.id
+          );
+          // ... (member flight detail extraction remains the same)
+          const memberFlightCode = currentUserMember?.flightCode || "N/A";
+          const memberOrigin = currentUserMember?.origin || "N/A";
+          const memberDestination =
+            currentUserMember?.destination ||
+            pod.dropoff_location.name ||
+            "N/A";
+          const memberFlightDate =
+            currentUserMember?.flightDate || pickupDateFormatted;
+
+          // ... (listPeopleIds mapping remains the same)
           const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => ({
+            // <-- Definition
             firebaseUid: m.user.id,
             id: idx,
             name: m.user.name,
             phoneNumber: m.user.phone || "",
           }));
-
           const transformedPod: TripPod = {
             id: pod._id,
             numPeople: pod.members.length,
-            listPeopleIds,
+            // --- FIX: Use explicit property assignment ---
+            listPeopleIds: listPeopleIds,
+            // ---------------------------------------------
             pickupTime: pod.pickup_time,
-            location: pod.location.name,
-            dropoffLocation: "Airport Terminal",
+            location: pod.pickup_location.name,
+            dropoffLocation: pod.dropoff_location.name,
             numBigLuggage: pod.num_big_luggage,
             numSmallLuggage: pod.num_small_luggage,
           };
 
           const flight: Flight = {
             id: pod._id,
-            flightCode: "UA 1331",
-            // Use formatted date string
-            dateRange: pickupDateFormatted,
-            route: pod.location.name,
-            airports: pod.location.name,
+            flightCode: memberFlightCode,
+            dateRange: memberFlightDate,
+            route: `${memberOrigin} → ${memberDestination}`,
+            airports: `${memberOrigin} - ${memberDestination}`,
             boardingTime: pickupTimeFormatted,
             departureTime: pickupTimeFormatted,
             arrivalTime: pickupTimeFormatted,
-            destination: pod.location.name,
+            destination: memberDestination,
           };
 
           return { flight, pod: transformedPod };
