@@ -137,7 +137,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
       if (res.ok) {
         const pod = await res.json();
         toast.success("Pod created successfully!");
-        onNavigate("rideWithGroup", flight);
+        onNavigate("trip", { flight, pod });
       } else {
         const error = await res.json();
         toast.error(`Failed to create pod: ${error.error || "Unknown error"}`);

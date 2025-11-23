@@ -103,6 +103,7 @@ export function PodListScreen({
       }
 
       toast.success("Successfully joined the pod!");
+      onNavigate("trip");
     } catch (err) {
       console.error("Error joining pod:", err);
       toast.error("Failed to join pod");
