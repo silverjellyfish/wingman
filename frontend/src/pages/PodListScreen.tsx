@@ -59,10 +59,6 @@ export function PodListScreen({
   const [podToJoin, setPodToJoin] = useState<Pod | null>(null);
   const [existingPod, setExistingPod] = useState<Pod | null>(null);
 
-  // Regex to split time strings
-  const charToSplit = [":", " "];
-  const regex = new RegExp(`[${charToSplit.join("")}]`, "g");
-
   /* Handles leaving an existing pod */
   const handleLeavePod = async (podId: string) => {
     if (!user) {
@@ -286,7 +282,7 @@ export function PodListScreen({
           <DialogContent className="bg-[#1f1f23] text-white rounded-[16px] border-accent border-[2px] w-[90%] max-w-[400px]">
             <DialogHeader>
               <DialogTitle className="mt-[1rem]">
-                Replace Existing Pod? 🤔
+                Replace Existing Pod?
               </DialogTitle>
               <DialogDescription className="text-zinc-400">
                 You are already a member of a pod for this trip, with pickup at
