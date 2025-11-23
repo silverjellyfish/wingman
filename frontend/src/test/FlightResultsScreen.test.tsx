@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { FlightResultsScreen } from "./FlightResultsScreen";
+import { FlightResultsScreen } from "../pages/FlightResultsScreen";
 import type { MappedFlight } from "@/types/index.ts";
 
 describe("FlightResultsScreen", () => {

@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ProfileScreen } from "./ProfileScreen";
+import { ProfileScreen } from "../pages/ProfileScreen";
 
 // Mock AuthContext
 const mockLogout = vi.fn();
