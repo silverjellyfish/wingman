@@ -1,10 +1,11 @@
 // Contributors: Vince
 // Time: 3.5 hours
+// brugh
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { CreatePodScreen } from "./CreatePodScreen";
+import { CreatePodScreen } from "../pages/CreatePodScreen";
 
 // Mock AuthContext
 vi.mock("@/contexts/AuthContext", () => ({

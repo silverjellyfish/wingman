@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { RidePreferencesScreen } from "./RidePreferencesScreen";
+import { RidePreferencesScreen } from "../pages/RidePreferencesScreen";
 import type { Flight } from "@/mock/mockFlights.ts";
 
 // Mock AuthContext

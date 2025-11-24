@@ -3,7 +3,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { LoadingScreen } from "./LoadingScreen";
+import { LoadingScreen } from "../pages/LoadingScreen";
 
 describe("LoadingScreen", () => {
    beforeEach(() => {
