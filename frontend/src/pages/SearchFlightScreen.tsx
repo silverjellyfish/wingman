@@ -47,7 +47,6 @@ export function FlightInputScreen({
   const [departureId, setDepartureId] = useState("");
   const [arrivalId, setArrivalId] = useState("");
 
-  // ---------- Validation Helpers ----------
   const isValidAirportOrKgmid = (value: string): boolean => {
     if (!value) {
       return false;
@@ -148,7 +147,6 @@ export function FlightInputScreen({
     setArrivalId("");
   };
 
-  // ---------- UI ----------
   return (
     <div className="flex flex-col h-full bg-[#16161b] text-white p-6">
       <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">

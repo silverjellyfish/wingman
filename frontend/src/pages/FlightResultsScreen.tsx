@@ -6,14 +6,18 @@ import type { Flight } from "@/hooks/useFlights.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { LoadingScreen } from "@/pages/LoadingScreen";
 
-// Interface for the complete payload this screen can receive
+/**
+ * Interface for flight results payload
+ */
 interface FlightResultsPayload {
   departureId?: string;
   arrivalId?: string;
   flights?: MappedFlight[];
 }
 
-// Interface for flight results screen props
+/**
+ * Props for FlightResultsScreen component
+ */
 interface FlightResultsScreenProps {
   onNavigate: (
     screen: Screen,
@@ -109,12 +113,6 @@ export function FlightResultsScreen({
     airportCode: string,
     airportName: string
   ) => {
-    // NOTE: This assumes airportName is the full name, but since the flight data
-    // often only provides the code (e.g., 'BNA'), we'll use the code for both
-    // code and name if needed, or pass more data if available in the flight API.
-
-    // For now, let's derive the full name from the mapped route if necessary.
-    // The f.route split below will provide 'from' and 'to' which are codes/names.
 
     try {
       const response = await fetch(
@@ -124,8 +122,7 @@ export function FlightResultsScreen({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             code: airportCode,
-            name: airportName, // We are posting a unique name/code pair
-            // For simplicity, we omit city/country/address, letting the backend use "Unknown"
+            name: airportName,
           }),
         }
       );
@@ -135,7 +132,7 @@ export function FlightResultsScreen({
       }
 
       const airport = await response.json();
-      return airport._id; // Return the MongoDB ID of the airport
+      return airport._id;
     } catch (error) {
       console.error("Error saving airport:", error);
       throw new Error(`Could not find or create airport: ${airportName}`);
@@ -143,21 +140,17 @@ export function FlightResultsScreen({
   };
 
   const handleSelect = async (f: MappedFlight) => {
-    // <-- Made async
     const originAirportName = f.route.split(" → ")[0];
     const destinationAirportName = f.route.split(" → ")[1];
 
     // 1. ENSURE DROP-OFF AIRPORT EXISTS
     let dropoffAirportId = "";
     try {
-      // Use the destination name/code to find/create the airport.
-      // Assuming destinationAirportName is the unique airport code (e.g., BNA)
       dropoffAirportId = await ensureAirportExists(
         destinationAirportName,
-        destinationAirportName // Use name for now, improve later if full name is available
+        destinationAirportName
       );
     } catch (err) {
-      // Stop navigation and show error if airport cannot be ensured
       console.error(err);
       return;
     }

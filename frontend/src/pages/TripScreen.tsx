@@ -32,10 +32,8 @@ interface PodApiData {
   _id: string;
   pickup_time: string;
 
-  // --- FIX: REPLACE 'location' with the new fields ---
   pickup_location: PodLocation;
   dropoff_location: PodLocation;
-  // ---------------------------------------------------
 
   members: {
     user: PodMemberUser;
@@ -94,9 +92,9 @@ const formatTripDateTime = (isoString: string) => {
     minute: "2-digit",
   });
   const formattedDate = date.toLocaleDateString([], {
-    month: "short", // e.g., Dec
-    day: "numeric", // e.g., 26
-    year: "numeric", // e.g., 2025
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
   return { time: formattedTime, date: formattedDate };
 };
@@ -128,11 +126,9 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           const { time: pickupTimeFormatted, date: pickupDateFormatted } =
             formatTripDateTime(pod.pickup_time);
 
-          // ... (Find currentUserMember logic remains the same)
           const currentUserMember = pod.members.find(
             (m) => m.user.firebaseUid === user.id
           );
-          // ... (member flight detail extraction remains the same)
           const memberFlightCode = currentUserMember?.flightCode || "N/A";
           const memberOrigin = currentUserMember?.origin || "N/A";
           const memberDestination =
@@ -142,9 +138,7 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           const memberFlightDate =
             currentUserMember?.flightDate || pickupDateFormatted;
 
-          // ... (listPeopleIds mapping remains the same)
           const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => ({
-            // <-- Definition
             firebaseUid: m.user.firebaseUid,
             id: idx,
             name: m.user.name,
@@ -153,9 +147,7 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           const transformedPod: TripPod = {
             id: pod._id,
             numPeople: pod.members.length,
-            // --- FIX: Use explicit property assignment ---
             listPeopleIds: listPeopleIds,
-            // ---------------------------------------------
             pickupTime: pod.pickup_time,
             location: pod.pickup_location.name,
             dropoffLocation: pod.dropoff_location.name,

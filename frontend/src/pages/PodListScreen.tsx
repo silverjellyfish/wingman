@@ -92,16 +92,16 @@ export function PodListScreen({
     }
     setJoinedPods((prev) => new Set(prev).add(podId));
 
-    // --- NEW: Extract required flight details for the current user ---
     const flightCode = flight.code;
     const flightDate = flight.date;
     const origin = flight.from;
     const destination = flight.to;
-    // CRITICAL: Include the dropoffAirportId which was likely set in the previous screen
     const dropoffAirportId = flight.dropoffAirportId;
 
     if (!flightCode || !flightDate || !destination || !dropoffAirportId) {
-      toast.error("Missing critical flight details required to join pod (Code, Date, or Airport ID).");
+      toast.error(
+        "Missing critical flight details required to join pod (Code, Date, or Airport ID)."
+      );
       setJoinedPods((prev) => {
         const next = new Set(prev);
         next.delete(podId);
@@ -109,7 +109,6 @@ export function PodListScreen({
       });
       return;
     }
-    // -----------------------------------------------------------------
 
     try {
       const res = await fetch(
@@ -118,20 +117,16 @@ export function PodListScreen({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userId: user.id, // Firebase UID
-            // --- Ensure all member fields required by the Mongoose schema are present ---
+            userId: user.id,
             flightCode: flightCode,
             flightDate: flightDate,
             origin: origin,
             destination: destination,
-            // Include the MongoDB ID for the arrival airport
-            dropoffAirportId: dropoffAirportId, 
-            // -----------------------------------------------------------------------
+            dropoffAirportId: dropoffAirportId,
           }),
         }
       );
 
-      // ... (rest of joinPod function remains the same)
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || res.statusText);
@@ -169,13 +164,11 @@ export function PodListScreen({
     const targetPod = pods.find((p) => p._id === podId);
     if (!targetPod) return;
 
-    // Check if the user is already in any *other* pod for the same flight
     const userCurrentPod = pods.find((p) =>
       p.members.some((m) => m.user._id === mongoId)
     );
 
     if (userCurrentPod && userCurrentPod._id !== podId) {
-      // User is already in a different pod, trigger the replacement confirmation flow
       setExistingPod(userCurrentPod);
       setPodToJoin(targetPod);
       setShowConfirmDialog(true);
@@ -260,7 +253,6 @@ export function PodListScreen({
     isUserIdLoading,
   ]);
 
-  // --- Data Transformation (unchanged) ---
   const selectedFlight = flight?.code
     ? {
         id: "selected-flight",
@@ -334,7 +326,7 @@ export function PodListScreen({
               </Button>
               <Button
                 variant="destructive"
-                className="w-full bg-accent hover:bg-accent/80 text-primary-foreground" // Using a distinct color for the confirm action
+                className="w-full bg-accent hover:bg-accent/80 text-primary-foreground"
                 onClick={handleReplacePod}
               >
                 Replace Pod
@@ -343,7 +335,6 @@ export function PodListScreen({
           </DialogContent>
         </Dialog>
       )}
-      {/* --------------------------- */}
 
       {loading || isUserIdLoading ? (
         <div className="flex flex-col items-center justify-center h-full text-white px-6">

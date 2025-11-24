@@ -1,4 +1,3 @@
-
 export interface MetaData {
   _id: string;
 }

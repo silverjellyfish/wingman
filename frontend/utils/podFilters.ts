@@ -1,5 +1,4 @@
-// utils/podFilters.ts
-// Contributors: Samantha, Michelle
+// Contributors: Michelle
 
 import type { Pod } from "../src/types/pod_types.ts";
 
@@ -32,6 +31,8 @@ function convertToMilitaryTime(timeStr: string): string {
 /**
  * Creates a filter function to check if a Pod matches all user's search criteria.
  * (This internal function is kept to keep the filtering logic clean.)
+ * @param filterParams Object containing all necessary user search and flight preferences.
+ * @returns A function that takes a Pod and returns true if it matches the criteria.
  */
 const createInternalPodFilter = ({
   flightDate,
@@ -65,7 +66,6 @@ const createInternalPodFilter = ({
     const latest = new Date(podTime);
     latest.setHours(latestHour, latestMin, 0, 0);
 
-    // Handle time windows that wrap around midnight (e.g., 10 PM to 2 AM)
     if (latest <= earliest) {
       latest.setDate(latest.getDate() + 1);
     }
