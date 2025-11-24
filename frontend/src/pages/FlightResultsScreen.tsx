@@ -6,14 +6,18 @@ import type { Flight } from "@/hooks/useFlights.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { LoadingScreen } from "@/pages/LoadingScreen";
 
-// Interface for the complete payload this screen can receive
+/**
+ * Interface for flight results payload
+ */
 interface FlightResultsPayload {
   departureId?: string;
   arrivalId?: string;
   flights?: MappedFlight[];
 }
 
-// Interface for flight results screen props
+/**
+ * Props for FlightResultsScreen component
+ */
 interface FlightResultsScreenProps {
   onNavigate: (
     screen: Screen,
@@ -105,16 +109,62 @@ export function FlightResultsScreen({
   const handleExpand = (flightId: string) => {
     setExpandedFlightId(expandedFlightId === flightId ? null : flightId);
   };
+  const ensureAirportExists = async (
+    airportCode: string,
+    airportName: string
+  ) => {
 
-  const handleSelect = (f: MappedFlight) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/airports/ensure`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: airportCode,
+            name: airportName,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to ensure airport existence.");
+      }
+
+      const airport = await response.json();
+      return airport._id;
+    } catch (error) {
+      console.error("Error saving airport:", error);
+      throw new Error(`Could not find or create airport: ${airportName}`);
+    }
+  };
+
+  const handleSelect = async (f: MappedFlight) => {
+    const originAirportName = f.route.split(" → ")[0];
+    const destinationAirportName = f.route.split(" → ")[1];
+
+    // 1. ENSURE DROP-OFF AIRPORT EXISTS
+    let dropoffAirportId = "";
+    try {
+      dropoffAirportId = await ensureAirportExists(
+        destinationAirportName,
+        destinationAirportName
+      );
+    } catch (err) {
+      console.error(err);
+      return;
+    }
+
     const mappedFlight = {
       code: f.flightCode,
-      from: f.route.split(" → ")[0],
-      to: f.route.split(" → ")[1],
+      from: originAirportName,
+      to: destinationAirportName,
       boarding: f.boardingTime,
       launch: f.departureTime,
       landing: f.arrivalTime,
       date: f.dateRange,
+      // 2. ADD THE AIRPORT ID TO THE PAYLOAD
+      dropoffAirportId: dropoffAirportId,
     };
 
     onNavigate("flightPreferences", planeCode, date, {

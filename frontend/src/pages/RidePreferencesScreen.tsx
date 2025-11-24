@@ -12,7 +12,6 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip.tsx";
 import { useAuth } from "@/contexts/AuthContext";
-import type { Flight as MockFlight } from "@/mock/mockFlights.ts";
 import type { Screen, MappedFlight } from "@/types/index.ts";
 import { LOCATIONS } from "@/constants/locations";
 
@@ -26,7 +25,7 @@ interface Flight {
   landing: string;
   airlineLogo?: string;
 }
-// Update the props interface to include the flights list
+
 interface RidePreferencesScreenProps {
   onNavigate: (
     screen: Screen,

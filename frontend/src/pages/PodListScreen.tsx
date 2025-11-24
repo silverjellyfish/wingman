@@ -1,5 +1,5 @@
 // Contributors: Michelle
-// Time: 2 hours
+// Time: 3 hours
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,50 +7,27 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FlightResultCard } from "@/components/FlightResultCard";
 import { GroupOptionCard } from "@/components/GroupOptionCard";
 import { toast } from "sonner";
-import type { NonUndefined } from "react-hook-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import type { Pod, User } from "@/types/pod_types.ts";
+import { filterPods } from "@/../utils/podFilters.ts";
 
-// TODO: WHEN USER ALEADY JOINED POD
-// TODO: Consolidate these interfaces. Will be deleted later.
 interface PodListScreenProps {
   onNavigate: (...args: any[]) => void;
   payload?: any;
 }
 
-interface User {
-  _id: string;
-  user: string;
-  email: string;
-  name: string;
-  createdAt: string;
-  gender?: string;
-}
-
-interface Pod {
-  _id: string;
-  num_members: number;
-  members: User[];
-  pickup_time: string;
-  location: {
-    _id: string;
-    name: string;
-    address: string;
-    type: "airport" | "university" | "hotel" | "landmark";
-  };
-  num_big_luggage: number;
-  num_small_luggage: number;
-  created_at: string;
-  updated_at: string;
-}
-
+/* Converts time string like "2:30 PM" to "14:30" */
 function convertToMilitaryTime(timeStr: string): string {
-  // Create a Date object. The specific date doesn't matter,
-  // we just need it to parse the time string.
   const d = new Date(`2025/10/28 ${timeStr}`);
-
-  // Extract the hours and minutes in 24-hour format
   const hours = d.getHours().toString().padStart(2, "0");
   const minutes = d.getMinutes().toString().padStart(2, "0");
-
   return `${hours}:${minutes}`;
 }
 
@@ -70,22 +47,68 @@ export function PodListScreen({
   } = payload;
 
   const [pods, setPods] = useState<Pod[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
-  const [mongoId, setMongoId] = useState<string | null>(null);
-  const [isUserIdLoading, setIsUserIdLoading] = useState(true);
-
   const [joinedPods, setJoinedPods] = useState<Set<string>>(new Set());
 
-  const charToSplit = [":", " "];
-  const regex = new RegExp(`[${charToSplit.join("")}]`, "g");
+  const { user } = useAuth();
+  const [mongoId, setMongoId] = useState<string | null>(null);
 
-  const handleAccept = async (podId: string) => {
-    if (!user) return;
+  const [loading, setLoading] = useState(true);
+  const [isUserIdLoading, setIsUserIdLoading] = useState(true);
 
-    // Optimistic UI update
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [podToJoin, setPodToJoin] = useState<Pod | null>(null);
+  const [existingPod, setExistingPod] = useState<Pod | null>(null);
+
+  /* Handles leaving an existing pod */
+  const handleLeavePod = async (podId: string) => {
+    if (!user) {
+      return false;
+    }
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/pods/${podId}/leave`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id }),
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || res.statusText);
+      }
+      return true;
+    } catch (err) {
+      console.error("Error leaving pod:", err);
+      toast.error("Failed to leave the existing pod.");
+      return false;
+    }
+  };
+
+  /* Handles joining a new pod */
+  const joinPod = async (podId: string) => {
+    if (!user) {
+      return;
+    }
     setJoinedPods((prev) => new Set(prev).add(podId));
+
+    const flightCode = flight.code;
+    const flightDate = flight.date;
+    const origin = flight.from;
+    const destination = flight.to;
+    const dropoffAirportId = flight.dropoffAirportId;
+
+    if (!flightCode || !flightDate || !destination || !dropoffAirportId) {
+      toast.error(
+        "Missing critical flight details required to join pod (Code, Date, or Airport ID)."
+      );
+      setJoinedPods((prev) => {
+        const next = new Set(prev);
+        next.delete(podId);
+        return next;
+      });
+      return;
+    }
 
     try {
       const res = await fetch(
@@ -93,7 +116,14 @@ export function PodListScreen({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: user.id }),
+          body: JSON.stringify({
+            userId: user.id,
+            flightCode: flightCode,
+            flightDate: flightDate,
+            origin: origin,
+            destination: destination,
+            dropoffAirportId: dropoffAirportId,
+          }),
         }
       );
 
@@ -102,12 +132,11 @@ export function PodListScreen({
         throw new Error(errorData.error || res.statusText);
       }
 
-      toast.success("Successfully joined the pod!");
+      toast.success("Successfully joined the new pod!");
+      onNavigate("trip");
     } catch (err) {
       console.error("Error joining pod:", err);
       toast.error("Failed to join pod");
-
-      // Rollback if error
       setJoinedPods((prev) => {
         const next = new Set(prev);
         next.delete(podId);
@@ -116,6 +145,39 @@ export function PodListScreen({
     }
   };
 
+  /* Handles replacing existing pod with new pod */
+  const handleReplacePod = async () => {
+    if (!podToJoin || !existingPod) return;
+
+    setShowConfirmDialog(false);
+    const successfullyLeft = await handleLeavePod(existingPod._id);
+
+    if (successfullyLeft) {
+      await joinPod(podToJoin._id);
+    }
+  };
+
+  /* Handles accepting to join a pod */
+  const handleAccept = async (podId: string) => {
+    if (!mongoId || !user) return;
+
+    const targetPod = pods.find((p) => p._id === podId);
+    if (!targetPod) return;
+
+    const userCurrentPod = pods.find((p) =>
+      p.members.some((m) => m.user._id === mongoId)
+    );
+
+    if (userCurrentPod && userCurrentPod._id !== podId) {
+      setExistingPod(userCurrentPod);
+      setPodToJoin(targetPod);
+      setShowConfirmDialog(true);
+    } else {
+      await joinPod(podId);
+    }
+  };
+
+  /* Fetch MongoDB ID for the current user */
   useEffect(() => {
     if (!user?.id) {
       setIsUserIdLoading(false);
@@ -128,7 +190,6 @@ export function PodListScreen({
           `${import.meta.env.VITE_API_URL}/users/mongoid/${firebaseUid}`
         );
         if (!res.ok) {
-          // Log error but proceed with null ID
           console.error("Failed to fetch Mongo ID");
           setMongoId(null);
         } else {
@@ -143,12 +204,12 @@ export function PodListScreen({
       }
     };
 
-    // Only fetch if we haven't already or if user changes
     if (mongoId === null && isUserIdLoading) {
       findMongoIdFromFirebase(user.id);
     }
   }, [user, mongoId, isUserIdLoading]);
 
+  /* Fetch pods and filter based on user criteria */
   useEffect(() => {
     if (!user || !flight?.date || isUserIdLoading) return;
 
@@ -161,67 +222,15 @@ export function PodListScreen({
 
         const data: Pod[] = await res.json();
 
-        const filtered = data.filter((pod) => {
-          // Check if pod and flight date match
-          const podDate = new Date(pod.pickup_time)
-            .toLocaleString()
-            .split(",")[0];
-          const flightDate = new Date(flight.date).toISOString().split("T")[0];
-          const flightArray = flightDate.split("-");
-          const podArray = podDate.split("/");
-
-          const sameDay =
-            podArray[0] == flightArray[1] &&
-            podArray[2] == flightArray[0] &&
-            podArray[1] == flightArray[2];
-
-          // Check if pod time is within boundaries set by user
-          const podTime = new Date(pod.pickup_time);
-          const splitTimeEarliest =
-            convertToMilitaryTime(earliestTime).split(regex);
-          const splitTimeLatest =
-            convertToMilitaryTime(latestTime).split(regex);
-
-          const [earliestHour, earliestMin] = [
-            Number(splitTimeEarliest[0]),
-            Number(splitTimeEarliest[1]),
-          ];
-          const [latestHour, latestMin] = [
-            Number(splitTimeLatest[0]),
-            Number(splitTimeLatest[1]),
-          ];
-
-          const earliest = new Date(podTime);
-          earliest.setHours(earliestHour, earliestMin, 0, 0);
-
-          const latest = new Date(podTime);
-          latest.setHours(latestHour, latestMin, 0, 0);
-
-          const withinTime = podTime >= earliest && podTime <= latest;
-
-          // Check if user pickup location matches pod location
-          const withinLocation =
-            !pickupLocation ||
-            pod.location?.name
-              ?.toLowerCase()
-              .includes(pickupLocation.toLowerCase());
-
-          // Check if luggage total is within pod limits
-          // TODO: ERROR BECAUSE WE NEED TO TRACK SPACE LEFT
-          // THIS IS INCORRECT RN!!!!
-          const withinLuggage =
-            Number(numCarryOn) + Number(numChecked) <=
-            pod.num_small_luggage + pod.num_big_luggage;
-
-          // Check gender matching if genderPreference is set
-          const genderMatches = !genderPreference ||
-            pod.members.every(member => member.gender === genderPreference);
-
-          // Return if all checks are valid
-          return sameDay && withinTime && withinLocation && withinLuggage && genderMatches;
+        const filtered = filterPods(data, {
+          flightDate: flight.date,
+          earliestTime,
+          latestTime,
+          pickupLocation,
+          numCarryOn,
+          numChecked,
+          genderPreference,
         });
-
-        // List of pods found
         setPods(filtered);
       } catch (err) {
         console.error("Error fetching pods:", err);
@@ -242,10 +251,8 @@ export function PodListScreen({
     numCarryOn,
     numChecked,
     isUserIdLoading,
-    // refreshPodList,
   ]);
 
-  // Transform flight data for FlightResultCard component
   const selectedFlight = flight?.code
     ? {
         id: "selected-flight",
@@ -259,38 +266,13 @@ export function PodListScreen({
       }
     : null;
 
-  // const [mongoId, setMongoId] = useState("");
-
-  // const findMongoIdFromFirebase = async (firebaseUid: string | undefined) => {
-  //   if (!firebaseUid) {
-  //     return;
-  //   }
-  //   const res = await fetch(
-  //     `${import.meta.env.VITE_API_URL}/users/mongoid/${firebaseUid}`
-  //   );
-  //   if (!res.ok) throw new Error("Failed to fetch pods");
-  //   const mongoId = await res.json();
-  //   setMongoId(mongoId);
-  //   // return mongoId;
-  // };
-
-  // Transform pods data for GroupOptionCard components
-
   const options = pods.map((pod, idx) => {
-    // findMongoIdFromFirebase(user?.id);
-    // const userId = !mongoId ? user?.id : mongoId;
-
     const userId = mongoId;
-    // const userId = user?.id;
     const userAlreadyInPod =
       joinedPods.has(pod._id) ||
       pod.members.some((m) => {
-        console.log("m: ", m._id);
-        console.log("mongo: ", userId)
-        return m.user === userId;
+        return m.user._id === userId;
       });
-
-    console.log(userAlreadyInPod);
 
     return {
       podId: pod._id,
@@ -302,7 +284,7 @@ export function PodListScreen({
         initial: m.name?.[0] || "?",
         isEmpty: false,
       })),
-      location: pod.location?.name || "Unknown location",
+      location: pod.pickup_location?.name || "Unknown location",
       luggageCount: pod.num_big_luggage + pod.num_small_luggage,
       time: new Date(pod.pickup_time).toLocaleTimeString([], {
         hour: "2-digit",
@@ -313,6 +295,47 @@ export function PodListScreen({
 
   return (
     <div className="flex flex-col justify-between h-full bg-[#16161b] text-white px-[12px] pt-[20px]">
+      {/* --- CONFIRMATION DIALOG --- */}
+      {podToJoin && existingPod && (
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent className="bg-[#1f1f23] text-white rounded-[16px] border-accent border-[2px] w-[90%] max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle className="mt-[1rem]">
+                Replace Existing Pod?
+              </DialogTitle>
+              <DialogDescription className="text-zinc-400">
+                You are already a member of a pod for this trip, with pickup at
+                **{existingPod.pickup_location.name}**.
+                <br />
+                Are you sure you want to **leave that pod** and join the new one
+                for **
+                {new Date(podToJoin.pickup_time).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                **?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex gap-2 justify-end mb-[1rem] mt-[1rem]">
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => setShowConfirmDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                className="w-full bg-accent hover:bg-accent/80 text-primary-foreground"
+                onClick={handleReplacePod}
+              >
+                Replace Pod
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {loading || isUserIdLoading ? (
         <div className="flex flex-col items-center justify-center h-full text-white px-6">
           <p className="text-lg font-medium mb-[1rem]">
@@ -322,7 +345,6 @@ export function PodListScreen({
         </div>
       ) : (
         <div className="flex-1 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {/* {toastMessage && <Toast message={toastMessage} />} */}
           <div className="content-stretch flex flex-col gap-[40px] items-center pb-[40px] w-full">
             {/* Back Button */}
             <div className="content-stretch flex items-start relative shrink-0 w-full">
@@ -358,7 +380,7 @@ export function PodListScreen({
             {/* Create Pod Button */}
             <div className="content-stretch flex items-start relative shrink-0 w-full">
               <Button
-                onClick={() => onNavigate("createPod")}
+                onClick={() => onNavigate("createPod", { flight })} // Pass flight to createPod
                 variant="default"
                 className="w-full px-[16px] py-[12px]"
               >
@@ -383,7 +405,6 @@ export function PodListScreen({
                     <GroupOptionCard
                       key={pod.id}
                       optionNumber={pod.id}
-                      // TODO: determine is recommended by algorithm
                       isRecommended={idx == 0}
                       members={pod.members}
                       location={pod.location}

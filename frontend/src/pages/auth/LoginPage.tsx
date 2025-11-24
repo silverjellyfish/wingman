@@ -1,6 +1,7 @@
 // Contributors: Vince, Michelle
 // Time: 2 hours
 
+// TODO: INCLUDE BUTTON TO SHOW PASSWORD
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button.tsx";

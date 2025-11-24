@@ -12,14 +12,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast, Toaster } from "sonner";
 import { LOCATIONS } from "@/constants/locations";
 
+interface ExtendedFlight extends Flight {
+  dropoffAirportId?: string;
+}
+
 // Props for creating a pod
 interface CreatePodScreenProps {
   onNavigate: (screen: Screen, payload?: any) => void;
-  flight: Flight;
+  flight: ExtendedFlight;
 }
 
 export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
-  const [pickupDate, setPickupDate] = useState<Date>();
+  const [pickupDate, setPickupDate] = useState<Date | undefined>();
   const [pickupTime, setPickupTime] = useState("");
   const [numBig, setNumBig] = useState("0");
   const [numSmall, setNumSmall] = useState("0");
@@ -41,7 +45,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
       .includes((searchQuery || pickupLocation).toLowerCase())
   );
 
-  // Fetch user profile
+  // Fetch user profile (to get Mongo ID needed for pod creation)
   useEffect(() => {
     if (!user) return;
 
@@ -63,14 +67,30 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
   }, [user]);
 
   const handleCreatePod = async () => {
-    if (!userProfile || !pickupLocation || !pickupDate || !pickupTime) {
-      toast.error("Please fill in all required fields");
+    // Determine the required flight details from the flight prop
+    const flightCode = flight.code;
+    const flightDate = flight.date;
+    const origin = flight.from;
+    const destination = flight.to;
+
+    const dropoffLocationId = (flight as any).dropoffAirportId;
+    if (
+      !userProfile ||
+      !pickupLocation ||
+      !pickupDate ||
+      !pickupTime ||
+      !flightCode ||
+      !flightDate ||
+      !destination ||
+      !dropoffLocationId
+    ) {
+      toast.error("Please ensure all trip and flight details are complete.");
       return;
     }
 
     // Validate the location is in the list
     if (!locations.includes(pickupLocation)) {
-      toast.error("Please select a valid location from the list");
+      toast.error("Please select a valid pickup location from the list");
       return;
     }
 
@@ -80,13 +100,13 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
     combinedDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
     try {
-      // First, find or create the location in the database
-      let locationId = "";
+      let pickupLocationId = "";
 
-      // Try to find existing location
+      // 1. Determine Pickup Location ID (from Location model - this logic is fine)
       const locationsRes = await fetch(
         `${import.meta.env.VITE_API_URL}/locations`
       );
+
       if (locationsRes.ok) {
         const existingLocations = await locationsRes.json();
         const existing = existingLocations.find(
@@ -94,9 +114,9 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
         );
 
         if (existing) {
-          locationId = existing._id;
+          pickupLocationId = existing._id;
         } else {
-          // Create new location
+          // Create new pickup location (simplified creation for now)
           const createRes = await fetch(
             `${import.meta.env.VITE_API_URL}/locations`,
             {
@@ -112,32 +132,38 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
 
           if (createRes.ok) {
             const newLoc = await createRes.json();
-            locationId = newLoc._id;
+            pickupLocationId = newLoc._id;
           }
         }
       }
 
-      if (!locationId) {
-        toast.error("Failed to determine pickup location");
+      if (!pickupLocationId) {
+        toast.error("Failed to determine pickup location ID");
         return;
       }
 
+      // 3. Create the Pod with all required data
       const res = await fetch(`${import.meta.env.VITE_API_URL}/pods`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pickup_time: combinedDateTime.toISOString(),
-          locationId: locationId,
+          pickupLocationId: pickupLocationId,
+          dropoffLocationId: dropoffLocationId,
           userId: userProfile._id,
           num_big_luggage: parseInt(numBig),
           num_small_luggage: parseInt(numSmall),
+          flightCode: flightCode,
+          flightDate: flightDate,
+          origin: origin,
+          destination: destination,
         }),
       });
 
       if (res.ok) {
         const pod = await res.json();
         toast.success("Pod created successfully!");
-        onNavigate("rideWithGroup", flight);
+        onNavigate("trip", { flight, pod });
       } else {
         const error = await res.json();
         toast.error(`Failed to create pod: ${error.error || "Unknown error"}`);
@@ -263,7 +289,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
                             <button
                               key={idx}
                               onMouseDown={(e) => {
-                                e.preventDefault(); // Prevent blur
+                                e.preventDefault();
                                 setPickupLocation(location);
                                 setSearchQuery("");
                                 setShowDropdown(false);

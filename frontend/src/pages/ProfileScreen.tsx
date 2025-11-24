@@ -27,9 +27,7 @@ export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
   const { user, logout, deleteAccount } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  // PROFILE IMAGE
   const [profileImage, setProfileImage] = useState<string>(imgAvatar);
-  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Profile state
   const [name, setName] = useState("");

@@ -18,7 +18,8 @@ interface TripScreenProps {
 }
 
 interface PodMemberUser {
-  id: string;
+  // id: string;
+  firebaseUid: string;
   name: string;
   phone?: string;
 }
@@ -28,12 +29,19 @@ interface PodLocation {
 }
 
 interface PodApiData {
-  _id: string; // MongoDB _id
-  pickup_time: string; // Date string from mongoose Date type
-  location: PodLocation; // Populated Location object
+  _id: string;
+  pickup_time: string;
+
+  pickup_location: PodLocation;
+  dropoff_location: PodLocation;
+
   members: {
     user: PodMemberUser;
     status: "pending" | "accepted" | "rejected";
+    flightCode: string;
+    flightDate: string;
+    origin: string;
+    destination: string;
   }[];
   num_big_luggage: number;
   num_small_luggage: number;
@@ -43,7 +51,7 @@ interface GroupMember {
   firebaseUid: string;
   id: number;
   name: string;
-  phoneNumber: string; // Must be a string
+  phoneNumber: string;
 }
 
 interface TripPod {
@@ -71,9 +79,25 @@ interface Flight {
 
 interface Trip {
   flight: Flight;
-  pod: TripPod; // FIX: Should be TripPod, the transformed data structure
+  pod: TripPod;
 }
 
+/**
+ * Formats an ISO 8601 date string to a readable time and date string.
+ */
+const formatTripDateTime = (isoString: string) => {
+  const date = new Date(isoString);
+  const formattedTime = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const formattedDate = date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  return { time: formattedTime, date: formattedDate };
+};
 export function TripScreen({ onNavigate }: TripScreenProps) {
   const { user } = useAuth();
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
@@ -96,46 +120,51 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           throw new Error("Failed to fetch pods");
         }
         const pods: PodApiData[] = await res.json();
+
         const tripsData: Trip[] = pods.map((pod) => {
           const pickupDate = new Date(pod.pickup_time);
+          const { time: pickupTimeFormatted, date: pickupDateFormatted } =
+            formatTripDateTime(pod.pickup_time);
 
-          // Transform members into GroupMember[]
-          // TODO: DID A TEMP FIX, INDEX SHOULDNT JUST BE A NUMBER
+          const currentUserMember = pod.members.find(
+            (m) => m.user.firebaseUid === user.id
+          );
+          const memberFlightCode = currentUserMember?.flightCode || "N/A";
+          const memberOrigin = currentUserMember?.origin || "N/A";
+          const memberDestination =
+            currentUserMember?.destination ||
+            pod.dropoff_location.name ||
+            "N/A";
+          const memberFlightDate =
+            currentUserMember?.flightDate || pickupDateFormatted;
+
           const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => ({
-            firebaseUid: m.user.id,
+            firebaseUid: m.user.firebaseUid,
             id: idx,
             name: m.user.name,
-            phoneNumber: m.user.phone || "", // Ensure phone is a string
+            phoneNumber: m.user.phone || "",
           }));
-
-          // FIX: Create the transformed TripPod object
           const transformedPod: TripPod = {
             id: pod._id,
             numPeople: pod.members.length,
-            listPeopleIds,
-            pickupTime: pickupDate.toISOString(),
-            // FIX: Map the API location name to the 'location' key
-            location: pod.location.name,
-            dropoffLocation: "Airport Terminal", // Placeholder for TBD
+            listPeopleIds: listPeopleIds,
+            pickupTime: pod.pickup_time,
+            location: pod.pickup_location.name,
+            dropoffLocation: pod.dropoff_location.name,
             numBigLuggage: pod.num_big_luggage,
             numSmallLuggage: pod.num_small_luggage,
           };
 
-          // FIX: Create the Flight object (using placeholders)
           const flight: Flight = {
             id: pod._id,
-            flightCode: "N/A", // Placeholder
-            dateRange: pickupDate.toDateString(),
-            route: pod.location.name, // Using location name as the route placeholder
-            airports: pod.location.name, // Using location name as the airports placeholder
-            boardingTime: "",
-            // Provide a simple time string for display
-            departureTime: pickupDate.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            arrivalTime: "",
-            destination: pod.location.name,
+            flightCode: memberFlightCode,
+            dateRange: memberFlightDate,
+            route: `${memberOrigin} → ${memberDestination}`,
+            airports: `${memberOrigin} - ${memberDestination}`,
+            boardingTime: pickupTimeFormatted,
+            departureTime: pickupTimeFormatted,
+            arrivalTime: pickupTimeFormatted,
+            destination: memberDestination,
           };
 
           return { flight, pod: transformedPod };
