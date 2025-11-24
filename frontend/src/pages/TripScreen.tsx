@@ -18,7 +18,8 @@ interface TripScreenProps {
 }
 
 interface PodMemberUser {
-  id: string;
+  // id: string;
+  firebaseUid: string;
   name: string;
   phone?: string;
 }
@@ -130,7 +131,7 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
 
           // ... (Find currentUserMember logic remains the same)
           const currentUserMember = pod.members.find(
-            (m) => m.user.id === user.id
+            (m) => m.user.firebaseUid === user.id
           );
           // ... (member flight detail extraction remains the same)
           const memberFlightCode = currentUserMember?.flightCode || "N/A";
@@ -145,7 +146,7 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           // ... (listPeopleIds mapping remains the same)
           const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => ({
             // <-- Definition
-            firebaseUid: m.user.id,
+            firebaseUid: m.user.firebaseUid,
             id: idx,
             name: m.user.name,
             phoneNumber: m.user.phone || "",

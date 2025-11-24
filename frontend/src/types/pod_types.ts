@@ -12,6 +12,8 @@ export interface Pod {
   num_members: number;
   members: User[];
   pickup_time: string;
+  pickup_location: { name: string };
+  dropoffLocation: string;
   location: {
     _id: string;
     name: string;

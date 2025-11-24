@@ -174,7 +174,7 @@ export function FlightInputScreen({
               <Input
                 type="text"
                 placeholder="Plane code (e.g. WN123)"
-                value={localPlaneCode}
+                // value={localPlaneCode}
                 onChange={handlePlaneCodeChange}
                 autoFocus
               />

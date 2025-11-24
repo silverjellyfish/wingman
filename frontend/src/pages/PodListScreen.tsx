@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { Pod, User } from "@/types/pod_types.ts";
-import { createPodFilter } from "@/../utils/podFilters.ts";
+import { filterPods } from "@/../utils/podFilters.ts";
 
 interface PodListScreenProps {
   onNavigate: (...args: any[]) => void;
@@ -222,10 +222,12 @@ export function PodListScreen({
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/pods/all`);
         if (!res.ok) throw new Error("Failed to fetch pods");
+        console.log(res);
 
         const data: Pod[] = await res.json();
+        console.log("Fetched Pods:", data);
 
-        const filter = createPodFilter({
+        const filtered = filterPods(data, {
           flightDate: flight.date,
           earliestTime,
           latestTime,
@@ -234,9 +236,7 @@ export function PodListScreen({
           numChecked,
           genderPreference,
         });
-
-        const filtered = data.filter(filter);
-
+        console.log("Filtered Pods:", filtered);
         setPods(filtered);
       } catch (err) {
         console.error("Error fetching pods:", err);
@@ -291,7 +291,7 @@ export function PodListScreen({
         initial: m.name?.[0] || "?",
         isEmpty: false,
       })),
-      location: pod.location?.name || "Unknown location",
+      location: pod.pickup_location?.name || "Unknown location",
       luggageCount: pod.num_big_luggage + pod.num_small_luggage,
       time: new Date(pod.pickup_time).toLocaleTimeString([], {
         hour: "2-digit",
