@@ -12,15 +12,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast, Toaster } from "sonner";
 import { LOCATIONS } from "@/constants/locations";
 
-
 interface ExtendedFlight extends Flight {
-  dropoffAirportId?: string; // <-- ADD THIS PROPERTY
+  dropoffAirportId?: string;
 }
 
 // Props for creating a pod
 interface CreatePodScreenProps {
   onNavigate: (screen: Screen, payload?: any) => void;
-  flight: ExtendedFlight; 
+  flight: ExtendedFlight;
 }
 
 export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
@@ -58,7 +57,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
         if (!res.ok) throw new Error("Failed to fetch profile");
 
         const data = await res.json();
-        setUserProfile(data); // userProfile._id is the Mongo ID
+        setUserProfile(data);
       } catch (err) {
         console.error(err);
       }
@@ -72,7 +71,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
     const flightCode = flight.code;
     const flightDate = flight.date;
     const origin = flight.from;
-    const destination = flight.to; // This is the destination airport code/name
+    const destination = flight.to;
 
     const dropoffLocationId = (flight as any).dropoffAirportId;
     if (
@@ -83,7 +82,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
       !flightCode ||
       !flightDate ||
       !destination ||
-      !dropoffLocationId // <-- NEW VALIDATION
+      !dropoffLocationId
     ) {
       toast.error("Please ensure all trip and flight details are complete.");
       return;
@@ -102,7 +101,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
 
     try {
       let pickupLocationId = "";
-      
+
       // 1. Determine Pickup Location ID (from Location model - this logic is fine)
       const locationsRes = await fetch(
         `${import.meta.env.VITE_API_URL}/locations`
@@ -151,7 +150,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
           pickup_time: combinedDateTime.toISOString(),
           pickupLocationId: pickupLocationId,
           dropoffLocationId: dropoffLocationId,
-          userId: userProfile._id, 
+          userId: userProfile._id,
           num_big_luggage: parseInt(numBig),
           num_small_luggage: parseInt(numSmall),
           flightCode: flightCode,
@@ -290,7 +289,7 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
                             <button
                               key={idx}
                               onMouseDown={(e) => {
-                                e.preventDefault(); // Prevent blur
+                                e.preventDefault();
                                 setPickupLocation(location);
                                 setSearchQuery("");
                                 setShowDropdown(false);

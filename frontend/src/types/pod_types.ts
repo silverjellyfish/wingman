@@ -1,11 +1,16 @@
+
+export interface MetaData {
+  _id: string;
+}
 export interface User {
   _id: string;
-  user: string;
+  user: MetaData;
   email: string;
   name: string;
   createdAt: string;
   gender?: string;
 }
+
 
 export interface Pod {
   _id: string;

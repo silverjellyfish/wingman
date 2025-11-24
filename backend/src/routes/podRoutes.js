@@ -33,7 +33,6 @@ router.get("/all", async (req, res) => {
 router.post("/:id/join", async (req, res) => {
   try {
     const pod = await Pod.findById(req.params.id).populate("members.user");
-
     if (!pod) {
       return res.status(404).json({ error: "Pod not found" });
     }
@@ -41,27 +40,38 @@ router.post("/:id/join", async (req, res) => {
       return res.status(403).json({ error: "Pod is locked" });
     }
 
-    const { userId } = req.body;
+    const {
+      userId,
+      flightCode,
+      flightDate,
+      origin,
+      destination,
+      dropoffAirportId,
+    } = req.body;
+    // const { userId } = req.body;
+    if (!userId || !flightCode || !flightDate || !destination) {
+      return res.status(400).json({
+        error:
+          "Missing required member details (userId, flightCode, flightDate, destination)",
+      });
+    }
+
     const user = await User.findOne({ firebaseUid: userId });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    if (!userId) {
-      return res.status(400).json({ error: "Missing userId" });
-    }
-
     const alreadyMember = pod.members.some(
-      (member) => member.firebaseUid && member.firebaseUid === userId
+      (member) => member.user?.toString() === user._id.toString()
     );
     if (!alreadyMember) {
-      // pod.members.push({ user: userId, status: "pending" });
-      // const newMember = { user: userId, status: "pending" };
-      // pod.members.push(newMember);
       pod.members.push({
         user: user._id,
         status: "pending",
+        flightCode: flightCode,
+        flightDate: flightDate,
+        origin: origin || "N/A",
+        destination: destination,
       });
       pod.num_members = pod.members.length;
-      await pod.validate();
       await pod.save();
     }
 

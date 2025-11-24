@@ -122,7 +122,6 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           throw new Error("Failed to fetch pods");
         }
         const pods: PodApiData[] = await res.json();
-        console.log("Fetched pods:", pods);
 
         const tripsData: Trip[] = pods.map((pod) => {
           const pickupDate = new Date(pod.pickup_time);

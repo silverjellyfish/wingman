@@ -97,9 +97,11 @@ export function PodListScreen({
     const flightDate = flight.date;
     const origin = flight.from;
     const destination = flight.to;
+    // CRITICAL: Include the dropoffAirportId which was likely set in the previous screen
+    const dropoffAirportId = flight.dropoffAirportId;
 
-    if (!flightCode || !flightDate || !destination) {
-      toast.error("Missing flight details required to join pod.");
+    if (!flightCode || !flightDate || !destination || !dropoffAirportId) {
+      toast.error("Missing critical flight details required to join pod (Code, Date, or Airport ID).");
       setJoinedPods((prev) => {
         const next = new Set(prev);
         next.delete(podId);
@@ -117,12 +119,14 @@ export function PodListScreen({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user.id, // Firebase UID
-            // --- NEW: Send flight details for the joining member ---
+            // --- Ensure all member fields required by the Mongoose schema are present ---
             flightCode: flightCode,
             flightDate: flightDate,
             origin: origin,
             destination: destination,
-            // -------------------------------------------------------
+            // Include the MongoDB ID for the arrival airport
+            dropoffAirportId: dropoffAirportId, 
+            // -----------------------------------------------------------------------
           }),
         }
       );
@@ -167,7 +171,7 @@ export function PodListScreen({
 
     // Check if the user is already in any *other* pod for the same flight
     const userCurrentPod = pods.find((p) =>
-      p.members.some((m) => m.user === mongoId)
+      p.members.some((m) => m.user._id === mongoId)
     );
 
     if (userCurrentPod && userCurrentPod._id !== podId) {
@@ -222,10 +226,8 @@ export function PodListScreen({
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/pods/all`);
         if (!res.ok) throw new Error("Failed to fetch pods");
-        console.log(res);
 
         const data: Pod[] = await res.json();
-        console.log("Fetched Pods:", data);
 
         const filtered = filterPods(data, {
           flightDate: flight.date,
@@ -236,7 +238,6 @@ export function PodListScreen({
           numChecked,
           genderPreference,
         });
-        console.log("Filtered Pods:", filtered);
         setPods(filtered);
       } catch (err) {
         console.error("Error fetching pods:", err);
@@ -278,7 +279,7 @@ export function PodListScreen({
     const userAlreadyInPod =
       joinedPods.has(pod._id) ||
       pod.members.some((m) => {
-        return m.user === userId;
+        return m.user._id === userId;
       });
 
     return {
@@ -312,7 +313,7 @@ export function PodListScreen({
               </DialogTitle>
               <DialogDescription className="text-zinc-400">
                 You are already a member of a pod for this trip, with pickup at
-                **{existingPod.location.name}**.
+                **{existingPod.pickup_location.name}**.
                 <br />
                 Are you sure you want to **leave that pod** and join the new one
                 for **

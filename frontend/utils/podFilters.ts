@@ -70,7 +70,6 @@ const createInternalPodFilter = ({
       latest.setDate(latest.getDate() + 1);
     }
 
-    console.log(podTime >= earliest && podTime <= latest);
     if (!(podTime >= earliest && podTime <= latest)) return false;
 
     // 3. Pickup Location Check
@@ -85,7 +84,6 @@ const createInternalPodFilter = ({
     // 4. Luggage Capacity Check
     const totalUserLuggage = Number(numCarryOn) + Number(numChecked);
     const totalPodCapacity = pod.num_big_luggage + pod.num_small_luggage;
-    console.log("Capacity match:", totalUserLuggage <= totalPodCapacity);
     if (totalUserLuggage > totalPodCapacity) return false;
 
     // 5. Gender Preference Check
@@ -93,7 +91,6 @@ const createInternalPodFilter = ({
       !genderPreference ||
       pod.members.every((member) => member.gender === genderPreference);
 
-    console.log(genderMatches);
     if (!genderMatches) return false;
 
     return true;
@@ -110,7 +107,6 @@ export const filterPods = (
   allPods: Pod[],
   filterParams: FilterParams
 ): Pod[] => {
-  console.log("Filtering pods with params:", filterParams);
   const filter = createInternalPodFilter(filterParams);
   return allPods.filter(filter);
 };
