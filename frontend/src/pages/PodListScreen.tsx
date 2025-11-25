@@ -286,7 +286,7 @@ export function PodListScreen({
         isEmpty: false,
       })),
       location: pod.pickup_location?.name || "Unknown location",
-      luggageCount: pod.num_big_luggage + pod.num_small_luggage,
+      capacity: pod.max_people,
       time: new Date(pod.pickup_time).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -409,7 +409,7 @@ export function PodListScreen({
                       isRecommended={idx == 0}
                       members={pod.members}
                       location={pod.location}
-                      luggageCount={pod.luggageCount}
+                      capacity={pod.capacity}
                       time={pod.time}
                       userAlreadyInPod={pod.userAlreadyInPod}
                       onAccept={() => handleAccept(pod.podId)}

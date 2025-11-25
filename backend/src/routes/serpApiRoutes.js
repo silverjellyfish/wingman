@@ -1,34 +1,3 @@
-// AC 1102
-// Nashville to Toronto
-// dec 26
-/*
-Target Code: AC1102 -> AC1102
-Leg flight number: AC 1102
-AC1102
-Leg flight number: UA 396
-UA396
-Leg flight number: AC 510
-AC510
-Leg flight number: AC 8856
-AC8856
-Leg flight number: UA 396
-UA396
-Leg flight number: UA 1364
-UA1364
-Target Code: AC1102 -> AC1102
-Leg flight number: AC 1102
-AC1102
-Leg flight number: UA 396
-UA396
-Leg flight number: AC 510
-AC510
-Leg flight number: AC 8856
-AC8856
-Leg flight number: UA 396
-UA396
-Leg flight number: UA 1364
-UA1364
- */
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();

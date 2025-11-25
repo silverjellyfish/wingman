@@ -30,6 +30,27 @@ interface FlightResultsScreenProps {
   payload?: FlightResultsPayload;
 }
 
+const getBoardingTime = (dateTime: string) => {
+  const departure = new Date(dateTime);
+  const boarding = new Date(departure);
+  boarding.setMinutes(boarding.getMinutes() - 30);
+
+  return boarding.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+const getTimeOnly = (dateTime: string) => {
+  const d = new Date(dateTime);
+  return d.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
 export function FlightResultsScreen({
   onNavigate,
   planeCode,
@@ -54,6 +75,13 @@ export function FlightResultsScreen({
   const [expandedFlightId, setExpandedFlightId] = useState<string | null>(null);
   const [minLoading, setMinLoading] = useState(true);
   const [mappedFlights, setMappedFlights] = useState<MappedFlight[]>([]);
+
+  const formatTo12Hour = (date: Date) =>
+    date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
 
   // Determine minimum loading time
   useEffect(() => {
@@ -109,11 +137,7 @@ export function FlightResultsScreen({
   const handleExpand = (flightId: string) => {
     setExpandedFlightId(expandedFlightId === flightId ? null : flightId);
   };
-  const ensureAirportExists = async (
-    airportCode: string,
-    airportName: string
-  ) => {
-
+  const ensureAirportExists = async (airportCode: string) => {
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/airports/ensure`,
@@ -122,20 +146,22 @@ export function FlightResultsScreen({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             code: airportCode,
-            name: airportName,
           }),
         }
       );
-
+      console.log("Ensure airport response:", response);
       if (!response.ok) {
         throw new Error("Failed to ensure airport existence.");
       }
-
+      console.log("Response status:", response.status);
       const airport = await response.json();
+      console.log("Ensured airport:", airport);
       return airport._id;
     } catch (error) {
       console.error("Error saving airport:", error);
-      throw new Error(`Could not find or create airport: ${airportName}`);
+      throw new Error(
+        `Could not find or create airport with code: ${airportCode}`
+      );
     }
   };
 
@@ -145,11 +171,9 @@ export function FlightResultsScreen({
 
     // 1. ENSURE DROP-OFF AIRPORT EXISTS
     let dropoffAirportId = "";
+    console.log("Ensuring airport exists for code:", originAirportName);
     try {
-      dropoffAirportId = await ensureAirportExists(
-        destinationAirportName,
-        destinationAirportName
-      );
+      dropoffAirportId = await ensureAirportExists(originAirportName);
     } catch (err) {
       console.error(err);
       return;
@@ -170,27 +194,6 @@ export function FlightResultsScreen({
     onNavigate("flightPreferences", planeCode, date, {
       flight: { ...mappedFlight, airlineLogo: f.airlineLogo },
       flights: mappedFlights,
-    });
-  };
-
-  const getBoardingTime = (dateTime: string) => {
-    const departureDateTime = new Date(dateTime);
-    const boardingDateTime = new Date(departureDateTime);
-    boardingDateTime.setMinutes(departureDateTime.getMinutes() - 30);
-
-    return boardingDateTime.toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
-  const getTimeOnly = (dateTime: string) => {
-    const d = new Date(dateTime);
-    return d.toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
     });
   };
 

@@ -11,7 +11,7 @@ interface GroupOptionCardProps {
   isRecommended: boolean;
   members: GroupMember[];
   location: string;
-  luggageCount: number;
+  capacity: number;
   time: string;
   userAlreadyInPod: boolean;
   onAccept: () => void;
@@ -22,7 +22,7 @@ export function GroupOptionCard({
   isRecommended,
   members,
   location,
-  luggageCount,
+  capacity,
   time,
   userAlreadyInPod,
   onAccept,
@@ -100,8 +100,8 @@ export function GroupOptionCard({
           <span className="material-symbols-outlined text-[16px] text-zinc-400">
             luggage
           </span>
-          <span className="text-white">All Luggage:</span>
-          <span className="text-zinc-400">{luggageCount}</span>
+          <span className="text-white">Max People:</span>
+          <span className="text-zinc-400">{capacity}</span>
         </div>
         <div className="flex items-center gap-[8px] font-['Geist:Medium',_sans-serif] font-medium text-[14px] tracking-[0.07px]">
           <span className="material-symbols-outlined text-[16px] text-zinc-400">

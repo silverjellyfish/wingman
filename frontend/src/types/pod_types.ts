@@ -10,7 +10,6 @@ export interface User {
   gender?: string;
 }
 
-
 export interface Pod {
   _id: string;
   num_members: number;
@@ -24,8 +23,7 @@ export interface Pod {
     address: string;
     type: "airport" | "university" | "hotel" | "landmark";
   };
-  num_big_luggage: number;
-  num_small_luggage: number;
+  max_people: number;
   created_at: string;
   updated_at: string;
 }

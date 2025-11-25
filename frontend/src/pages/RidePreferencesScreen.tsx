@@ -139,13 +139,6 @@ export function RidePreferencesScreen({
     );
   };
 
-  // {flight.airlineLogo && (
-            //   <img
-            //     src={flight.airlineLogo}
-            //     alt="Airline Logo"
-            //     className="w-6 h-6 object-contain rounded"
-            //   />
-            // )}
   // Transform MockFlight to FlightResultCard format
   const transformedFlight = {
     id: flight.code,
@@ -433,15 +426,17 @@ export function RidePreferencesScreen({
               </div>
             </div>
 
-          {/* Gender matching toggle */}
-          <div className="content-stretch flex flex-row items-center justify-between relative w-full">
-            <p className="text-[18px]" style={{ fontWeight: 600 }}>Match same gender only</p>
-            <Switch
-              checked={genderMatchingEnabled}
-              onCheckedChange={setGenderMatchingEnabled}
-              className="h-[1.75rem] w-[3.5rem] p-[2px] [&>span]:size-[1.25rem] [&>span[data-state=checked]]:translate-x-[calc(100%+6px)]"
-            />
-          </div>
+            {/* Gender matching toggle */}
+            <div className="content-stretch flex flex-row items-center justify-between relative w-full">
+              <p className="text-[18px]" style={{ fontWeight: 600 }}>
+                Match same gender only
+              </p>
+              <Switch
+                checked={genderMatchingEnabled}
+                onCheckedChange={setGenderMatchingEnabled}
+                className="h-[1.75rem] w-[3.5rem] p-[2px] [&>span]:size-[1.25rem] [&>span[data-state=checked]]:translate-x-[calc(100%+6px)]"
+              />
+            </div>
 
             {/* Search Button */}
             <Button
@@ -455,7 +450,7 @@ export function RidePreferencesScreen({
                   numChecked,
                   pickupLocation,
                   genderPreference: genderMatchingEnabled ? userGender : null,
-              })
+                })
               }
               className="w-full"
               disabled={!isFormValid()}
