@@ -381,7 +381,7 @@ export function PodListScreen({
             {/* Create Pod Button */}
             <div className="content-stretch flex items-start relative shrink-0 w-full">
               <Button
-                onClick={() => onNavigate("createPod", { flight })} // Pass flight to createPod
+                onClick={() => onNavigate("createPod", { flight })}
                 variant="default"
                 className="w-full px-[16px] py-[12px]"
               >
