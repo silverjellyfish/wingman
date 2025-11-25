@@ -263,6 +263,7 @@ export function PodListScreen({
         boardingTime: flight.boarding || "",
         departureTime: flight.launch || "",
         arrivalTime: flight.landing || "",
+        airlineLogo: flight.airlineLogo || "",
       }
     : null;
 

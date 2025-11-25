@@ -139,6 +139,13 @@ export function RidePreferencesScreen({
     );
   };
 
+  // {flight.airlineLogo && (
+            //   <img
+            //     src={flight.airlineLogo}
+            //     alt="Airline Logo"
+            //     className="w-6 h-6 object-contain rounded"
+            //   />
+            // )}
   // Transform MockFlight to FlightResultCard format
   const transformedFlight = {
     id: flight.code,
