@@ -187,7 +187,7 @@ export function RidePreferencesScreen({
           </Button>
 
           {/* Main Content Container */}
-          <div className="content-stretch flex flex-col gap-[48px] items-start relative shrink-0 w-full px-[4px]">
+          <div className="content-stretch flex flex-col gap-[40px] items-start relative shrink-0 w-full px-[4px]">
             {/* Flight Info Card */}
             <div className="pointer-events-none w-full">
               <FlightResultCard
@@ -439,7 +439,7 @@ export function RidePreferencesScreen({
             <Switch
               checked={genderMatchingEnabled}
               onCheckedChange={setGenderMatchingEnabled}
-              className="h-[1.75rem] w-[3.5rem] p-[3px] [&>span]:size-[1.25rem] [&>span[data-state=checked]]:translate-x-[calc(100%+6px)]"
+              className="h-[1.75rem] w-[3.5rem] p-[2px] [&>span]:size-[1.25rem] [&>span[data-state=checked]]:translate-x-[calc(100%+6px)]"
             />
           </div>
 

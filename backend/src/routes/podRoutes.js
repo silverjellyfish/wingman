@@ -95,17 +95,26 @@ router.post("/:id/leave", async (req, res) => {
     const user = await User.findOne({ firebaseUid: userId });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    if (!userId) {
-      return res.status(400).json({ error: "Missing userId" });
-    }
-
+    // Remove user from pod
     pod.members = pod.members.filter(
       (member) => member.user.toString() !== user._id.toString()
     );
     pod.num_members = pod.members.length;
+
+    // 🔥 If pod is empty → delete it
+    if (pod.members.length === 0) {
+      console.log("Pod is empty, deleting pod");
+      await Pod.findByIdAndDelete(pod._id);
+      return res.status(200).json({
+        message: "Left pod and pod deleted (no members remaining)",
+        deleted: true,
+      });
+    }
+
+    // Otherwise save the updated pod
     await pod.save();
 
-    res.status(200).json({ message: "Left pod" });
+    res.status(200).json({ message: "Left pod", deleted: false });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
