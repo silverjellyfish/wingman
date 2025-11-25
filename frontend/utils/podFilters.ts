@@ -83,8 +83,6 @@ const createInternalPodFilter = ({
 
     // 4. Luggage Capacity Check
     const totalUserLuggage = Number(numCarryOn) + Number(numChecked);
-    const totalPodCapacity = pod.num_big_luggage + pod.num_small_luggage;
-    if (totalUserLuggage > totalPodCapacity) return false;
 
     // 5. Gender Preference Check
     const genderMatches =
