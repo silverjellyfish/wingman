@@ -42,6 +42,10 @@ interface PodApiData {
     flightDate: string;
     origin: string;
     destination: string;
+    boardingTime: string;
+    departureTime: string;
+    arrivalTime: string;
+    airlineLogo?: string;
   }[];
   num_big_luggage: number;
   num_small_luggage: number;
@@ -59,6 +63,7 @@ interface TripPod {
   numPeople: number;
   listPeopleIds: GroupMember[];
   pickupTime: string;
+  pickupTimeDisplay: string;
   location: string;
   dropoffLocation: string;
   numBigLuggage: number;
@@ -71,10 +76,12 @@ interface Flight {
   dateRange: string;
   route: string;
   airports: string;
-  boardingTime?: string;
-  departureTime?: string;
-  arrivalTime?: string;
+  boarding?: string;
+  launch?: string;
+  landing?: string;
   destination?: string;
+  airlineLogo?: string;
+  pickupTimeDisplay?: string;
 }
 
 interface Trip {
@@ -135,8 +142,9 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
             currentUserMember?.destination ||
             pod.dropoff_location.name ||
             "N/A";
-          const memberFlightDate =
-            currentUserMember?.flightDate || pickupDateFormatted;
+          const memberFlightDate = (
+            currentUserMember?.flightDate || pod.pickup_time
+          ).slice(0, 10);
 
           const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => ({
             firebaseUid: m.user.firebaseUid,
@@ -144,11 +152,19 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
             name: m.user.name,
             phoneNumber: m.user.phone || "",
           }));
+
           const transformedPod: TripPod = {
             id: pod._id,
             numPeople: pod.members.length,
             listPeopleIds: listPeopleIds,
             pickupTime: pod.pickup_time,
+            pickupTimeDisplay: new Date(pod.pickup_time).toLocaleTimeString(
+              [],
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            ),
             location: pod.pickup_location.name,
             dropoffLocation: pod.dropoff_location.name,
             numBigLuggage: pod.num_big_luggage,
@@ -161,10 +177,11 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
             dateRange: memberFlightDate,
             route: `${memberOrigin} → ${memberDestination}`,
             airports: `${memberOrigin} - ${memberDestination}`,
-            boardingTime: pickupTimeFormatted,
-            departureTime: pickupTimeFormatted,
-            arrivalTime: pickupTimeFormatted,
+            boarding: currentUserMember?.boardingTime || pickupTimeFormatted,
+            launch: currentUserMember?.departureTime || pickupTimeFormatted,
+            landing: currentUserMember?.arrivalTime || pickupTimeFormatted,
             destination: memberDestination,
+            airlineLogo: currentUserMember?.airlineLogo || "",
           };
 
           return { flight, pod: transformedPod };
@@ -225,9 +242,10 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
                     <FlightResultCard
                       flight={{
                         ...trip.flight,
-                        boardingTime: trip.flight.boardingTime || "",
-                        departureTime: trip.flight.departureTime || "",
-                        arrivalTime: trip.flight.arrivalTime || "",
+                        boardingTime: trip.flight.boarding || "",
+                        departureTime: trip.flight.launch || "",
+                        arrivalTime: trip.flight.landing || "",
+                        airlineLogo: trip.flight.airlineLogo || "",
                       }}
                       isExpanded={false}
                       onExpand={() => {}}
@@ -237,12 +255,13 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
                     <ExpandedPodCard
                       flight={{
                         ...trip.flight,
-                        boardingTime: trip.flight.boardingTime || "",
-                        departureTime: trip.flight.departureTime || "",
-                        arrivalTime: trip.flight.arrivalTime || "",
+                        boardingTime: trip.flight.boarding || "",
+                        departureTime: trip.flight.launch || "",
+                        arrivalTime: trip.flight.landing || "",
                         destination: trip.flight.destination || "Unknown",
                         route: trip.flight.route || "",
                         airports: trip.flight.airports || "",
+                        pickupTimeDisplay: trip.pod.pickupTimeDisplay,
                       }}
                       pod={trip.pod}
                       onLeave={() => {
@@ -266,9 +285,9 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
                   key={trip.pod.id}
                   flight={{
                     ...trip.flight,
-                    boardingTime: trip.flight.boardingTime || "",
-                    departureTime: trip.flight.departureTime || "",
-                    arrivalTime: trip.flight.arrivalTime || "",
+                    boardingTime: trip.flight.boarding || "",
+                    departureTime: trip.flight.launch || "",
+                    arrivalTime: trip.flight.landing || "",
                     destination: trip.flight.destination || "Unknown",
                   }}
                   pod={trip.pod}

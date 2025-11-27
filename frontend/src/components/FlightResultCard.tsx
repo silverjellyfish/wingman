@@ -35,6 +35,7 @@ export function FlightResultCard({
     onSelect(flight);
   };
 
+  console.log(flight);
   return (
     <div
       className="box-border content-stretch flex flex-col items-start p-[16px] relative rounded-[16px] shrink-0 w-full cursor-pointer transition-all text-white"

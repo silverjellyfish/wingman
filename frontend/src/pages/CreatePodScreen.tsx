@@ -14,6 +14,7 @@ import { LOCATIONS } from "@/constants/locations";
 
 interface ExtendedFlight extends Flight {
   dropoffAirportId?: string;
+  airlineLogo?: string;
 }
 
 // Props for creating a pod
@@ -25,8 +26,7 @@ interface CreatePodScreenProps {
 export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
   const [pickupDate, setPickupDate] = useState<Date | undefined>();
   const [pickupTime, setPickupTime] = useState("");
-  const [numBig, setNumBig] = useState("0");
-  const [numSmall, setNumSmall] = useState("0");
+  const [maxPeople, setMaxPeople] = useState("2");
   const { user } = useAuth();
 
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -151,12 +151,15 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
           pickupLocationId: pickupLocationId,
           dropoffLocationId: dropoffLocationId,
           userId: userProfile._id,
-          num_big_luggage: parseInt(numBig),
-          num_small_luggage: parseInt(numSmall),
+          max_people: parseInt(maxPeople),
           flightCode: flightCode,
           flightDate: flightDate,
           origin: origin,
           destination: destination,
+          boarding: flight.boarding,
+          launch: flight.launch,
+          landing: flight.landing,
+          airlineLogo: flight.airlineLogo || "",
         }),
       });
 
@@ -313,59 +316,25 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
                       className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
                       style={{ fontWeight: 600 }}
                     >
-                      Luggage
+                      Max Number of People in Pod
                     </p>
 
                     <div className="content-stretch flex gap-[26px] items-center relative shrink-0 w-full">
-                      {/* Checked Bags */}
-                      <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                        <p
-                          className="leading-none relative text-[14px] text-white tracking-[0.07px] w-full"
-                          style={{ fontWeight: 600 }}
-                        >
-                          Checked Bags
-                        </p>
-                        <div className="flex items-center gap-[8px] w-full">
-                          <Input
-                            type="text"
-                            inputMode="numeric"
-                            value={numBig}
-                            onChange={(e) =>
-                              setNumBig(e.target.value.replace(/[^0-9]/g, ""))
-                            }
-                            className="w-[60px]"
-                            style={{ maxWidth: "60px" }}
-                            placeholder="0"
-                          />
-                          <span className="text-[14px] text-zinc-400">
-                            bags
-                          </span>
-                        </div>
-                      </div>
-
                       {/* Carry-On Bags */}
                       <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-                        <p
-                          className="leading-none relative text-[14px] text-white tracking-[0.07px] w-full"
-                          style={{ fontWeight: 600 }}
-                        >
-                          Carry-On Bags
-                        </p>
                         <div className="flex items-center gap-[8px] w-full">
                           <Input
                             type="text"
                             inputMode="numeric"
-                            value={numSmall}
+                            value={maxPeople}
                             onChange={(e) =>
-                              setNumSmall(e.target.value.replace(/[^0-9]/g, ""))
+                              setMaxPeople(
+                                e.target.value.replace(/[^0-9]/g, "")
+                              )
                             }
-                            className="w-[60px]"
-                            style={{ maxWidth: "60px" }}
-                            placeholder="0"
+                            placeholder="2"
+                            className="w-[80px]"
                           />
-                          <span className="text-[14px] text-zinc-400">
-                            bags
-                          </span>
                         </div>
                       </div>
                     </div>

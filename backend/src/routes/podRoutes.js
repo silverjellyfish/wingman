@@ -16,7 +16,7 @@ router.get("/all", async (req, res) => {
     const pods = await Pod.find()
       .populate("members.user")
       .populate("pickup_location")
-      .populate("dropoff_location", "name");
+      .populate("dropoff_location", "code");
 
     if (!pods || pods.length === 0) {
       return res.status(200).json([]);
@@ -32,6 +32,9 @@ router.get("/all", async (req, res) => {
 // POST join a pod
 router.post("/:id/join", async (req, res) => {
   try {
+    if (pod.members.length >= pod.max_people) {
+      return res.status(400).json({ error: "Pod is full" });
+    }
     const pod = await Pod.findById(req.params.id).populate("members.user");
     if (!pod) {
       return res.status(404).json({ error: "Pod not found" });
@@ -47,8 +50,10 @@ router.post("/:id/join", async (req, res) => {
       origin,
       destination,
       dropoffAirportId,
+      boardingTime,
+      departureTime,
+      arrivalTime,
     } = req.body;
-    // const { userId } = req.body;
     if (!userId || !flightCode || !flightDate || !destination) {
       return res.status(400).json({
         error:
@@ -70,6 +75,9 @@ router.post("/:id/join", async (req, res) => {
         flightDate: flightDate,
         origin: origin || "N/A",
         destination: destination,
+        boardingTime,
+        departureTime,
+        arrivalTime,
       });
       pod.num_members = pod.members.length;
       await pod.save();
@@ -95,17 +103,26 @@ router.post("/:id/leave", async (req, res) => {
     const user = await User.findOne({ firebaseUid: userId });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    if (!userId) {
-      return res.status(400).json({ error: "Missing userId" });
-    }
-
+    // Remove user from pod
     pod.members = pod.members.filter(
       (member) => member.user.toString() !== user._id.toString()
     );
     pod.num_members = pod.members.length;
+
+    // 🔥 If pod is empty → delete it
+    if (pod.members.length === 0) {
+      console.log("Pod is empty, deleting pod");
+      await Pod.findByIdAndDelete(pod._id);
+      return res.status(200).json({
+        message: "Left pod and pod deleted (no members remaining)",
+        deleted: true,
+      });
+    }
+
+    // Otherwise save the updated pod
     await pod.save();
 
-    res.status(200).json({ message: "Left pod" });
+    res.status(200).json({ message: "Left pod", deleted: false });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -172,7 +189,7 @@ router.get("/user/:userId", async (req, res) => {
 
     const pods = await Pod.find({ "members.user": user._id })
       .populate("pickup_location")
-      .populate("dropoff_location", "name")
+      .populate("dropoff_location", "code")
       .populate("members.user");
 
     res.status(200).json(pods);
@@ -217,12 +234,15 @@ router.post("/", async (req, res) => {
       pickupLocationId,
       dropoffLocationId,
       userId,
-      num_big_luggage,
-      num_small_luggage,
+      max_people,
       flightCode,
       flightDate,
       origin,
       destination,
+      boarding,
+      launch,
+      landing,
+      airlineLogo,
     } = req.body;
 
     if (
@@ -243,7 +263,7 @@ router.post("/", async (req, res) => {
     }
 
     // Check if dropoff location exists (Airport model)
-    const dropoffLocation = await Airport.findById(dropoffLocationId); // <-- Check Airport model
+    const dropoffLocation = await Airport.findById(dropoffLocationId);
     if (!dropoffLocation) {
       return res.status(400).json({ error: "Dropoff Airport not found" });
     }
@@ -261,10 +281,13 @@ router.post("/", async (req, res) => {
           flightDate,
           origin: origin || "N/A",
           destination: destination || "N/A",
+          boardingTime: boarding,
+          departureTime: launch,
+          arrivalTime: landing,
+          airlineLogo: airlineLogo || "",
         },
       ],
-      num_big_luggage: num_big_luggage || 0,
-      num_small_luggage: num_small_luggage || 0,
+      max_people: max_people,
       locked: false,
     });
 

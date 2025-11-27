@@ -24,12 +24,14 @@ interface ExpandedPodCardProps {
     departureTime: string;
     arrivalTime: string;
     destination: string;
+    pickupTimeDisplay: string;
   };
   pod: {
     id: string;
     numPeople: number;
     listPeopleIds: GroupMember[];
     pickupTime: string;
+    pickupTimeDisplay: string;
     location: string;
     // pickupLocation: string;
     // dropoffLocation: string;
@@ -88,26 +90,17 @@ export function ExpandedPodCard({
       className="flex flex-col space-between w-full bg-[#28282d] rounded-[16px] p-[12px] gap-[12px]"
     >
       {/* pickup location to dropoff location */}
-      <div className="flex flex-row w-full justify-around items-center">
-        <div className="flex flex-col items-center">
-          <h3 className="font-[600] text-[16px] -my-[2px]">
-            {pod.location}
-            {/* {pod.pickupLocation} */}
-          </h3>
-          <span className="text-[14px] font-[600] text-[#A1A1AA] -my-[2px]">
-            {flight.dateRange} - {pod.pickupTime}{" "}
-          </span>
+      <div className="flex flex-col items-center w-full gap-[3px]">
+        {/* Pickup location */}
+        <div className="flex flex-row items-center gap-[4px]">
+          <span className="font-[600] text-[16px]">Pickup Location:</span>
+          <span className="font-[400] text-[16px]">{pod.location}</span>
         </div>
-        <FaArrowRight />
-        <div className="flex flex-col items-center">
-          <h3 className="font-[600] text-[16px] -my-[2px]">
-            {pod.location}
-            {/* {pod.dropoffLocation} */}
-          </h3>
-          <span className="text-[14px] font-[600] text-[#A1A1AA] -my-[2px]">
-            {flight.dateRange} - {pod.pickupTime}{" "}
-          </span>
-        </div>
+
+        {/* Pickup time */}
+        <span className="text-[14px] font-[500] text-[#A1A1AA] text-center">
+          {flight.dateRange} at {pod.pickupTimeDisplay}
+        </span>
       </div>
       {/* list of people in pod */}
       <div className="flex flex-col gap-[6px] ">
@@ -124,11 +117,6 @@ export function ExpandedPodCard({
               <Avatar className="w-[25px] h-[25px] mr-[8px]">
                 <AvatarFallback className="bg-[#FAFAFA] text-[#28282d] text-[10px] font-semibold">
                   {member.name}
-                  {/* .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2)
-                              .toUpperCase()} */}
                 </AvatarFallback>
               </Avatar>
 
