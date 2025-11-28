@@ -1,4 +1,4 @@
-// Contributors: Michelle
+// Contributors: Michelle, Lana
 // Time: 0.5 hours
 
 const mongoose = require("mongoose");
@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema(
     gender: { type: String, enum: ["male", "female", "other"] },
     emergencyContact: { type: String },
     activeFlights: [{ type: mongoose.Schema.Types.ObjectId, ref: "Flight" }],
+    numCheckedBags: { type: Number, default: 0 },
+    numCarryOnBags: { type: Number, default: 1 },
   },
   { timestamps: true }
 );

@@ -1,5 +1,5 @@
-// Contributors: Samantha, Michelle
-// Time: 0.5 hours
+// Contributors: Samantha, Michelle, Lana
+// Time: 1 hours
 
 // TODO: CACHE THIS INFO SO IT DOESN'T HAVE TO KEEP FETCHING
 import { FlightResultCard } from "@/components/FlightResultCard";
@@ -56,6 +56,8 @@ interface GroupMember {
   id: number;
   name: string;
   phoneNumber: string;
+  numCheckedBags: number;
+  numCarryOnBags: number;
 }
 
 interface TripPod {
@@ -128,6 +130,28 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
         }
         const pods: PodApiData[] = await res.json();
 
+        // Fetch user profiles for all members to get luggage counts
+        const allMemberUids = [
+          ...new Set(pods.flatMap((pod) => pod.members.map((m) => m.user.firebaseUid)))
+        ];
+
+        const userProfiles = new Map();
+        await Promise.all(
+          allMemberUids.map(async (uid) => {
+            try {
+              const userRes = await fetch(
+                `${import.meta.env.VITE_API_URL}/users/profile/${uid}`
+              );
+              if (userRes.ok) {
+                const userData = await userRes.json();
+                userProfiles.set(uid, userData);
+              }
+            } catch (err) {
+              console.error(`Error fetching profile for user ${uid}:`, err);
+            }
+          })
+        );
+
         const tripsData: Trip[] = pods.map((pod) => {
           const pickupDate = new Date(pod.pickup_time);
           const { time: pickupTimeFormatted, date: pickupDateFormatted } =
@@ -146,12 +170,17 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
             currentUserMember?.flightDate || pod.pickup_time
           ).slice(0, 10);
 
-          const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => ({
-            firebaseUid: m.user.firebaseUid,
-            id: idx,
-            name: m.user.name,
-            phoneNumber: m.user.phone || "",
-          }));
+          const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => {
+            const profile = userProfiles.get(m.user.firebaseUid);
+            return {
+              firebaseUid: m.user.firebaseUid,
+              id: idx,
+              name: m.user.name,
+              phoneNumber: m.user.phone || "",
+              numCheckedBags: profile?.numCheckedBags || 0,
+              numCarryOnBags: profile?.numCarryOnBags || 1,
+            };
+          });
 
           const transformedPod: TripPod = {
             id: pod._id,

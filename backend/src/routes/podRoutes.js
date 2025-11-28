@@ -1,5 +1,5 @@
 // Contributors: Lana, Michelle
-// Time: 0.5 hours
+// Time: 1 hours
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -192,7 +192,32 @@ router.get("/user/:userId", async (req, res) => {
       .populate("dropoff_location", "code")
       .populate("members.user");
 
-    res.status(200).json(pods);
+    // Calculate total luggage for each pod based on members' profiles
+    const podsWithLuggage = await Promise.all(
+      pods.map(async (pod) => {
+        let totalCheckedBags = 0;
+        let totalCarryOnBags = 0;
+
+        for (const member of pod.members) {
+          if (member.user && member.user._id) {
+            const userProfile = await User.findById(member.user._id);
+            if (userProfile) {
+              totalCheckedBags += userProfile.numCheckedBags || 0;
+              totalCarryOnBags += userProfile.numCarryOnBags || 0;
+            }
+          }
+        }
+
+        // Convert to plain object and update the luggage totals
+        const podObj = pod.toObject();
+        podObj.num_big_luggage = totalCheckedBags;
+        podObj.num_small_luggage = totalCarryOnBags;
+
+        return podObj;
+      })
+    );
+
+    res.status(200).json(podsWithLuggage);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
