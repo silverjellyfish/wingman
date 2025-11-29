@@ -32,13 +32,16 @@ router.get("/all", async (req, res) => {
 // POST join a pod
 router.post("/:id/join", async (req, res) => {
   try {
-    if (pod.members.length >= pod.max_people) {
-      return res.status(400).json({ error: "Pod is full" });
-    }
     const pod = await Pod.findById(req.params.id).populate("members.user");
+    
     if (!pod) {
       return res.status(404).json({ error: "Pod not found" });
     }
+
+    if (pod.members.length >= pod.max_people) {
+      return res.status(400).json({ error: "Pod is full" });
+    }
+
     if (pod.locked) {
       return res.status(403).json({ error: "Pod is locked" });
     }
@@ -53,6 +56,8 @@ router.post("/:id/join", async (req, res) => {
       boardingTime,
       departureTime,
       arrivalTime,
+      numCheckedInBags,
+      numCarryOnBags,
     } = req.body;
     if (!userId || !flightCode || !flightDate || !destination) {
       return res.status(400).json({
@@ -78,6 +83,8 @@ router.post("/:id/join", async (req, res) => {
         boardingTime,
         departureTime,
         arrivalTime,
+        numCheckedInBags: numCheckedInBags ? parseInt(numCheckedInBags) : 0,
+        numCarryOnBags: numCarryOnBags ? parseInt(numCarryOnBags) : 0,
       });
       pod.num_members = pod.members.length;
       await pod.save();
@@ -243,6 +250,8 @@ router.post("/", async (req, res) => {
       launch,
       landing,
       airlineLogo,
+      numCheckedInBags,
+      numCarryOnBags,
     } = req.body;
 
     if (
@@ -285,6 +294,8 @@ router.post("/", async (req, res) => {
           departureTime: launch,
           arrivalTime: landing,
           airlineLogo: airlineLogo || "",
+          numCheckedInBags: numCheckedInBags ? parseInt(numCheckedInBags) : 0,
+          numCarryOnBags: numCarryOnBags ? parseInt(numCarryOnBags) : 0,
         },
       ],
       max_people: max_people,

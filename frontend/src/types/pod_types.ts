@@ -1,5 +1,6 @@
 export interface MetaData {
   _id: string;
+  name: string;
 }
 export interface User {
   _id: string;
@@ -8,6 +9,8 @@ export interface User {
   name: string;
   createdAt: string;
   gender?: string;
+  numCarryOnBags?: number;
+  numCheckedInBags?: number;
 }
 
 export interface Pod {
