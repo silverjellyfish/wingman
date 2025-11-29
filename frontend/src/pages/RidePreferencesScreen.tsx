@@ -446,8 +446,8 @@ export function RidePreferencesScreen({
                   flights,
                   earliestTime: earliestArrival,
                   latestTime: latestArrival,
-                  numCarryOn,
-                  numChecked,
+                  numCarryOn: parseInt(numCarryOn) || 0,
+                  numChecked: parseInt(numChecked) || 0,
                   pickupLocation,
                   genderPreference: genderMatchingEnabled ? userGender : null,
                 })

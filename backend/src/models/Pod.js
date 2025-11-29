@@ -39,6 +39,8 @@ const podSchema = new mongoose.Schema(
         departureTime: { type: String, required: true },
         arrivalTime: { type: String, required: true },
         airlineLogo: { type: String },
+        numCheckedInBags: { type: Number, default: 0 },
+        numCarryOnBags: { type: Number, default: 0 },
       },
     ],
     max_people: { type: Number, required: true },

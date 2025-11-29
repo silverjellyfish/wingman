@@ -15,6 +15,8 @@ import { LOCATIONS } from "@/constants/locations";
 interface ExtendedFlight extends Flight {
   dropoffAirportId?: string;
   airlineLogo?: string;
+  numCarryOnBags?: number;
+  numCheckedInBags?: number;
 }
 
 // Props for creating a pod
@@ -141,7 +143,6 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
         toast.error("Failed to determine pickup location ID");
         return;
       }
-
       // 3. Create the Pod with all required data
       const res = await fetch(`${import.meta.env.VITE_API_URL}/pods`, {
         method: "POST",
@@ -160,6 +161,8 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
           launch: flight.launch,
           landing: flight.landing,
           airlineLogo: flight.airlineLogo || "",
+          numCheckedInBags: flight.numCheckedInBags || 0,
+          numCarryOnBags: flight.numCarryOnBags || 0,
         }),
       });
 

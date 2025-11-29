@@ -33,7 +33,7 @@ export function GroupOptionCard({
       <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
         <div className="flex items-center gap-[8px]">
           <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none text-[16px] text-white tracking-[0.08px]">
-            Option {optionNumber}
+            Pod #{optionNumber}
           </p>
           {isRecommended && (
             <div className="bg-green-400/10 box-border px-[8px] py-[4px] rounded-full">
