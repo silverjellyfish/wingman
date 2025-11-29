@@ -15,6 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip.tsx";
 import type { Pod, User } from "@/types/pod_types.ts";
 import { filterPods } from "@/../utils/podFilters.ts";
 import { sortPods } from "@/../utils/podSort.ts";
@@ -398,9 +403,24 @@ export function PodListScreen({
 
             {/* Groups Section */}
             <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
-              <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[18px] text-white tracking-[0.07px] w-full">
-                Groups
-              </p>
+              <div className="flex items-center gap-[6px]">
+                <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[18px] text-white tracking-[0.07px] w-full">
+                  Groups
+                </p>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
+                      info
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-[200px]">
+                      Sorted based on (1) pod pickup time, (2) pods with least
+                      luggage, (3) free capacity.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
 
               {/* Option Cards */}
               <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
