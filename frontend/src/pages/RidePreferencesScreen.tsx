@@ -440,7 +440,28 @@ export function RidePreferencesScreen({
 
             {/* Search Button */}
             <Button
-              onClick={() =>
+              onClick={async () => {
+                // Save luggage preferences to user profile
+                if (user) {
+                  try {
+                    await fetch(
+                      `${import.meta.env.VITE_API_URL}/users/profile/${user.id}`,
+                      {
+                        method: "PATCH",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          numCheckedBags: Number(numChecked),
+                          numCarryOnBags: Number(numCarryOn),
+                        }),
+                      }
+                    );
+                  } catch (err) {
+                    console.error("Error saving luggage preferences:", err);
+                  }
+                }
+
                 onNavigate("rideWithGroup", undefined, undefined, {
                   flight,
                   flights,
@@ -450,8 +471,8 @@ export function RidePreferencesScreen({
                   numChecked,
                   pickupLocation,
                   genderPreference: genderMatchingEnabled ? userGender : null,
-                })
-              }
+                });
+              }}
               className="w-full"
               disabled={!isFormValid()}
             >
