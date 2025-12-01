@@ -1,5 +1,5 @@
 // Contributors: Lana, Michelle
-// Time: 0.5 hours
+// Time: 1 hours
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -44,6 +44,9 @@ router.post("/:id/join", async (req, res) => {
 
     if (pod.locked) {
       return res.status(403).json({ error: "Pod is locked" });
+    }
+    if (pod.members.length >= pod.max_people) {
+      return res.status(400).json({ error: "Pod is full" });
     }
 
     const {
@@ -116,7 +119,7 @@ router.post("/:id/leave", async (req, res) => {
     );
     pod.num_members = pod.members.length;
 
-    // 🔥 If pod is empty → delete it
+    // If pod is empty → delete it
     if (pod.members.length === 0) {
       console.log("Pod is empty, deleting pod");
       await Pod.findByIdAndDelete(pod._id);
@@ -199,7 +202,26 @@ router.get("/user/:userId", async (req, res) => {
       .populate("dropoff_location", "code")
       .populate("members.user");
 
-    res.status(200).json(pods);
+    // Calculate total luggage for each pod based on pod member data
+    const podsWithLuggage = pods.map((pod) => {
+      const podObj = pod.toObject();
+
+      // Calculate totals from member luggage stored in the pod
+      const totalCheckedBags = podObj.members.reduce((sum, member) => {
+        return sum + (member.numCheckedBags || 0);
+      }, 0);
+
+      const totalCarryOnBags = podObj.members.reduce((sum, member) => {
+        return sum + (member.numCarryOnBags || 1);
+      }, 0);
+
+      podObj.num_big_luggage = totalCheckedBags;
+      podObj.num_small_luggage = totalCarryOnBags;
+
+      return podObj;
+    });
+
+    res.status(200).json(podsWithLuggage);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -440,7 +440,7 @@ export function RidePreferencesScreen({
 
             {/* Search Button */}
             <Button
-              onClick={() =>
+              onClick={() => {
                 onNavigate("rideWithGroup", undefined, undefined, {
                   flight,
                   flights,
@@ -450,8 +450,8 @@ export function RidePreferencesScreen({
                   numChecked: parseInt(numChecked) || 0,
                   pickupLocation,
                   genderPreference: genderMatchingEnabled ? userGender : null,
-                })
-              }
+                });
+              }}
               className="w-full"
               disabled={!isFormValid()}
             >

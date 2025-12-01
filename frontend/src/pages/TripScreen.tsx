@@ -1,5 +1,5 @@
-// Contributors: Samantha, Michelle
-// Time: 0.5 hours
+// Contributors: Samantha, Michelle, Lana
+// Time: 1 hours
 
 // TODO: CACHE THIS INFO SO IT DOESN'T HAVE TO KEEP FETCHING
 import { FlightResultCard } from "@/components/FlightResultCard";
@@ -46,6 +46,8 @@ interface PodApiData {
     departureTime: string;
     arrivalTime: string;
     airlineLogo?: string;
+    numCheckedBags?: number;
+    numCarryOnBags?: number;
   }[];
   num_big_luggage: number;
   num_small_luggage: number;
@@ -56,6 +58,8 @@ interface GroupMember {
   id: number;
   name: string;
   phoneNumber: string;
+  numCheckedBags: number;
+  numCarryOnBags: number;
 }
 
 interface TripPod {
@@ -146,12 +150,16 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
             currentUserMember?.flightDate || pod.pickup_time
           ).slice(0, 10);
 
-          const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => ({
-            firebaseUid: m.user.firebaseUid,
-            id: idx,
-            name: m.user.name,
-            phoneNumber: m.user.phone || "",
-          }));
+          const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => {
+            return {
+              firebaseUid: m.user.firebaseUid,
+              id: idx,
+              name: m.user.name,
+              phoneNumber: m.user.phone || "",
+              numCheckedBags: m.numCheckedBags || 0,
+              numCarryOnBags: m.numCarryOnBags || 1,
+            };
+          });
 
           const transformedPod: TripPod = {
             id: pod._id,

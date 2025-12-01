@@ -1,3 +1,6 @@
+// Contributors: Michelle, Lana
+// Time: 1.5 hours
+
 import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { BsSuitcase2, BsSuitcaseLg } from "react-icons/bs";
@@ -11,6 +14,8 @@ interface GroupMember {
   id: number;
   name: string;
   phoneNumber: string;
+  numCheckedBags: number;
+  numCarryOnBags: number;
 }
 
 interface ExpandedPodCardProps {
@@ -122,8 +127,21 @@ export function ExpandedPodCard({
 
               <p className="text-[16px] !font-semibold">{member.name}</p>
             </div>
-            <p className="text-[16px] !font-semibold">{member.phoneNumber}</p>
-            {/* suitcase icons with luggage count */}
+
+            <div className="flex flex-row items-center gap-[8px]">
+              <p className="text-[16px] !font-semibold">{member.phoneNumber}</p>
+              {/* suitcase icons with luggage count */}
+              <div className="flex flex-row gap-[2px] items-center">
+                <BsSuitcase2 style={{ height: 20 }} />
+                <p className="text-[14px] font-semibold w-[12px] text-center">
+                  {member.numCheckedBags}
+                </p>
+                <BsSuitcaseLg style={{ height: 20 }} className="ml-[4px]" />
+                <p className="text-[14px] font-semibold w-[12px] text-center">
+                  {member.numCarryOnBags}
+                </p>
+              </div>
+            </div>
           </div>
         ))}
       </div>

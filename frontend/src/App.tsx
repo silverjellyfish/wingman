@@ -137,11 +137,8 @@ function AuthenticatedApp() {
       case "profile":
         return <ProfileScreen onNavigate={navigateTo} />;
       case "createPod":
-         console.log("Payload in createPod screen:", payload);
         const numCarryOn = parseInt(payload?.numCarryOn || 0);
         const numChecked = parseInt(payload?.numChecked || 0);
-        console.log("Number of Carry-On Bags:", numCarryOn);
-        console.log("Number of Checked Bags:", numChecked);
         return selectedFlight ? (
           <CreatePodScreen
             onNavigate={navigateTo}

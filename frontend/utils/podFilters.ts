@@ -54,9 +54,15 @@ const createInternalPodFilter = ({
   const [latestHour, latestMin] = militaryLatest.split(":").map(Number);
 
   return (pod: Pod): boolean => {
+    console.log("🔍 Filtering pod:", pod._id, "pickup_time:", pod.pickup_time);
+
     // 1. Date Match Check
     const podDateOnly = new Date(pod.pickup_time).toISOString().split("T")[0];
-    if (podDateOnly !== searchDateOnly) return false;
+    console.log("  Date check - pod:", podDateOnly, "search:", searchDateOnly);
+    if (podDateOnly !== searchDateOnly) {
+      console.log("  ❌ Failed date check");
+      return false;
+    }
 
     // 2. Time Window Check (Corrected logic from previous turn)
     const podTime = new Date(pod.pickup_time);
@@ -70,7 +76,11 @@ const createInternalPodFilter = ({
       latest.setDate(latest.getDate() + 1);
     }
 
-    if (!(podTime >= earliest && podTime <= latest)) return false;
+    console.log("  Time check - pod:", podTime.toISOString(), "earliest:", earliest.toISOString(), "latest:", latest.toISOString());
+    if (!(podTime >= earliest && podTime <= latest)) {
+      console.log("  ❌ Failed time window check");
+      return false;
+    }
 
     // 3. Pickup Location Check
     const withinLocation =
@@ -79,18 +89,28 @@ const createInternalPodFilter = ({
         .toLowerCase()
         .includes(pickupLocation.toLowerCase());
 
-    if (!withinLocation) return false;
+    console.log("  Location check - pod:", pod.pickup_location?.name, "search:", pickupLocation, "match:", withinLocation);
+    if (!withinLocation) {
+      console.log("  ❌ Failed location check");
+      return false;
+    }
 
     // 4. Luggage Capacity Check
     const totalUserLuggage = Number(numCarryOn) + Number(numChecked);
+    console.log("  Luggage check - user total:", totalUserLuggage, "(not currently used in filter)");
 
     // 5. Gender Preference Check
     const genderMatches =
       !genderPreference ||
       pod.members.every((member) => member.gender === genderPreference);
 
-    if (!genderMatches) return false;
+    console.log("  Gender check - preference:", genderPreference, "match:", genderMatches);
+    if (!genderMatches) {
+      console.log("  ❌ Failed gender check");
+      return false;
+    }
 
+    console.log("  ✅ Pod passed all filters!");
     return true;
   };
 };
