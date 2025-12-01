@@ -46,7 +46,7 @@ interface PodApiData {
     departureTime: string;
     arrivalTime: string;
     airlineLogo?: string;
-    numCheckedBags?: number;
+    numCheckedInBags?: number;
     numCarryOnBags?: number;
   }[];
   num_big_luggage: number;
@@ -156,7 +156,7 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
               id: idx,
               name: m.user.name,
               phoneNumber: m.user.phone || "",
-              numCheckedBags: m.numCheckedBags || 0,
+              numCheckedBags: m.numCheckedInBags || 0,
               numCarryOnBags: m.numCarryOnBags || 1,
             };
           });
