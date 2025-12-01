@@ -208,7 +208,7 @@ router.get("/user/:userId", async (req, res) => {
 
       // Calculate totals from member luggage stored in the pod
       const totalCheckedBags = podObj.members.reduce((sum, member) => {
-        return sum + (member.numCheckedBags || 0);
+        return sum + (member.numCheckedInBags || 0);
       }, 0);
 
       const totalCarryOnBags = podObj.members.reduce((sum, member) => {
