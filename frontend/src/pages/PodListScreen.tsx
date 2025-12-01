@@ -15,20 +15,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip.tsx";
 import type { Pod, User } from "@/types/pod_types.ts";
 import { filterPods } from "@/../utils/podFilters.ts";
+import { sortPods } from "@/../utils/podSort.ts";
 
 interface PodListScreenProps {
   onNavigate: (...args: any[]) => void;
   payload?: any;
-}
-
-/* Converts time string like "2:30 PM" to "14:30" */
-function convertToMilitaryTime(timeStr: string): string {
-  const d = new Date(`2025/10/28 ${timeStr}`);
-  const hours = d.getHours().toString().padStart(2, "0");
-  const minutes = d.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
 }
 
 export function PodListScreen({
@@ -126,7 +124,7 @@ export function PodListScreen({
             boardingTime: flight.boarding,
             departureTime: flight.launch,
             arrivalTime: flight.landing,
-            numCheckedBags: numChecked,
+            numCheckedInBags: numChecked,
             numCarryOnBags: numCarryOn,
           }),
         }
@@ -237,6 +235,16 @@ export function PodListScreen({
           genderPreference,
         });
         setPods(filtered);
+
+        console.log("Filtered Pods:", filtered);
+        const sorted = sortPods(filtered, {
+          earliestTime,
+          latestTime,
+          flightBoardingTime: flight.boarding,
+        });
+        console.log("Sorted Pods:", sorted);
+
+        setPods(sorted);
       } catch (err) {
         console.error("Error fetching pods:", err);
       } finally {
@@ -280,14 +288,16 @@ export function PodListScreen({
         return m.user._id === userId;
       });
 
+    console.log(pod.members, "pod members");
+
     return {
       podId: pod._id,
       id: idx + 1,
       isRecommended: idx === 0,
       userAlreadyInPod,
       members: pod.members.map((m) => ({
-        name: m.name?.split(" ")[0] || "User",
-        initial: m.name?.[0] || "?",
+        name: m.user.name?.split(" ")[0] || "User",
+        initial: m.user.name?.[0] || "?",
         isEmpty: false,
       })),
       location: pod.pickup_location?.name || "Unknown location",
@@ -386,7 +396,7 @@ export function PodListScreen({
             {/* Create Pod Button */}
             <div className="content-stretch flex items-start relative shrink-0 w-full">
               <Button
-                onClick={() => onNavigate("createPod", { flight, numChecked, numCarryOn })}
+                onClick={() => onNavigate("createPod", { payload })}
                 variant="default"
                 className="w-full px-[16px] py-[12px]"
               >
@@ -396,9 +406,24 @@ export function PodListScreen({
 
             {/* Groups Section */}
             <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">
-              <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[18px] text-white tracking-[0.07px] w-full">
-                Groups
-              </p>
+              <div className="flex items-center gap-[6px]">
+                <p className="font-['Geist:SemiBold',_sans-serif] font-semibold leading-none relative text-[18px] text-white tracking-[0.07px] w-full">
+                  Groups
+                </p>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="material-symbols-outlined text-zinc-400 text-[16px] cursor-help">
+                      info
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-[200px]">
+                      Sorted based on (1) pod pickup time, (2) pods with least
+                      luggage, (3) free capacity.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
 
               {/* Option Cards */}
               <div className="content-stretch flex flex-col gap-[16px] items-start relative shrink-0 w-full">

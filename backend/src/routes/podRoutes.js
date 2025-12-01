@@ -33,9 +33,15 @@ router.get("/all", async (req, res) => {
 router.post("/:id/join", async (req, res) => {
   try {
     const pod = await Pod.findById(req.params.id).populate("members.user");
+    
     if (!pod) {
       return res.status(404).json({ error: "Pod not found" });
     }
+
+    if (pod.members.length >= pod.max_people) {
+      return res.status(400).json({ error: "Pod is full" });
+    }
+
     if (pod.locked) {
       return res.status(403).json({ error: "Pod is locked" });
     }
@@ -53,7 +59,7 @@ router.post("/:id/join", async (req, res) => {
       boardingTime,
       departureTime,
       arrivalTime,
-      numCheckedBags,
+      numCheckedInBags,
       numCarryOnBags,
     } = req.body;
     if (!userId || !flightCode || !flightDate || !destination) {
@@ -80,8 +86,8 @@ router.post("/:id/join", async (req, res) => {
         boardingTime,
         departureTime,
         arrivalTime,
-        numCheckedBags: numCheckedBags || 0,
-        numCarryOnBags: numCarryOnBags || 1,
+        numCheckedInBags: numCheckedInBags ? parseInt(numCheckedInBags) : 0,
+        numCarryOnBags: numCarryOnBags ? parseInt(numCarryOnBags) : 0,
       });
       pod.num_members = pod.members.length;
       await pod.save();
@@ -113,7 +119,7 @@ router.post("/:id/leave", async (req, res) => {
     );
     pod.num_members = pod.members.length;
 
-    // 🔥 If pod is empty → delete it
+    // If pod is empty → delete it
     if (pod.members.length === 0) {
       console.log("Pod is empty, deleting pod");
       await Pod.findByIdAndDelete(pod._id);
@@ -266,7 +272,7 @@ router.post("/", async (req, res) => {
       launch,
       landing,
       airlineLogo,
-      numCheckedBags,
+      numCheckedInBags,
       numCarryOnBags,
     } = req.body;
 
@@ -310,8 +316,8 @@ router.post("/", async (req, res) => {
           departureTime: launch,
           arrivalTime: landing,
           airlineLogo: airlineLogo || "",
-          numCheckedBags: numCheckedBags || 0,
-          numCarryOnBags: numCarryOnBags || 1,
+          numCheckedInBags: numCheckedInBags ? parseInt(numCheckedInBags) : 0,
+          numCarryOnBags: numCarryOnBags ? parseInt(numCarryOnBags) : 0,
         },
       ],
       max_people: max_people,
