@@ -21,9 +21,11 @@ interface ExtendedFlight extends Flight {
 interface CreatePodScreenProps {
   onNavigate: (screen: Screen, payload?: any) => void;
   flight: ExtendedFlight;
+  numChecked?: number;
+  numCarryOn?: number;
 }
 
-export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
+export function CreatePodScreen({ onNavigate, flight, numChecked = 0, numCarryOn = 1 }: CreatePodScreenProps) {
   const [pickupDate, setPickupDate] = useState<Date | undefined>();
   const [pickupTime, setPickupTime] = useState("");
   const [maxPeople, setMaxPeople] = useState("2");
@@ -160,6 +162,8 @@ export function CreatePodScreen({ onNavigate, flight }: CreatePodScreenProps) {
           launch: flight.launch,
           landing: flight.landing,
           airlineLogo: flight.airlineLogo || "",
+          numCheckedBags: numChecked,
+          numCarryOnBags: numCarryOn,
         }),
       });
 

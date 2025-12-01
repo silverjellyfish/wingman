@@ -32,15 +32,15 @@ router.get("/all", async (req, res) => {
 // POST join a pod
 router.post("/:id/join", async (req, res) => {
   try {
-    if (pod.members.length >= pod.max_people) {
-      return res.status(400).json({ error: "Pod is full" });
-    }
     const pod = await Pod.findById(req.params.id).populate("members.user");
     if (!pod) {
       return res.status(404).json({ error: "Pod not found" });
     }
     if (pod.locked) {
       return res.status(403).json({ error: "Pod is locked" });
+    }
+    if (pod.members.length >= pod.max_people) {
+      return res.status(400).json({ error: "Pod is full" });
     }
 
     const {
@@ -53,6 +53,8 @@ router.post("/:id/join", async (req, res) => {
       boardingTime,
       departureTime,
       arrivalTime,
+      numCheckedBags,
+      numCarryOnBags,
     } = req.body;
     if (!userId || !flightCode || !flightDate || !destination) {
       return res.status(400).json({
@@ -78,6 +80,8 @@ router.post("/:id/join", async (req, res) => {
         boardingTime,
         departureTime,
         arrivalTime,
+        numCheckedBags: numCheckedBags || 0,
+        numCarryOnBags: numCarryOnBags || 1,
       });
       pod.num_members = pod.members.length;
       await pod.save();
@@ -192,30 +196,24 @@ router.get("/user/:userId", async (req, res) => {
       .populate("dropoff_location", "code")
       .populate("members.user");
 
-    // Calculate total luggage for each pod based on members' profiles
-    const podsWithLuggage = await Promise.all(
-      pods.map(async (pod) => {
-        let totalCheckedBags = 0;
-        let totalCarryOnBags = 0;
+    // Calculate total luggage for each pod based on pod member data
+    const podsWithLuggage = pods.map((pod) => {
+      const podObj = pod.toObject();
 
-        for (const member of pod.members) {
-          if (member.user && member.user._id) {
-            const userProfile = await User.findById(member.user._id);
-            if (userProfile) {
-              totalCheckedBags += userProfile.numCheckedBags || 0;
-              totalCarryOnBags += userProfile.numCarryOnBags || 0;
-            }
-          }
-        }
+      // Calculate totals from member luggage stored in the pod
+      const totalCheckedBags = podObj.members.reduce((sum, member) => {
+        return sum + (member.numCheckedBags || 0);
+      }, 0);
 
-        // Convert to plain object and update the luggage totals
-        const podObj = pod.toObject();
-        podObj.num_big_luggage = totalCheckedBags;
-        podObj.num_small_luggage = totalCarryOnBags;
+      const totalCarryOnBags = podObj.members.reduce((sum, member) => {
+        return sum + (member.numCarryOnBags || 1);
+      }, 0);
 
-        return podObj;
-      })
-    );
+      podObj.num_big_luggage = totalCheckedBags;
+      podObj.num_small_luggage = totalCarryOnBags;
+
+      return podObj;
+    });
 
     res.status(200).json(podsWithLuggage);
   } catch (err) {
@@ -268,6 +266,8 @@ router.post("/", async (req, res) => {
       launch,
       landing,
       airlineLogo,
+      numCheckedBags,
+      numCarryOnBags,
     } = req.body;
 
     if (
@@ -310,6 +310,8 @@ router.post("/", async (req, res) => {
           departureTime: launch,
           arrivalTime: landing,
           airlineLogo: airlineLogo || "",
+          numCheckedBags: numCheckedBags || 0,
+          numCarryOnBags: numCarryOnBags || 1,
         },
       ],
       max_people: max_people,

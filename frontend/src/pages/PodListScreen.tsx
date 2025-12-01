@@ -123,6 +123,11 @@ export function PodListScreen({
             origin: origin,
             destination: destination,
             dropoffAirportId: dropoffAirportId,
+            boardingTime: flight.boarding,
+            departureTime: flight.launch,
+            arrivalTime: flight.landing,
+            numCheckedBags: numChecked,
+            numCarryOnBags: numCarryOn,
           }),
         }
       );
@@ -381,7 +386,7 @@ export function PodListScreen({
             {/* Create Pod Button */}
             <div className="content-stretch flex items-start relative shrink-0 w-full">
               <Button
-                onClick={() => onNavigate("createPod", { flight })}
+                onClick={() => onNavigate("createPod", { flight, numChecked, numCarryOn })}
                 variant="default"
                 className="w-full px-[16px] py-[12px]"
               >

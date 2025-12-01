@@ -46,6 +46,8 @@ interface PodApiData {
     departureTime: string;
     arrivalTime: string;
     airlineLogo?: string;
+    numCheckedBags?: number;
+    numCarryOnBags?: number;
   }[];
   num_big_luggage: number;
   num_small_luggage: number;
@@ -130,28 +132,6 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
         }
         const pods: PodApiData[] = await res.json();
 
-        // Fetch user profiles for all members to get luggage counts
-        const allMemberUids = [
-          ...new Set(pods.flatMap((pod) => pod.members.map((m) => m.user.firebaseUid)))
-        ];
-
-        const userProfiles = new Map();
-        await Promise.all(
-          allMemberUids.map(async (uid) => {
-            try {
-              const userRes = await fetch(
-                `${import.meta.env.VITE_API_URL}/users/profile/${uid}`
-              );
-              if (userRes.ok) {
-                const userData = await userRes.json();
-                userProfiles.set(uid, userData);
-              }
-            } catch (err) {
-              console.error(`Error fetching profile for user ${uid}:`, err);
-            }
-          })
-        );
-
         const tripsData: Trip[] = pods.map((pod) => {
           const pickupDate = new Date(pod.pickup_time);
           const { time: pickupTimeFormatted, date: pickupDateFormatted } =
@@ -171,14 +151,13 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
           ).slice(0, 10);
 
           const listPeopleIds: GroupMember[] = pod.members.map((m, idx) => {
-            const profile = userProfiles.get(m.user.firebaseUid);
             return {
               firebaseUid: m.user.firebaseUid,
               id: idx,
               name: m.user.name,
               phoneNumber: m.user.phone || "",
-              numCheckedBags: profile?.numCheckedBags || 0,
-              numCarryOnBags: profile?.numCarryOnBags || 1,
+              numCheckedBags: m.numCheckedBags || 0,
+              numCarryOnBags: m.numCarryOnBags || 1,
             };
           });
 

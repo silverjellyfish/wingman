@@ -132,6 +132,8 @@ function AuthenticatedApp() {
                <CreatePodScreen
                   onNavigate={navigateTo}
                   flight={selectedFlight}
+                  numChecked={payload?.numChecked}
+                  numCarryOn={payload?.numCarryOn}
                />
             ) : null;
 
