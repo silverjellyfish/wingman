@@ -33,7 +33,7 @@ router.get("/all", async (req, res) => {
 router.post("/:id/join", async (req, res) => {
   try {
     const pod = await Pod.findById(req.params.id).populate("members.user");
-    
+
     if (!pod) {
       return res.status(404).json({ error: "Pod not found" });
     }
