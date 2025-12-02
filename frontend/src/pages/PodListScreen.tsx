@@ -342,7 +342,7 @@ export function PodListScreen({
               </Button>
               <Button
                 variant="destructive"
-                className="w-full ml-[1rem] mr-[1rem]"
+                className="w-full"
                 onClick={handleReplacePod}
               >
                 Replace Pod
