@@ -321,15 +321,15 @@ export function PodListScreen({
               </DialogTitle>
               <DialogDescription className="text-zinc-400">
                 You are already a member of a pod for this trip, with pickup at
-                **{existingPod.pickup_location.name}**.
+                {existingPod.pickup_location.name}.
                 <br />
-                Are you sure you want to **leave that pod** and join the new one
-                for **
+                Are you sure you want to leave that pod and join the new one
+                for 
                 {new Date(podToJoin.pickup_time).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}
-                **?
+                ?
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex gap-2 justify-end mb-[1rem] mt-[1rem]">
@@ -342,7 +342,7 @@ export function PodListScreen({
               </Button>
               <Button
                 variant="destructive"
-                className="w-full bg-accent hover:bg-accent/80 text-primary-foreground"
+                className="w-full ml-[1rem] mr-[1rem]"
                 onClick={handleReplacePod}
               >
                 Replace Pod
