@@ -16,6 +16,7 @@ interface GroupMember {
    phoneNumber: string;
    numCheckedBags: number;
    numCarryOnBags: number;
+   avatar?: string;
 }
 
 interface ExpandedPodCardProps {
@@ -120,8 +121,15 @@ export function ExpandedPodCard({
                   <div className="flex flex-row items-center">
                      {/* profile picture */}
                      <Avatar className="w-[25px] h-[25px] mr-[8px]">
+                        {member.avatar && (
+                           <AvatarImage
+                              src={member.avatar}
+                              alt={member.name}
+                              className="object-cover"
+                           />
+                        )}
                         <AvatarFallback className="bg-[#FAFAFA] text-[#28282d] text-[10px] font-semibold">
-                           {member.name}
+                           {member.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                         </AvatarFallback>
                      </Avatar>
 

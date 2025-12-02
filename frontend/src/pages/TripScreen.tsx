@@ -22,6 +22,7 @@ interface PodMemberUser {
    firebaseUid: string;
    name: string;
    phone?: string;
+   avatar?: string;
 }
 
 interface PodLocation {
@@ -60,6 +61,7 @@ interface GroupMember {
    phoneNumber: string;
    numCheckedBags: number;
    numCarryOnBags: number;
+   avatar?: string;
 }
 
 interface TripPod {
@@ -165,6 +167,7 @@ export function TripScreen({ onNavigate }: TripScreenProps) {
                         phoneNumber: m.user.phone || "",
                         numCheckedBags: m.numCheckedInBags || 0,
                         numCarryOnBags: m.numCarryOnBags || 1,
+                        avatar: m.user.avatar,
                      };
                   }
                );
