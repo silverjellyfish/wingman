@@ -63,6 +63,34 @@ router.patch("/profile/:firebaseUid", async (req, res) => {
   }
 });
 
+// PATCH /api/users/avatar/:firebaseUid
+// Update user avatar by Firebase UID
+router.patch("/avatar/:firebaseUid", async (req, res) => {
+  try {
+    const { avatar } = req.body;
+
+    if (!avatar) {
+      return res.status(400).json({ error: "Avatar data is required" });
+    }
+
+    // Validate that it's a base64 image
+    if (!avatar.startsWith('data:image/')) {
+      return res.status(400).json({ error: "Invalid image format" });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { firebaseUid: req.params.firebaseUid },
+      { avatar },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+    res.json({ message: "Avatar updated successfully", avatar: updatedUser.avatar });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // DELETE /api/users/profile/:firebaseUid
 // Delete user profile by Firebase UID
 router.delete("/firebase/:firebaseUid", async (req, res) => {
