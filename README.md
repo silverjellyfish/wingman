@@ -23,9 +23,11 @@ Make sure you have the following installed:
 - Node.js (v16+ recommended)
 - npm (comes with Node.js)
 
-## Running the App
+## Running the App Locally
 
-Follow these steps to start the backend and frontend servers:
+Follow these steps to start the backend and frontend servers (locally):
+
+Follow the instructions in `backend/src/app.js` and comment out the code for vercel deployment. 
 
 ### 1. Start the Backend
 
@@ -44,3 +46,9 @@ cd frontend
 npm install
 npm run dev
 ```
+
+### 3. Local Development
+Head to the `PORT` shown in the terminal.
+
+## Deployed Version
+Follow `wingman-for-you.vercel.app/` to view the deployed version. The frontend is deployed on Vercel and the backend is deployed on Render.
