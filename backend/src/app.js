@@ -1,4 +1,3 @@
-// app.js
 // Contributors: Michelle
 // Time: 0.1 hours
 
@@ -12,6 +11,7 @@ const app = express();
 // STEPS FOR LOCAL TESTING
 // COMMENT THE FOLLOWING OUT
 /////////////////////////////////////////////////// BELOW THIS POINT
+
 const allowedOrigins = [
   "https://wingman-for-you.vercel.app",
   "https://wingman-git-deploy-m1chelle7s-projects.vercel.app",
@@ -34,13 +34,19 @@ app.use(
 
 /////////////////////////////////////////////////// ABOVE THIS POINT
 
-// AND UNCOMMENT THE FOLLOWING:
+
+// AND
+
+
+/////////////////////////////////////////////////// COMMENT THE FOLLOWING
+
 // app.use(
 //   cors({
 //     origin: "http://localhost:5173",
 //   })
 // );
-///////////////////////////////////////////////////
+
+/////////////////////////////////////////////////// ABOVE THIS POINT
 
 // Middleware
 app.use(express.json());

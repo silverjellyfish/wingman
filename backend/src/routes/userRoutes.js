@@ -4,6 +4,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const Pod = require("../models/Pod");
 
 // --- Firebase-based routes ---
 // POST /api/users/profile
@@ -66,11 +67,28 @@ router.patch("/profile/:firebaseUid", async (req, res) => {
 // Delete user profile by Firebase UID
 router.delete("/firebase/:firebaseUid", async (req, res) => {
   try {
+    const { firebaseUid } = req.params;
+
+    const user = await User.findOne({ firebaseUid: firebaseUid });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userMongooseId = user._id;
+
+    await Pod.updateMany(
+      { "members.user": userMongooseId },
+      { $pull: { members: { user: userMongooseId } }, $inc: { num_members: -1 } }
+    );
+
+    await Pod.deleteMany({ num_members: { $lte: 0 } });
+
     const deleted = await User.findOneAndDelete({
-      firebaseUid: req.params.firebaseUid,
+      firebaseUid: firebaseUid,
     });
+
     if (!deleted) return res.status(404).json({ error: "User not found" });
-    res.json({ message: "User deleted" });
+    res.json({ message: "User and associated pod memberships deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

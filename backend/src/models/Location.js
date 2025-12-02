@@ -1,6 +1,5 @@
 // Contributors: Michelle
 // Time: 0.5 hours
-// TODO: ADD COORDINATES LATER
 
 const mongoose = require("mongoose");
 
