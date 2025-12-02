@@ -6,12 +6,12 @@ Our project coordinates rideshares between a university campus and the airport. 
 
 ## Technical Specifications
 
-- Languages: JavaScript
+- Languages: JavaScript, Typescript
 - Database: MongoDB
 - Object Data Modeling (ODM) Library: Mongoose
 - Framework: Express.js
 - Testing: Jest
-- UI Library: Mantine UI
+- UI Library: Shadcn
 - Authentication: Firebase
 - API Testing Platform: Postman
 - API Architecture: REST
@@ -44,7 +44,3 @@ cd frontend
 npm install
 npm run dev
 ```
-
-### 3. Welcome to Wingman!
-
-Head to `http://localhost:5173/` to view our application.
