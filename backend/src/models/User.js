@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     age: { type: Number, required: true },
     gender: { type: String, enum: ["male", "female", "other"] },
     emergencyContact: { type: String },
+    avatar: { type: String }, // Base64 encoded image or URL
     activeFlights: [{ type: mongoose.Schema.Types.ObjectId, ref: "Flight" }],
   },
   { timestamps: true }

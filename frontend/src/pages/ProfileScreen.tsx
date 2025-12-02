@@ -1,7 +1,7 @@
 // Contributors: Michelle, Vince
 // Time: 2 hours
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,335 +9,437 @@ import imgAvatar from "@/assets/images/avatar.png";
 import type { Screen } from "@/types";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+   Dialog,
+   DialogClose,
+   DialogContent,
+   DialogDescription,
+   DialogFooter,
+   DialogHeader,
+   DialogTitle,
+   DialogTrigger,
 } from "@/components/ui/dialog";
 
 interface ProfileScreenProps {
-  onNavigate: (screen: Screen) => void;
+   onNavigate: (screen: Screen) => void;
 }
 
 export function ProfileScreen({ onNavigate }: ProfileScreenProps) {
-  const { user, logout, deleteAccount } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [profileImage, setProfileImage] = useState<string>(imgAvatar);
+   const { user, logout, deleteAccount } = useAuth();
+   const [isEditing, setIsEditing] = useState(false);
+   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+   const [profileImage, setProfileImage] = useState<string>(imgAvatar);
+   const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
+   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Profile state
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [emergencyContact, setEmergencyContact] = useState("");
+   // Profile state
+   const [name, setName] = useState("");
+   const [username, setUsername] = useState("");
+   const [email, setEmail] = useState("");
+   const [phone, setPhone] = useState("");
+   const [emergencyContact, setEmergencyContact] = useState("");
 
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
+   const [age, setAge] = useState("");
+   const [gender, setGender] = useState("");
 
-  // Fetch user profile from backend
-  useEffect(() => {
-    if (!user) return;
+   // Fetch user profile from backend
+   useEffect(() => {
+      if (!user) return;
 
-    // Set Firebase auth data as fallback immediately
-    setName(user.name || "");
-    setEmail(user.email || "");
+      // Set Firebase auth data as fallback immediately
+      setName(user.name || "");
+      setEmail(user.email || "");
 
-    // Fetch profile data
-    const fetchProfile = async () => {
+      // Fetch profile data
+      const fetchProfile = async () => {
+         try {
+            const API_BASE_URL = import.meta.env.VITE_API_URL;
+            const res = await fetch(`${API_BASE_URL}/users/profile/${user.id}`);
+            if (!res.ok) {
+               console.error(`Backend fetch failed with status: ${res.status}`);
+               throw new Error("Failed to fetch profile");
+            }
+
+            const data = await res.json();
+
+            // Update with backend data if available
+            setName(data.name || user.name || "");
+            setUsername(data.username || "");
+            setEmail(data.email || user.email || "");
+            setPhone(data.phone || "");
+            setEmergencyContact(data.emergencyContact || "");
+            setAge(data.age ? data.age.toString() : "");
+            setGender(data.gender || "");
+            if (data.avatar) {
+               setProfileImage(data.avatar);
+            }
+         } catch (err) {
+            console.error("Error fetching profile from backend:", err);
+         }
+      };
+
+      fetchProfile();
+   }, [user]);
+
+   // Handle profile info change
+   const handleChangeProfileInfo = async () => {
+      if (!user) return;
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL;
-        const res = await fetch(`${API_BASE_URL}/users/profile/${user.id}`);
-        if (!res.ok) {
-          console.error(`Backend fetch failed with status: ${res.status}`);
-          throw new Error("Failed to fetch profile");
-        }
-
-        const data = await res.json();
-
-        // Update with backend data if available
-        setName(data.name || user.name || "");
-        setUsername(data.username || "");
-        setEmail(data.email || user.email || "");
-        setPhone(data.phone || "");
-        setEmergencyContact(data.emergencyContact || "");
-        setAge(data.age ? data.age.toString() : "");
-        setGender(data.gender || "");
+         const API_BASE_URL = import.meta.env.VITE_API_URL;
+         const res = await fetch(`${API_BASE_URL}/users/profile/${user.id}`, {
+            method: "PATCH",
+            headers: {
+               "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+               phone,
+               age: Number(age),
+               gender,
+               emergencyContact,
+            }),
+         });
       } catch (err) {
-        console.error("Error fetching profile from backend:", err);
+         console.error(err);
       }
-    };
+   };
 
-    fetchProfile();
-  }, [user]);
+   // TODO: Determine if delete
+   // Handle saving user's constraints. Currently, inputs are commented out
+   // for sprint 2
+   const handleSave = () => {
+      handleChangeProfileInfo();
+      setIsEditing(false);
+      toast.success("Profile updated successfully");
+   };
 
-  // Handle profile info change
-  const handleChangeProfileInfo = async () => {
-    if (!user) return;
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL;
-      const res = await fetch(`${API_BASE_URL}/users/profile/${user.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone,
-          age: Number(age),
-          gender,
-          emergencyContact,
-        }),
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
+   // Handle phone number change
+   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value.replace(/[^0-9]/g, "");
+      if (value.length > 10) return;
+      let formatted = value;
+      if (value.length > 6) {
+         formatted = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(
+            6
+         )}`;
+      } else if (value.length > 3) {
+         formatted = `${value.slice(0, 3)}-${value.slice(3)}`;
+      }
+      setPhone(formatted);
+   };
 
-  // TODO: Determine if delete
-  // Handle saving user's constraints. Currently, inputs are commented out
-  // for sprint 2
-  const handleSave = () => {
-    handleChangeProfileInfo();
-    setIsEditing(false);
-    toast.success("Profile updated successfully");
-  };
+   const handleEmergencyContactChange = (
+      e: React.ChangeEvent<HTMLInputElement>
+   ) => {
+      const value = e.target.value.replace(/[^0-9]/g, "");
+      if (value.length > 10) return;
+      let formatted = value;
+      if (value.length > 6) {
+         formatted = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(
+            6
+         )}`;
+      } else if (value.length > 3) {
+         formatted = `${value.slice(0, 3)}-${value.slice(3)}`;
+      }
+      setEmergencyContact(formatted);
+   };
 
-  // Handle phone number change
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    if (value.length > 10) return;
-    let formatted = value;
-    if (value.length > 6) {
-      formatted = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(6)}`;
-    } else if (value.length > 3) {
-      formatted = `${value.slice(0, 3)}-${value.slice(3)}`;
-    }
-    setPhone(formatted);
-  };
+   // Handle age change
+   const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value.replace(/[^0-9]/g, "");
+      const numValue = parseInt(value);
+      if (value === "" || (numValue >= 0 && numValue <= 99)) {
+         setAge(value);
+      }
+   };
 
-  const handleEmergencyContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    if (value.length > 10) return;
-    let formatted = value;
-    if (value.length > 6) {
-      formatted = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(6)}`;
-    } else if (value.length > 3) {
-      formatted = `${value.slice(0, 3)}-${value.slice(3)}`;
-    }
-    setEmergencyContact(formatted);
-  };
+   // Handle delete account
+   const handleDeleteAccount = async () => {
+      if (!user) return;
 
+      try {
+         await deleteAccount(user.id);
+         toast.success("Account deleted successfully");
+         onNavigate("login");
+      } catch (error) {
+         toast.error("Failed to delete account. Please try again later.");
+      }
+   };
 
-  // Handle age change
-  const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    const numValue = parseInt(value);
-    if (value === "" || (numValue >= 0 && numValue <= 99)) {
-      setAge(value);
-    }
-  };
+   // Handle avatar click to open file picker
+   const handleAvatarClick = () => {
+      fileInputRef.current?.click();
+   };
 
-  // Handle delete account
-  const handleDeleteAccount = async () => {
-    if (!user) return;
+   // Handle avatar image selection
+   const handleAvatarChange = async (
+      e: React.ChangeEvent<HTMLInputElement>
+   ) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    try {
-      await deleteAccount(user.id);
-      toast.success("Account deleted successfully");
-      onNavigate("login");
-    } catch (error) {
-      toast.error("Failed to delete account. Please try again later.");
-    }
-  };
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+         toast.error("Please select an image file");
+         return;
+      }
 
-  return (
-    <div className="bg-[#16161b] h-full flex flex-col justify-between relative p-6">
-      {/* Main Content - Scrollable */}
-      <div className="flex-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <div className="content-stretch flex flex-col gap-[69px] items-center pb-[40px] pt-[80px] px-[40px] w-full">
-          {/* Profile Header */}
-          <div className="content-stretch flex items-center justify-between relative w-full">
-            <div className="content-stretch flex gap-[19px] items-center relative">
-              {/* Avatar */}
-              <div className="overflow-clip relative rounded-[9999px] size-[64px]">
-                <img
-                  src={profileImage}
-                  alt={name}
-                  className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none size-full"
-                />
-              </div>
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+         toast.error("Image size should be less than 5MB");
+         return;
+      }
 
-              {/* Name and Username */}
-              <div className="content-stretch flex flex-col gap-[0.5rem] items-start leading-[0] relative w-[8rem]">
-                <div className="flex flex-col justify-center relative text-[24px] text-white tracking-[0.12px] w-full">
-                  <p className="leading-none" style={{ fontWeight: 600 }}>
-                    {name}
-                  </p>
-                </div>
-                <div className="flex flex-col justify-center relative text-[16px] text-zinc-400 tracking-[0.12px] w-full">
-                  <p
-                    className="leading-none"
-                    style={{ fontWeight: 600, color: "gray" }}
+      // Create a local URL for the image and display it
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+         const imageUrl = event.target?.result as string;
+         setProfileImage(imageUrl);
+
+         // Upload to backend
+         if (!user) return;
+
+         try {
+            const API_BASE_URL = import.meta.env.VITE_API_URL;
+            const res = await fetch(`${API_BASE_URL}/users/avatar/${user.id}`, {
+               method: "PATCH",
+               headers: {
+                  "Content-Type": "application/json",
+               },
+               body: JSON.stringify({ avatar: imageUrl }),
+            });
+
+            if (!res.ok) {
+               throw new Error("Failed to upload avatar");
+            }
+
+            toast.success("Avatar updated successfully");
+         } catch (err) {
+            console.error("Error uploading avatar:", err);
+            toast.error("Failed to upload avatar");
+         }
+      };
+      reader.readAsDataURL(file);
+   };
+
+   return (
+      <div className="bg-[#16161b] h-full flex flex-col justify-between relative p-6">
+         {/* Main Content - Scrollable */}
+         <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="content-stretch flex flex-col gap-[69px] items-center pb-[80px] pt-[80px] px-[40px] w-full">
+               {/* Profile Header */}
+               <div className="content-stretch flex items-center justify-between relative w-full">
+                  <div className="content-stretch flex gap-[19px] items-center relative">
+                     {/* Avatar with hover effect */}
+                     <div
+                        className={`overflow-clip relative rounded-[9999px] size-[64px] ${
+                           isEditing ? "cursor-pointer group" : ""
+                        }`}
+                        onMouseEnter={() =>
+                           isEditing && setIsHoveringAvatar(true)
+                        }
+                        onMouseLeave={() => setIsHoveringAvatar(false)}
+                        onClick={isEditing ? handleAvatarClick : undefined}
+                     >
+                        <img
+                           src={profileImage}
+                           alt={name}
+                           className={`absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none size-full transition-opacity duration-200 ${
+                              isEditing ? "group-hover:opacity-50" : ""
+                           }`}
+                        />
+                        {/* Hover overlay with change icon */}
+                        {isEditing && (
+                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black bg-opacity-40">
+                              <span className="material-symbols-outlined text-white text-[28px]">
+                                 photo_camera
+                              </span>
+                           </div>
+                        )}
+                     </div>
+                     {/* Hidden file input */}
+                     <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                     />
+
+                     {/* Name and Username */}
+                     <div className="content-stretch flex flex-col gap-[0.5rem] items-start leading-[0] relative w-[8rem]">
+                        <div className="flex flex-col justify-center relative text-[24px] text-white tracking-[0.12px] w-full">
+                           <p
+                              className="leading-none"
+                              style={{ fontWeight: 600 }}
+                           >
+                              {name}
+                           </p>
+                        </div>
+                        <div className="flex flex-col justify-center relative text-[16px] text-zinc-400 tracking-[0.12px] w-full">
+                           <p
+                              className="leading-none"
+                              style={{ fontWeight: 600, color: "gray" }}
+                           >
+                              @{username}
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Edit Button */}
+                  <button
+                     onClick={() =>
+                        isEditing ? handleSave() : setIsEditing(true)
+                     }
+                     className="relative size-[32px] cursor-pointer flex items-center justify-center"
                   >
-                    @{username}
-                  </p>
-                </div>
-              </div>
-            </div>
+                     <span className="material-symbols-outlined text-white text-[20px]">
+                        {isEditing ? "check" : "edit"}
+                     </span>
+                  </button>
+               </div>
 
-            {/* Edit Button */}
-            <button
-              onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-              className="relative size-[32px] cursor-pointer flex items-center justify-center"
-            >
-              <span className="material-symbols-outlined text-white text-[20px]">
-                {isEditing ? "check" : "edit"}
-              </span>
-            </button>
-          </div>
+               {/* Form Fields */}
+               <div className="content-stretch flex flex-col gap-[20px] items-start relative w-full">
+                  {/* Email */}
+                  <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                     <p
+                        className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                        style={{ fontWeight: 600 }}
+                     >
+                        Email
+                     </p>
+                     <Input type="email" value={email} disabled={true} />
+                  </div>
 
-          {/* Form Fields */}
-          <div className="content-stretch flex flex-col gap-[20px] items-start relative w-full">
-            {/* Email */}
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p
-                className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
-                style={{ fontWeight: 600 }}
-              >
-                Email
-              </p>
-              <Input type="email" value={email} disabled={true} />
-            </div>
+                  {/* Phone Number */}
+                  <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                     <p
+                        className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                        style={{ fontWeight: 600 }}
+                     >
+                        Phone Number
+                     </p>
+                     <Input
+                        type="tel"
+                        value={phone}
+                        onChange={handlePhoneChange}
+                        disabled={!isEditing}
+                     />
+                  </div>
 
-            {/* Phone Number */}
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p
-                className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
-                style={{ fontWeight: 600 }}
-              >
-                Phone Number
-              </p>
-              <Input
-                type="tel"
-                value={phone}
-                onChange={handlePhoneChange}
-                disabled={!isEditing}
-              />
-            </div>
+                  {/* Age and Gender Row */}
+                  <div className="content-stretch flex flex-row gap-[20px] items-center relative w-full">
+                     {/* Age */}
+                     <div className="content-stretch flex flex-col gap-[4px] items-start relative w-1/3">
+                        <p
+                           className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                           style={{ fontWeight: 600 }}
+                        >
+                           Age
+                        </p>
+                        <Input
+                           type="text"
+                           value={age}
+                           onChange={handleAgeChange}
+                           disabled={!isEditing}
+                        />
+                     </div>
 
-            {/* Age and Gender Row */}
-            <div className="content-stretch flex flex-row gap-[20px] items-center relative w-full">
-              {/* Age */}
-              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-1/3">
-                <p
-                  className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
-                  style={{ fontWeight: 600 }}
-                >
-                  Age
-                </p>
-                <Input
-                  type="text"
-                  value={age}
-                  onChange={handleAgeChange}
-                  disabled={!isEditing}
-                />
-              </div>
+                     {/* Gender */}
+                     <div className="content-stretch flex flex-col gap-[4px] items-start relative w-2/3">
+                        <p
+                           className="leading-none relative text-[18px] text-nowrap text-white tracking-[0.07px] whitespace-pre"
+                           style={{ fontWeight: 600 }}
+                        >
+                           Gender
+                        </p>
+                        {isEditing ? (
+                           <select
+                              value={gender}
+                              onChange={(e) => setGender(e.target.value)}
+                              className="bg-primary-foreground text-primary border-accent w-full rounded-[10px] border-[2px] px-[14px] py-[12px] text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm [&>option]:rounded-lg"
+                           >
+                              {[gender, "male", "female", "other"]
+                                 .filter(
+                                    (g, i, arr) => g && arr.indexOf(g) === i
+                                 )
+                                 .map((g) => (
+                                    <option key={g} value={g}>
+                                       {g}
+                                    </option>
+                                 ))}
+                           </select>
+                        ) : (
+                           <Input type="text" value={gender} disabled />
+                        )}
+                     </div>
+                  </div>
+                  {/* TODO: MAKE THIS WORK */}
+                  <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
+                     <p
+                        className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
+                        style={{ fontWeight: 600 }}
+                     >
+                        Emergency Contact
+                     </p>
+                     <Input
+                        type="tel"
+                        value={emergencyContact}
+                        onChange={handleEmergencyContactChange}
+                        disabled={!isEditing}
+                     />
+                  </div>
 
-              {/* Gender */}
-              <div className="content-stretch flex flex-col gap-[4px] items-start relative w-2/3">
-                <p
-                  className="leading-none relative text-[18px] text-nowrap text-white tracking-[0.07px] whitespace-pre"
-                  style={{ fontWeight: 600 }}
-                >
-                  Gender
-                </p>
-                {isEditing ? (
-                  <select
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
-                    className="bg-primary-foreground text-primary border-accent w-full rounded-[10px] border-[2px] px-[14px] py-[12px] text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm [&>option]:rounded-lg"
+                  {/* Logout Button */}
+                  <Button
+                     onClick={() => {
+                        logout();
+                        onNavigate("ride");
+                     }}
+                     className="w-full mt-[3rem]"
+                     variant="destructive"
                   >
-                    {[gender, "male", "female", "other"]
-                      .filter((g, i, arr) => g && arr.indexOf(g) === i)
-                      .map((g) => (
-                        <option key={g} value={g}>
-                          {g}
-                        </option>
-                      ))}
-                  </select>
-                ) : (
-                  <Input type="text" value={gender} disabled />
-                )}
-              </div>
+                     Logout
+                  </Button>
+                  <Button
+                     onClick={() => setIsConfirmOpen(true)}
+                     className="w-full mt-2"
+                     variant="secondary"
+                  >
+                     Delete Account
+                  </Button>
+               </div>
             </div>
-            {/* TODO: MAKE THIS WORK */}
-            <div className="content-stretch flex flex-col gap-[4px] items-start relative w-full">
-              <p
-                className="leading-none relative text-[18px] text-white tracking-[0.07px] w-full"
-                style={{ fontWeight: 600 }}
-              >
-                Emergency Contact
-              </p>
-              <Input
-                type="tel"
-                value={emergencyContact}
-                onChange={handleEmergencyContactChange}
-                disabled={!isEditing}
-              />
-            </div>
-
-            {/* Logout Button */}
-            <Button
-              onClick={() => {
-                logout();
-                onNavigate("ride");
-              }}
-              className="w-full mt-[3rem]"
-              variant="destructive"
-            >
-              Logout
-            </Button>
-            <Button
-              onClick={() => setIsConfirmOpen(true)}
-              className="w-full mt-2"
-              variant="secondary"
-            >
-              Delete Account
-            </Button>
-          </div>
-        </div>
+         </div>
+         <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+            <DialogContent className="bg-[#1f1f23] text-white">
+               <DialogHeader>
+                  <DialogTitle className="mt-[1rem]">
+                     Delete Account?
+                  </DialogTitle>
+                  <DialogDescription className="text-zinc-400">
+                     This action cannot be undone. All your data will be
+                     permanently deleted.
+                  </DialogDescription>
+               </DialogHeader>
+               <DialogFooter className="flex gap-2 justify-end mb-[1rem]">
+                  <Button
+                     variant="secondary"
+                     className="ml-[1rem] mr-[1rem]"
+                     onClick={() => setIsConfirmOpen(false)}
+                  >
+                     Cancel
+                  </Button>
+                  <Button
+                     variant="destructive"
+                     className="ml-[1rem] mr-[1rem]"
+                     onClick={handleDeleteAccount}
+                  >
+                     Delete
+                  </Button>
+               </DialogFooter>
+            </DialogContent>
+         </Dialog>
       </div>
-      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <DialogContent className="bg-[#1f1f23] text-white">
-          <DialogHeader>
-            <DialogTitle className="mt-[1rem]">Delete Account?</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              This action cannot be undone. All your data will be permanently
-              deleted.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 justify-end mb-[1rem]">
-            <Button
-              variant="secondary"
-              className="ml-[1rem] mr-[1rem]"
-              onClick={() => setIsConfirmOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              className="ml-[1rem] mr-[1rem]"
-              onClick={handleDeleteAccount}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+   );
 }
